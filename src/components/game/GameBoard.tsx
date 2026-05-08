@@ -169,6 +169,7 @@ export function GameBoard() {
               pickMode={true}
               pileToPickFrom={pile}
               pickedPileIndex={pickedPileIndex}
+              onPickPileCard={handlePickPileCard}
               onPickInsert={handleInsertAtIndex}
             />
           ) : (

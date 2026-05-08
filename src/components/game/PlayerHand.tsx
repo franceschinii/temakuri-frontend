@@ -9,12 +9,13 @@ interface PlayerHandProps {
   hand: Card[];
   isMyTurn: boolean;
   onPickInsert?: (insertAtIndex: number) => void;
+  onPickPileCard?: (index: number) => void;
   pickMode?: boolean;
   pileToPickFrom?: Card[];
   pickedPileIndex?: number | null;
 }
 
-export function PlayerHand({ hand, isMyTurn, onPickInsert, pickMode, pileToPickFrom, pickedPileIndex }: PlayerHandProps) {
+export function PlayerHand({ hand, isMyTurn, onPickInsert, onPickPileCard, pickMode, pileToPickFrom, pickedPileIndex }: PlayerHandProps) {
   const { selectedIndices, toggleCardSelection, saborActive, saborMinRequired } = useGameStore();
   const [hoveredInsert, setHoveredInsert] = useState<number | null>(null);
 
@@ -47,7 +48,7 @@ export function PlayerHand({ hand, isMyTurn, onPickInsert, pickMode, pileToPickF
               key={card.id}
               card={card}
               selected={pickedPileIndex === i}
-              onClick={() => {/* handled by parent */}}
+              onClick={() => onPickPileCard?.(i)}
             />
           ))}
         </div>

@@ -1,4 +1,4 @@
-import { StrictMode } from 'react';
+import { StrictMode, useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { QueryClientProvider } from '@tanstack/react-query';
@@ -10,7 +10,7 @@ import './styles/globals.css';
 
 function Root() {
   const initSocket = useAuthStore(s => s.initSocket);
-  initSocket();
+  useEffect(() => { initSocket(); }, []);
   return (
     <>
       <App />
