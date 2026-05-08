@@ -1,0 +1,86 @@
+export type FoodCategory =
+  | 'SUSHI'
+  | 'RAMEN'
+  | 'TACO'
+  | 'PIZZA'
+  | 'CURRY'
+  | 'BURGER'
+  | 'DESSERT';
+
+export type GameMode =
+  | 'TRADITIONAL'
+  | 'MERCADO'
+  | 'RODIZIO'
+  | 'DEGUSTACAO';
+
+export type RoomStatus =
+  | 'WAITING'
+  | 'STARTING'
+  | 'IN_PROGRESS'
+  | 'FINISHED';
+
+export type GamePhase =
+  | 'DEALING'
+  | 'PLAYER_TURN'
+  | 'PASS_PICK'
+  | 'WIPE_RESOLUTION'
+  | 'ROUND_END'
+  | 'GAME_OVER';
+
+export interface Card {
+  id: string;
+  value: 1 | 2 | 3 | 4 | 5 | 6 | 7;
+  category: FoodCategory;
+  variantIndex: number;
+}
+
+export interface PublicPlayerState {
+  userId: string;
+  username: string;
+  avatarIndex: number;
+  seat: number;
+  cardCount: number;
+  tokensLeft: number;
+  isConnected: boolean;
+  isEliminated: boolean;
+  isReady: boolean;
+}
+
+export interface ClientGameState {
+  roomCode: string;
+  mode: GameMode;
+  phase: GamePhase;
+  round: number;
+  currentTurnUserId: string;
+  players: PublicPlayerState[];
+  pile: Card[];
+  market: Card[] | null;
+  saborActive: boolean;
+  saborMinRequired: number;
+  consecutivePasses: number;
+  myHand: Card[];
+}
+
+export interface GameRanking {
+  userId: string;
+  username: string;
+  placement: number;
+  tokensLeft: number;
+}
+
+export interface GameStats {
+  totalRounds: number;
+  saborTriggers: number;
+  tricksWon: Record<string, number>;
+}
+
+export interface RoomPublicState {
+  id: string;
+  code: string;
+  hostId: string;
+  status: RoomStatus;
+  mode: GameMode;
+  maxPlayers: number;
+  isPrivate: boolean;
+  players: PublicPlayerState[];
+}
