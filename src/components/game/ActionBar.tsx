@@ -29,7 +29,7 @@ export function ActionBar({ isMyTurn, pile, onPlay, onPass, canPlay }: ActionBar
         onClick={onPlay}
         disabled={!canPlay || selectedIndices.length === 0}
       >
-        Jogar {selectedIndices.length > 0 ? `(${selectedIndices.length})` : ''}
+        {selectedIndices.length > 0 ? `Jogar (${selectedIndices.length})` : 'Jogar'}
       </Button>
       <Button
         variant="secondary"
@@ -37,7 +37,10 @@ export function ActionBar({ isMyTurn, pile, onPlay, onPass, canPlay }: ActionBar
         onClick={onPass}
         disabled={pile.length === 0}
       >
-        Passar {pile.length > 0 && <span className="text-xs text-[var(--color-text-muted)]">+1 carta</span>}
+        Passar
+        {pile.length > 0 && (
+          <span className="text-xs text-[var(--color-text-muted)] ml-1">+1 carta</span>
+        )}
       </Button>
     </div>
   );

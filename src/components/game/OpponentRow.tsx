@@ -1,6 +1,5 @@
 import { TokenDisplay } from './TokenDisplay';
-import { CardComponent } from './CardComponent';
-import type { PublicPlayerState, Card } from '@/types/game';
+import type { PublicPlayerState } from '@/types/game';
 import { cn } from '@/lib/utils';
 
 interface OpponentRowProps {
@@ -9,39 +8,57 @@ interface OpponentRowProps {
 }
 
 export function OpponentRow({ player, isCurrentTurn }: OpponentRowProps) {
-  const fakeCards = Array.from({ length: Math.min(player.cardCount, 11) });
+  const visibleCards = Math.min(player.cardCount, 8);
+  const extraCards = player.cardCount - visibleCards;
 
   return (
     <div className={cn(
-      'flex flex-col items-center gap-1.5 p-2 rounded-xl transition-all',
+      'flex flex-col items-center gap-1.5 px-3 py-2 rounded-xl transition-all min-w-0',
       isCurrentTurn && 'ring-2 ring-[var(--color-accent-soft)] bg-[var(--color-surface)]',
       player.isEliminated && 'opacity-30',
     )}>
-      <div className="flex items-center gap-2">
-        <span className={cn(
-          'w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold',
+      {/* Avatar + name */}
+      <div className="flex items-center gap-1.5">
+        <div className={cn(
+          'w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold shrink-0',
           'bg-[var(--color-panel)] text-[var(--color-accent-soft)]',
+          isCurrentTurn && 'ring-1 ring-[var(--color-accent-soft)]',
         )}>
           {player.username[0].toUpperCase()}
-        </span>
+        </div>
         <span className={cn(
-          'text-sm font-medium',
+          'text-xs font-medium truncate max-w-20',
           isCurrentTurn ? 'text-[var(--color-accent-soft)]' : 'text-[var(--color-text-muted)]',
         )}>
           {player.username}
         </span>
-        {!player.isConnected && <span className="text-xs text-[var(--color-danger)]">●</span>}
-      </div>
-      <TokenDisplay tokens={player.tokensLeft} size="sm" />
-      <div className="flex gap-0.5 flex-wrap justify-center max-w-32">
-        {fakeCards.map((_, i) => (
-          <CardComponent key={i} card={{ id: `fake-${i}`, value: 1, category: 'SUSHI', variantIndex: 0 }} faceDown small />
-        ))}
-        {player.cardCount > 11 && (
-          <span className="text-xs text-[var(--color-text-muted)] self-end">+{player.cardCount - 11}</span>
+        {!player.isConnected && (
+          <span className="text-[9px] text-[var(--color-danger)] shrink-0">●</span>
         )}
       </div>
-      <span className="text-xs text-[var(--color-text-muted)]">{player.cardCount} carta{player.cardCount !== 1 ? 's' : ''}</span>
+
+      {/* Tokens */}
+      <TokenDisplay tokens={player.tokensLeft} size="sm" />
+
+      {/* Cards facedown — fanned layout */}
+      <div className="flex items-end justify-center" style={{ height: 28 }}>
+        {Array.from({ length: visibleCards }).map((_, i) => (
+          <div
+            key={i}
+            className="w-5 h-7 rounded border border-[var(--color-border)] bg-[var(--color-panel)] -ml-2 first:ml-0 flex items-center justify-center"
+            style={{ zIndex: i }}
+          >
+            <span className="text-[8px] opacity-40">🍱</span>
+          </div>
+        ))}
+        {extraCards > 0 && (
+          <span className="text-[10px] text-[var(--color-text-muted)] ml-1 self-end">+{extraCards}</span>
+        )}
+      </div>
+
+      <span className="text-[10px] text-[var(--color-text-muted)] tabular-nums">
+        {player.cardCount} carta{player.cardCount !== 1 ? 's' : ''}
+      </span>
     </div>
   );
 }

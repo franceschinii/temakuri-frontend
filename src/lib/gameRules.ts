@@ -32,8 +32,9 @@ export function validatePlayIndicesClient(
   if (!isSameValue(selected)) return false;
 
   if (saborActive) {
-    const breaksSabor = selected.length >= saborMinRequired && !isSameCategory(selected);
-    if (!breaksSabor && selected.length <= saborMinRequired) return false;
+    const breaksSabor = !isSameCategory(selected) && selected.length >= saborMinRequired;
+    const exceedsRequirement = selected.length > saborMinRequired;
+    if (!breaksSabor && !exceedsRequirement) return false;
   }
 
   if (pile.length === 0) return true;

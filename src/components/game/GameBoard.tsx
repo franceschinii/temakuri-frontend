@@ -1,4 +1,4 @@
-import { useEffect, useCallback, useState } from 'react';
+import { useEffect, useCallback, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useGameStore } from '@/stores/gameStore';
@@ -14,39 +14,56 @@ import { TurnTimer } from './TurnTimer';
 import { TokenDisplay } from './TokenDisplay';
 import { RoundSummary } from './RoundSummary';
 import { GameOverModal } from './GameOverModal';
+import { MarketRow } from './MarketRow';
+import { ReactionBar } from './ReactionBar';
 import type { Card, ClientGameState, GameRanking, GameStats } from '@/types/game';
 import { validatePlayIndicesClient } from '@/lib/gameRules';
+import { playSound } from '@/lib/sounds';
 
 export function GameBoard() {
   const { roomCode } = useParams<{ roomCode: string }>();
   const navigate = useNavigate();
   const user = useAuthStore(s => s.user);
   const {
-    phase, myHand, players, pile, market, saborActive, saborMinRequired,
+    phase, myHand, players, pile, market, saborActive, saborMinRequired, saborTriggeredBy,
     currentTurnUserId, consecutivePasses, selectedIndices,
     syncState, setMyHand, applyCardsPlayed, applyTurnPassed, applyWipe,
     setSaborActive, applyRoundEnd, applyGameOver, clearRoundSummary,
     roundSummaryData, gameOverData, addReaction, reactions, updateMarket,
   } = useGameStore();
 
-  const { playSelectedCards, passTurn, requestState } = useGame(roomCode!);
+  const { playSelectedCards, passTurn, swapWithMarket, sendReaction, requestState } = useGame(roomCode!);
 
   const [timerMs, setTimerMs] = useState(30_000);
   const [pickMode, setPickMode] = useState(false);
   const [pickedPileIndex, setPickedPileIndex] = useState<number | null>(null);
+  const [marketSwapMode, setMarketSwapMode] = useState(false);
+  const [selectedHandIndexForSwap, setSelectedHandIndexForSwap] = useState<number | null>(null);
+  const prevTurnRef = useRef<string>('');
 
   const isMyTurn = user?.id === currentTurnUserId;
   const me = players.find(p => p.userId === user?.id);
   const opponents = players.filter(p => p.userId !== user?.id);
+  const isWipeWinner = phase === 'PLAYER_TURN' && market !== null && currentTurnUserId === user?.id && pile.length === 0;
 
   useEffect(() => {
     if (roomCode) requestState();
   }, [roomCode]);
 
+  // Notifica meu turno com som
+  useEffect(() => {
+    if (isMyTurn && currentTurnUserId !== prevTurnRef.current) {
+      playSound('your_turn');
+    }
+    prevTurnRef.current = currentTurnUserId;
+  }, [isMyTurn, currentTurnUserId]);
+
   useSocketEvent<{ state: ClientGameState }>('game:state_sync', useCallback(({ state }) => {
     syncState(state);
     setPickMode(false);
     setPickedPileIndex(null);
+    setMarketSwapMode(false);
+    setSelectedHandIndexForSwap(null);
   }, [syncState]));
 
   useSocketEvent<{ userId: string; timeoutMs: number }>('game:turn_started', useCallback(({ userId, timeoutMs }) => {
@@ -58,20 +75,25 @@ export function GameBoard() {
 
   useSocketEvent<{ userId: string; cards: Card[]; isSabor: boolean }>('game:cards_played', useCallback(({ userId, cards, isSabor }) => {
     applyCardsPlayed(userId, cards, isSabor);
+    playSound('play');
   }, [applyCardsPlayed]));
 
   useSocketEvent<{ userId: string; pickedCard: Card }>('game:turn_passed', useCallback(({ userId, pickedCard }) => {
     applyTurnPassed(userId, pickedCard);
+    playSound('pass');
     if (userId === user?.id) setPickMode(false);
   }, [applyTurnPassed, user?.id]));
 
   useSocketEvent<{ winnerId: string }>('game:wipe', useCallback(({ winnerId }) => {
     applyWipe(winnerId);
+    playSound('wipe');
   }, [applyWipe]));
 
-  useSocketEvent<{ triggeredBy: string; minRequired: number }>('game:sabor_active', useCallback(({ minRequired }) => {
-    setSaborActive(true, minRequired);
-  }, [setSaborActive]));
+  useSocketEvent<{ triggeredBy: string; minRequired: number }>('game:sabor_active', useCallback(({ triggeredBy, minRequired }) => {
+    const name = players.find(p => p.userId === triggeredBy)?.username ?? triggeredBy;
+    setSaborActive(true, minRequired, name);
+    playSound('sabor');
+  }, [setSaborActive, players]));
 
   useSocketEvent<{ brokenBy: string }>('game:sabor_broken', useCallback(() => {
     setSaborActive(false, 0);
@@ -79,10 +101,12 @@ export function GameBoard() {
 
   useSocketEvent<{ loserIds: string[]; playerTokens: Record<string, number> }>('game:round_ended', useCallback(({ loserIds, playerTokens }) => {
     applyRoundEnd(loserIds, playerTokens);
+    playSound('round_end');
   }, [applyRoundEnd]));
 
   useSocketEvent<{ rankings: GameRanking[]; stats: GameStats }>('game:game_over', useCallback(({ rankings, stats }) => {
     applyGameOver(rankings, stats);
+    playSound('game_over');
   }, [applyGameOver]));
 
   useSocketEvent<{ hand: Card[] }>('game:your_hand', useCallback(({ hand }) => {
@@ -91,6 +115,8 @@ export function GameBoard() {
 
   useSocketEvent<{ market: Card[] }>('game:market_updated', useCallback(({ market }) => {
     updateMarket(market);
+    setMarketSwapMode(false);
+    setSelectedHandIndexForSwap(null);
   }, [updateMarket]));
 
   useSocketEvent<{ userId: string; emoji: string }>('game:reaction', useCallback(({ userId, emoji }) => {
@@ -118,22 +144,36 @@ export function GameBoard() {
     setPickedPileIndex(null);
   };
 
+  const handleMarketSwap = (marketIndex: number) => {
+    if (selectedHandIndexForSwap === null) return;
+    swapWithMarket(selectedHandIndexForSwap, marketIndex);
+    setMarketSwapMode(false);
+    setSelectedHandIndexForSwap(null);
+  };
+
   return (
-    <div className="flex flex-col min-h-dvh bg-[var(--color-base)] overflow-hidden">
+    <div className="flex flex-col min-h-dvh bg-[var(--color-base)] overflow-hidden select-none">
       {/* Opponents */}
-      <div className="flex gap-3 justify-center flex-wrap p-3 border-b border-[var(--color-border)]">
+      <div className="flex gap-2 justify-center flex-wrap p-3 border-b border-[var(--color-border)] bg-[var(--color-surface)]">
         {opponents.map(p => (
           <OpponentRow key={p.userId} player={p} isCurrentTurn={p.userId === currentTurnUserId} />
         ))}
+        {opponents.length === 0 && (
+          <span className="text-xs text-[var(--color-text-muted)] py-2">Aguardando oponentes...</span>
+        )}
       </div>
 
       {/* Center area */}
-      <div className="flex-1 flex flex-col items-center justify-center gap-4 p-4">
-        <SaborIndicator
-          active={saborActive}
-          minRequired={saborMinRequired}
-          triggeredBy={players.find(p => p.userId === currentTurnUserId)?.username}
-        />
+      <div className="flex-1 flex flex-col items-center justify-center gap-3 p-4">
+        <AnimatePresence>
+          {saborActive && (
+            <SaborIndicator
+              active={saborActive}
+              minRequired={saborMinRequired}
+              triggeredBy={saborTriggeredBy ?? undefined}
+            />
+          )}
+        </AnimatePresence>
 
         {isMyTurn && (
           <TurnTimer timeoutMs={timerMs} isMyTurn={isMyTurn} />
@@ -148,16 +188,43 @@ export function GameBoard() {
           pickedIndex={pickedPileIndex}
           onPickCard={handlePickPileCard}
         />
+
+        {/* Mercado */}
+        {market && market.length > 0 && (
+          <MarketRow
+            market={market}
+            canSwap={isWipeWinner && marketSwapMode}
+            onSwap={handleMarketSwap}
+          />
+        )}
+        {isWipeWinner && !marketSwapMode && (
+          <button
+            onClick={() => setMarketSwapMode(true)}
+            className="text-xs text-[var(--color-token-gold)] underline hover:no-underline transition-all"
+          >
+            Trocar carta com o mercado
+          </button>
+        )}
       </div>
 
-      {/* My info bar */}
-      <div className="border-t border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2">
+      {/* My area */}
+      <div className="border-t border-[var(--color-border)] bg-[var(--color-surface)] px-4 pt-3 pb-4">
+        {/* Info bar */}
         <div className="flex items-center justify-between mb-2">
-          <span className="text-sm font-medium text-[var(--color-text-primary)]">
-            {me?.username ?? 'Você'}
-          </span>
-          {me && <TokenDisplay tokens={me.tokensLeft} size="sm" />}
-          <span className="text-xs text-[var(--color-text-muted)]">{myHand.length} cartas</span>
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-semibold text-[var(--color-text-primary)]">
+              {me?.username ?? 'Você'}
+            </span>
+            {isMyTurn && (
+              <span className="text-xs px-1.5 py-0.5 rounded bg-[var(--color-accent-strong)] text-[var(--color-text-primary)] font-medium">
+                Seu turno
+              </span>
+            )}
+          </div>
+          <div className="flex items-center gap-3">
+            {me && <TokenDisplay tokens={me.tokensLeft} size="sm" />}
+            <span className="text-xs text-[var(--color-text-muted)] tabular-nums">{myHand.length} cartas</span>
+          </div>
         </div>
 
         {/* Hand */}
@@ -177,9 +244,9 @@ export function GameBoard() {
           )}
         </div>
 
-        {/* Action bar */}
-        {!pickMode && (
-          <div className="mt-2">
+        {/* Actions */}
+        {!pickMode && !marketSwapMode && (
+          <div className="mt-2 flex flex-col gap-2">
             <ActionBar
               isMyTurn={isMyTurn}
               pile={pile}
@@ -187,6 +254,34 @@ export function GameBoard() {
               onPass={handlePass}
               canPlay={canPlay}
             />
+            {isMyTurn && (
+              <ReactionBar onReact={sendReaction} />
+            )}
+          </div>
+        )}
+
+        {/* Market swap: select hand card */}
+        {marketSwapMode && (
+          <div className="mt-2 flex flex-col items-center gap-2">
+            <p className="text-xs text-[var(--color-token-gold)]">
+              {selectedHandIndexForSwap === null
+                ? 'Clique em uma carta da sua mão para selecionar'
+                : 'Agora clique em uma carta do mercado acima'}
+            </p>
+            <div className="overflow-x-auto w-full">
+              <PlayerHand
+                hand={myHand}
+                isMyTurn={true}
+                swapSelectIndex={selectedHandIndexForSwap}
+                onSwapSelect={setSelectedHandIndexForSwap}
+              />
+            </div>
+            <button
+              onClick={() => { setMarketSwapMode(false); setSelectedHandIndexForSwap(null); }}
+              className="text-xs text-[var(--color-text-muted)] underline"
+            >
+              Cancelar
+            </button>
           </div>
         )}
       </div>
@@ -199,11 +294,13 @@ export function GameBoard() {
             <motion.div
               key={r.id}
               initial={{ opacity: 0, scale: 0.5, y: 0 }}
-              animate={{ opacity: 1, scale: 1, y: -60 }}
+              animate={{ opacity: 1, scale: 1.2, y: -80 }}
               exit={{ opacity: 0, scale: 0.5 }}
-              className="fixed bottom-32 left-1/2 -translate-x-1/2 bg-[var(--color-panel)] px-3 py-1.5 rounded-full text-lg shadow-lg pointer-events-none"
+              transition={{ duration: 0.3 }}
+              className="fixed bottom-36 left-1/2 -translate-x-1/2 bg-[var(--color-panel)] px-3 py-1.5 rounded-full text-2xl shadow-xl pointer-events-none z-30 border border-[var(--color-border)]"
             >
-              {r.emoji} <span className="text-xs text-[var(--color-text-muted)]">{p?.username}</span>
+              {r.emoji}
+              {p && <span className="text-xs text-[var(--color-text-muted)] ml-1">{p.username}</span>}
             </motion.div>
           );
         })}

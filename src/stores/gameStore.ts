@@ -10,6 +10,7 @@ interface GameStoreState {
   market: Card[] | null;
   saborActive: boolean;
   saborMinRequired: number;
+  saborTriggeredBy: string | null;
   currentTurnUserId: string;
   consecutivePasses: number;
   selectedIndices: number[];
@@ -26,7 +27,7 @@ interface GameStoreState {
   applyCardsPlayed: (userId: string, cards: Card[], isSabor: boolean) => void;
   applyTurnPassed: (userId: string, pickedCard: Card) => void;
   applyWipe: (winnerId: string) => void;
-  setSaborActive: (active: boolean, minRequired: number) => void;
+  setSaborActive: (active: boolean, minRequired: number, triggeredBy?: string) => void;
   applyRoundEnd: (loserIds: string[], playerTokens: Record<string, number>) => void;
   applyGameOver: (rankings: GameRanking[], stats: GameStats) => void;
   clearRoundSummary: () => void;
@@ -44,6 +45,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   market: null,
   saborActive: false,
   saborMinRequired: 0,
+  saborTriggeredBy: null,
   currentTurnUserId: '',
   consecutivePasses: 0,
   selectedIndices: [],
@@ -103,11 +105,15 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       ),
     })),
 
-  applyWipe: (winnerId) =>
-    set({ pile: [], consecutivePasses: 0, saborActive: false, saborMinRequired: 0 }),
+  applyWipe: () =>
+    set({ pile: [], consecutivePasses: 0, saborActive: false, saborMinRequired: 0, saborTriggeredBy: null }),
 
-  setSaborActive: (active, minRequired) =>
-    set({ saborActive: active, saborMinRequired: active ? minRequired : 0 }),
+  setSaborActive: (active, minRequired, triggeredBy) =>
+    set((s) => ({
+      saborActive: active,
+      saborMinRequired: active ? minRequired : 0,
+      saborTriggeredBy: active ? (triggeredBy ?? s.saborTriggeredBy) : null,
+    })),
 
   applyRoundEnd: (loserIds, playerTokens) =>
     set((s) => ({
@@ -139,7 +145,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   reset: () =>
     set({
       phase: null, round: 0, myHand: [], players: [], pile: [], market: null,
-      saborActive: false, saborMinRequired: 0, currentTurnUserId: '',
+      saborActive: false, saborMinRequired: 0, saborTriggeredBy: null, currentTurnUserId: '',
       consecutivePasses: 0, selectedIndices: [], pendingPickFromPile: false,
       gameOverData: null, roundSummaryData: null, reactions: [],
     }),
