@@ -120,8 +120,14 @@ export function GameBoard() {
     setTimerMs(timeoutMs);
     setTimerKey(k => k + 1);
     setPickMode(false);
+    setDrawnCard(null);
     setTrickPickOpen(false);
-  }, []));
+    // Resyncs if hand appears empty mid-game (lost game:your_hand event)
+    const { myHand, phase } = useGameStore.getState();
+    if (myHand.length === 0 && phase !== 'GAME_OVER' && phase !== 'ROUND_END') {
+      emitSocketEvent('game:request_state', { roomCode });
+    }
+  }, [roomCode]));
 
   useSocketEvent<{ userId: string; cards: Card[]; isSabor: boolean }>('game:cards_played', useCallback(({ userId, cards, isSabor }) => {
     applyCardsPlayed(userId, cards, isSabor);
@@ -213,6 +219,12 @@ export function GameBoard() {
     }));
   }, []));
 
+  useSocketEvent<{ code: string; message: string }>('game:error', useCallback(({ message }) => {
+    toast.error(message);
+    // Resync on any server-side rejection to recover from desyncs
+    emitSocketEvent('game:request_state', { roomCode });
+  }, [roomCode]));
+
   useSocketEvent<{ userId: string }>('game:player_disconnected', useCallback(({ userId }) => {
     const name = useGameStore.getState().players.find(p => p.userId === userId)?.username ?? userId;
     toast.warning(`${name} saiu do jogo`);
@@ -268,10 +280,6 @@ export function GameBoard() {
   };
 
   const handlePass = () => {
-    if (pile.length === 0 && consecutivePasses === 0) {
-      toast.warning('No primeiro turno, você é obrigado a jogar cartas!');
-      return;
-    }
     if (drawPileCount === 0) {
       toast.info('Monte esgotado — passando sem comprar');
     }
