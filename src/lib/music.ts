@@ -173,11 +173,13 @@ function startGameMusic(): () => void {
 
 // ─── Public API ──────────────────────────────────────────────────────────────
 
-export function startMusic(mode: 'lobby' | 'game') {
+export async function startMusic(mode: 'lobby' | 'game') {
   if (currentMode === mode) return;
   stopMusic();
   currentMode = mode;
   try {
+    const c = getCtx();
+    if (c.state === 'suspended') await c.resume();
     stopFn = mode === 'lobby' ? startLobbyMusic() : startGameMusic();
   } catch {
     // AudioContext may be blocked before user interaction — silent fail

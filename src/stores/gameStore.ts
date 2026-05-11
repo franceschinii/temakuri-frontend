@@ -7,6 +7,7 @@ interface GameStoreState {
   myHand: Card[];
   players: PublicPlayerState[];
   pile: Card[];
+  drawPileCount: number;
   market: Card[] | null;
   saborActive: boolean;
   saborMinRequired: number;
@@ -25,7 +26,7 @@ interface GameStoreState {
   clearSelection: () => void;
   setSelectedIndices: (indices: number[]) => void;
   applyCardsPlayed: (userId: string, cards: Card[], isSabor: boolean) => void;
-  applyTurnPassed: (userId: string, pickedCard: Card) => void;
+  applyTurnPassed: (userId: string, drawnCard: Card | null, drawPileCount: number) => void;
   applyWipe: (winnerId: string) => void;
   setSaborActive: (active: boolean, minRequired: number, triggeredBy?: string) => void;
   applyRoundEnd: (loserIds: string[], playerTokens: Record<string, number>) => void;
@@ -42,6 +43,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   myHand: [],
   players: [],
   pile: [],
+  drawPileCount: 0,
   market: null,
   saborActive: false,
   saborMinRequired: 0,
@@ -61,6 +63,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       myHand: state.myHand,
       players: state.players,
       pile: state.pile,
+      drawPileCount: state.drawPileCount,
       market: state.market,
       saborActive: state.saborActive,
       saborMinRequired: state.saborMinRequired,
@@ -96,12 +99,12 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       ),
     })),
 
-  applyTurnPassed: (userId, pickedCard) =>
+  applyTurnPassed: (userId, drawnCard, drawPileCount) =>
     set((s) => ({
-      pile: s.pile.filter(c => c.id !== pickedCard.id),
+      drawPileCount,
       consecutivePasses: s.consecutivePasses + 1,
       players: s.players.map(p =>
-        p.userId === userId ? { ...p, cardCount: p.cardCount + 1 } : p,
+        p.userId === userId ? { ...p, cardCount: drawnCard ? p.cardCount + 1 : p.cardCount } : p,
       ),
     })),
 
@@ -144,7 +147,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
 
   reset: () =>
     set({
-      phase: null, round: 0, myHand: [], players: [], pile: [], market: null,
+      phase: null, round: 0, myHand: [], players: [], pile: [], drawPileCount: 0, market: null,
       saborActive: false, saborMinRequired: 0, saborTriggeredBy: null, currentTurnUserId: '',
       consecutivePasses: 0, selectedIndices: [], pendingPickFromPile: false,
       gameOverData: null, roundSummaryData: null, reactions: [],

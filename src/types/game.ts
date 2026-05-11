@@ -55,6 +55,7 @@ export interface ClientGameState {
   currentTurnUserId: string;
   players: PublicPlayerState[];
   pile: Card[];
+  drawPileCount: number;
   market: Card[] | null;
   saborActive: boolean;
   saborMinRequired: number;

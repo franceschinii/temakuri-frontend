@@ -67,9 +67,22 @@ export default function RoomPage() {
     setPlayerReady(userId, ready);
   }, [setPlayerReady]));
 
-  useSocketEvent<{ countdown: number }>('lobby:game_starting', useCallback(() => {
-    toast.success('Jogo iniciando...');
-    setTimeout(() => navigate(`/game/${roomCode}`), 3200);
+  const [countdown, setCountdown] = useState<number | null>(null);
+
+  useSocketEvent<{ countdown: number }>('lobby:game_starting', useCallback(({ countdown: ms }) => {
+    const totalSeconds = Math.round(ms / 1000);
+    setCountdown(totalSeconds);
+    let current = totalSeconds;
+    const interval = setInterval(() => {
+      current--;
+      if (current <= 0) {
+        clearInterval(interval);
+        setCountdown(0);
+        setTimeout(() => navigate(`/game/${roomCode}`), 600);
+      } else {
+        setCountdown(current);
+      }
+    }, 1000);
   }, [navigate, roomCode]));
 
   useSocketEvent<{ code: string; message: string }>('lobby:error', useCallback(({ message }) => {
@@ -330,6 +343,48 @@ export default function RoomPage() {
           )}
         </motion.div>
       </main>
+
+      {/* Game starting countdown overlay */}
+      <AnimatePresence>
+        {countdown !== null && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[var(--color-base)]/90 backdrop-blur-md"
+          >
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={countdown}
+                initial={{ scale: 1.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.5, opacity: 0 }}
+                transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+                className="flex flex-col items-center gap-4"
+              >
+                {countdown === 0 ? (
+                  <span
+                    className="text-7xl font-bold text-[var(--color-accent-soft)]"
+                    style={{ fontFamily: 'var(--font-display)' }}
+                  >
+                    GO!
+                  </span>
+                ) : (
+                  <span
+                    className="text-9xl font-bold text-[var(--color-text-primary)]"
+                    style={{ fontFamily: 'var(--font-display)' }}
+                  >
+                    {countdown}
+                  </span>
+                )}
+                <span className="text-sm text-[var(--color-text-muted)] tracking-widest uppercase">
+                  Partida iniciando
+                </span>
+              </motion.div>
+            </AnimatePresence>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

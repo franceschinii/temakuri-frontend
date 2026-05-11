@@ -5,17 +5,27 @@ import { cn } from '@/lib/utils';
 
 interface PlayAreaProps {
   pile: Card[];
+  drawPileCount: number;
   saborActive: boolean;
   saborMinRequired: number;
   consecutivePasses: number;
-  onPickCard?: (index: number) => void;
   pickMode?: boolean;
-  pickedIndex?: number | null;
 }
 
-export function PlayArea({ pile, saborActive, saborMinRequired, consecutivePasses, onPickCard, pickMode, pickedIndex }: PlayAreaProps) {
+export function PlayArea({ pile, drawPileCount, saborActive, saborMinRequired, consecutivePasses, pickMode }: PlayAreaProps) {
   return (
-    <div className="flex flex-col items-center gap-3">
+    <div className="flex flex-col items-center gap-2">
+      {/* Monte (draw pile) counter */}
+      <div className="flex items-center gap-1.5 text-xs text-[var(--color-text-muted)]">
+        <span>Monte:</span>
+        <span className={cn(
+          'font-mono font-semibold tabular-nums',
+          drawPileCount === 0 ? 'text-[var(--color-danger)]' : 'text-[var(--color-text-primary)]',
+        )}>
+          {drawPileCount}
+        </span>
+        <span>carta{drawPileCount !== 1 ? 's' : ''}</span>
+      </div>
       <div className={cn(
         'w-full max-w-xs sm:max-w-sm min-h-28 sm:min-h-32 rounded-xl border-2 flex flex-col items-center justify-center gap-2 p-3 sm:p-4 transition-all',
         pile.length === 0
@@ -34,7 +44,7 @@ export function PlayArea({ pile, saborActive, saborMinRequired, consecutivePasse
             </p>
             <div className="flex gap-2 flex-wrap justify-center">
               <AnimatePresence>
-                {pile.map((card, i) => (
+                {pile.map((card) => (
                   <motion.div
                     key={card.id}
                     initial={{ opacity: 0, scale: 0.7, y: -10 }}
@@ -42,12 +52,7 @@ export function PlayArea({ pile, saborActive, saborMinRequired, consecutivePasse
                     exit={{ opacity: 0, scale: 0.7 }}
                     transition={{ duration: 0.2 }}
                   >
-                    <CardComponent
-                      card={card}
-                      selected={pickMode && pickedIndex === i}
-                      onClick={pickMode ? () => onPickCard?.(i) : undefined}
-                      disabled={!pickMode}
-                    />
+                    <CardComponent card={card} disabled />
                   </motion.div>
                 ))}
               </AnimatePresence>

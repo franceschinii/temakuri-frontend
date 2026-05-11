@@ -32,7 +32,7 @@ export function GameBoard() {
   const {
     phase, round, myHand, players, pile, market, saborActive, saborMinRequired, saborTriggeredBy,
     currentTurnUserId, consecutivePasses, selectedIndices,
-    syncState, setMyHand, applyCardsPlayed, applyTurnPassed, applyWipe,
+    syncState, setMyHand, applyCardsPlayed, applyTurnPassed, applyWipe, drawPileCount,
     setSaborActive, applyRoundEnd, applyGameOver, clearRoundSummary,
     roundSummaryData, gameOverData, addReaction, reactions, updateMarket,
   } = useGameStore();
@@ -41,7 +41,6 @@ export function GameBoard() {
 
   const [timerMs, setTimerMs] = useState(30_000);
   const [pickMode, setPickMode] = useState(false);
-  const [pickedPileIndex, setPickedPileIndex] = useState<number | null>(null);
   const [marketSwapMode, setMarketSwapMode] = useState(false);
   const [selectedHandIndexForSwap, setSelectedHandIndexForSwap] = useState<number | null>(null);
   const [leaveConfirmOpen, setLeaveConfirmOpen] = useState(false);
@@ -80,7 +79,6 @@ export function GameBoard() {
   useSocketEvent<{ state: ClientGameState }>('game:state_sync', useCallback(({ state }) => {
     syncState(state);
     setPickMode(false);
-    setPickedPileIndex(null);
     setMarketSwapMode(false);
     setSelectedHandIndexForSwap(null);
   }, [syncState]));
@@ -89,7 +87,6 @@ export function GameBoard() {
     useGameStore.setState({ currentTurnUserId: userId });
     setTimerMs(timeoutMs);
     setPickMode(false);
-    setPickedPileIndex(null);
   }, []));
 
   useSocketEvent<{ userId: string; cards: Card[]; isSabor: boolean }>('game:cards_played', useCallback(({ userId, cards, isSabor }) => {
@@ -97,8 +94,8 @@ export function GameBoard() {
     playSound('play');
   }, [applyCardsPlayed]));
 
-  useSocketEvent<{ userId: string; pickedCard: Card }>('game:turn_passed', useCallback(({ userId, pickedCard }) => {
-    applyTurnPassed(userId, pickedCard);
+  useSocketEvent<{ userId: string; drawnCard: Card | null; drawPileCount: number }>('game:turn_passed', useCallback(({ userId, drawnCard, drawPileCount }) => {
+    applyTurnPassed(userId, drawnCard, drawPileCount);
     playSound('pass');
     if (userId === user?.id) setPickMode(false);
   }, [applyTurnPassed, user?.id]));
@@ -147,20 +144,12 @@ export function GameBoard() {
   );
 
   const handlePass = () => {
-    if (pile.length === 0) return;
     setPickMode(true);
-    setPickedPileIndex(null);
-  };
-
-  const handlePickPileCard = (index: number) => {
-    setPickedPileIndex(index);
   };
 
   const handleInsertAtIndex = (insertAtIndex: number) => {
-    if (pickedPileIndex === null) return;
-    passTurn(pickedPileIndex, insertAtIndex);
+    passTurn(insertAtIndex);
     setPickMode(false);
-    setPickedPileIndex(null);
   };
 
   const handleMarketSwap = (marketIndex: number) => {
@@ -245,12 +234,11 @@ export function GameBoard() {
 
         <PlayArea
           pile={pile}
+          drawPileCount={drawPileCount}
           saborActive={saborActive}
           saborMinRequired={saborMinRequired}
           consecutivePasses={consecutivePasses}
           pickMode={pickMode}
-          pickedIndex={pickedPileIndex}
-          onPickCard={handlePickPileCard}
         />
 
         {/* Mercado */}
@@ -298,9 +286,6 @@ export function GameBoard() {
               hand={myHand}
               isMyTurn={isMyTurn}
               pickMode={true}
-              pileToPickFrom={pile}
-              pickedPileIndex={pickedPileIndex}
-              onPickPileCard={handlePickPileCard}
               onPickInsert={handleInsertAtIndex}
             />
           ) : (
@@ -308,16 +293,31 @@ export function GameBoard() {
           )}
         </div>
 
+        {/* Cancel pick mode */}
+        {pickMode && (
+          <div className="mt-2 flex justify-center">
+            <Button variant="ghost" size="sm" onClick={() => setPickMode(false)}>
+              Cancelar
+            </Button>
+          </div>
+        )}
+
         {/* Actions */}
         {!pickMode && !marketSwapMode && (
           <div className="mt-2 flex flex-col gap-2">
             <ActionBar
               isMyTurn={isMyTurn}
               pile={pile}
+              drawPileCount={drawPileCount}
               onPlay={playSelectedCards}
               onPass={handlePass}
               canPlay={canPlay}
             />
+            {isMyTurn && selectedIndices.length > 0 && !canPlay && pile.length > 0 && (
+              <p className="text-xs text-center text-[var(--color-warning)]">
+                Jogada inválida — precisa de mais cartas ou valor maior
+              </p>
+            )}
             {isMyTurn && (
               <ReactionBar onReact={sendReaction} />
             )}
@@ -352,9 +352,11 @@ export function GameBoard() {
 
       {/* Reactions overlay — float above center play area */}
       <AnimatePresence>
-        {reactions.map((r, idx) => {
+        {reactions.map((r) => {
           const p = players.find(pl => pl.userId === r.userId);
-          const xOff = ((idx % 3) - 1) * 15; // spread -15vw, 0, +15vw
+          // stable hash from reaction id to avoid jumps as others expire
+          const hash = r.id.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
+          const xOff = ((hash % 3) - 1) * 15; // spread -15vw, 0, +15vw
           return (
             <motion.div
               key={r.id}

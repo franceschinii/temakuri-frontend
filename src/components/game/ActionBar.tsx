@@ -5,12 +5,13 @@ import type { Card } from '@/types/game';
 interface ActionBarProps {
   isMyTurn: boolean;
   pile: Card[];
+  drawPileCount: number;
   onPlay: () => void;
   onPass: () => void;
   canPlay: boolean;
 }
 
-export function ActionBar({ isMyTurn, pile, onPlay, onPass, canPlay }: ActionBarProps) {
+export function ActionBar({ isMyTurn, pile, drawPileCount, onPlay, onPass, canPlay }: ActionBarProps) {
   const selectedIndices = useGameStore(s => s.selectedIndices);
 
   if (!isMyTurn) {
@@ -36,13 +37,12 @@ export function ActionBar({ isMyTurn, pile, onPlay, onPass, canPlay }: ActionBar
         variant="secondary"
         size="md"
         onClick={onPass}
-        disabled={pile.length === 0}
         className="min-w-[90px] sm:min-w-[110px]"
       >
         Passar
-        {pile.length > 0 && (
-          <span className="text-[10px] text-[var(--color-text-muted)] ml-1">+1</span>
-        )}
+        <span className="text-[10px] text-[var(--color-text-muted)] ml-1">
+          {drawPileCount > 0 ? `+1 (${drawPileCount})` : '—'}
+        </span>
       </Button>
     </div>
   );

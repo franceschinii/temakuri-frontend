@@ -16,8 +16,8 @@ export function useGame(roomCode: string) {
     clearSelection();
   }, [roomCode, selectedIndices, clearSelection]);
 
-  const passTurn = useCallback((pickCardIndex: number, insertAtIndex: number) => {
-    emitSocketEvent('game:pass_turn', { roomCode, pickCardIndex, insertAtIndex });
+  const passTurn = useCallback((insertAtIndex: number) => {
+    emitSocketEvent('game:pass_turn', { roomCode, insertAtIndex });
   }, [roomCode]);
 
   const swapWithMarket = useCallback((handIndex: number, marketIndex: number) => {
