@@ -20,7 +20,11 @@ export function PlayArea({ pile, drawPileCount, saborActive, saborMinRequired, c
         <span>Monte:</span>
         <span className={cn(
           'font-mono font-semibold tabular-nums',
-          drawPileCount === 0 ? 'text-[var(--color-danger)]' : 'text-[var(--color-text-primary)]',
+          drawPileCount === 0
+            ? 'text-[var(--color-danger)]'
+            : drawPileCount < 5
+              ? 'text-[var(--color-warning)]'
+              : 'text-[var(--color-text-primary)]',
         )}>
           {drawPileCount}
         </span>

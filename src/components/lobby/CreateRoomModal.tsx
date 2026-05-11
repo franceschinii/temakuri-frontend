@@ -11,6 +11,13 @@ import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
+const BIAS_STEPS = [
+  { value: 0,    label: 'Aleatória' },
+  { value: 0.33, label: 'Leve' },
+  { value: 0.66, label: 'Agrupada' },
+  { value: 1,    label: 'Máxima' },
+];
+
 const schema = z.object({
   mode: z.string(),
   maxPlayers: z.coerce.number().min(2).max(6),
@@ -26,6 +33,7 @@ interface CreateRoomModalProps {
 export function CreateRoomModal({ open, onClose }: CreateRoomModalProps) {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [handBias, setHandBias] = useState(0);
   const { register, handleSubmit, watch } = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: { mode: 'TRADITIONAL', maxPlayers: 4, isPrivate: true },
@@ -36,7 +44,7 @@ export function CreateRoomModal({ open, onClose }: CreateRoomModalProps) {
   const onSubmit = async (values: FormValues) => {
     setLoading(true);
     try {
-      const { data } = await api.post('/rooms', values);
+      const { data } = await api.post('/rooms', { ...values, handBias });
       onClose();
       navigate(`/lobby/${data.code}`);
     } catch (e: any) {
@@ -48,6 +56,8 @@ export function CreateRoomModal({ open, onClose }: CreateRoomModalProps) {
       setLoading(false);
     }
   };
+
+  const biasStep = BIAS_STEPS.find(s => Math.abs(s.value - handBias) < 0.01) ?? BIAS_STEPS[0];
 
   return (
     <Modal open={open} onClose={onClose} title="Criar Sala">
@@ -86,6 +96,34 @@ export function CreateRoomModal({ open, onClose }: CreateRoomModalProps) {
             <input type="checkbox" {...register('isPrivate')} className="accent-[var(--color-accent-strong)]" />
             Privada
           </label>
+        </div>
+
+        {/* Hand bias */}
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-[var(--color-text-muted)]">Qualidade da mão inicial</p>
+            <span className="text-xs font-medium text-[var(--color-accent-mid)]">{biasStep.label}</span>
+          </div>
+          <div className="flex gap-1">
+            {BIAS_STEPS.map(step => (
+              <button
+                key={step.value}
+                type="button"
+                onClick={() => setHandBias(step.value)}
+                className={cn(
+                  'flex-1 py-1.5 rounded-md text-xs font-medium border transition-all',
+                  Math.abs(step.value - handBias) < 0.01
+                    ? 'border-[var(--color-accent-strong)] bg-[var(--color-accent-strong)]/15 text-[var(--color-accent-soft)]'
+                    : 'border-[var(--color-border)] text-[var(--color-text-muted)] hover:border-[var(--color-accent-mid)]',
+                )}
+              >
+                {step.label}
+              </button>
+            ))}
+          </div>
+          <p className="text-[10px] text-[var(--color-text-muted)]">
+            Controla a chance de duplas e trincas adjacentes na mão inicial.
+          </p>
         </div>
 
         <Button type="submit" disabled={loading}>
