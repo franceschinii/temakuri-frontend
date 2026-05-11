@@ -27,6 +27,7 @@ import { CardComponent } from './CardComponent';
 import type { Card, ClientGameState, GameRanking, GameStats } from '@/types/game';
 import { validatePlayIndicesClient } from '@/lib/gameRules';
 import { playSound } from '@/lib/sounds';
+import { toast } from 'sonner';
 
 export function GameBoard() {
   const { roomCode } = useParams<{ roomCode: string }>();
@@ -193,13 +194,24 @@ export function GameBoard() {
   );
 
   const handlePass = () => {
+    if (drawPileCount === 0) {
+      toast.info('Monte esgotado — passando sem comprar');
+    }
     drawCard();
   };
 
   const handleInsertAtIndex = (insertAtIndex: number) => {
-    insertDrawnCard(insertAtIndex);
+    // Optimistic update: insert the drawn card locally before server confirms.
+    // When game:your_hand arrives, card.id values match so AnimatePresence
+    // won't re-animate existing cards — only the new one gets an enter animation.
+    if (drawnCard) {
+      const optimistic = [...myHand];
+      optimistic.splice(insertAtIndex, 0, drawnCard);
+      setMyHand(optimistic);
+    }
     setDrawnCard(null);
     setPickMode(false);
+    insertDrawnCard(insertAtIndex);
   };
 
   const handleMarketSwap = (marketIndex: number) => {

@@ -84,5 +84,6 @@ export interface RoomPublicState {
   mode: GameMode;
   maxPlayers: number;
   isPrivate: boolean;
+  handBias: number;
   players: PublicPlayerState[];
 }
