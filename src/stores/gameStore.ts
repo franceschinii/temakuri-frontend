@@ -1,6 +1,15 @@
 import { create } from 'zustand';
 import type { Card, ClientGameState, GamePhase, GameRanking, GameStats, PublicPlayerState } from '../types/game';
 
+export interface LogEntry {
+  id: string;
+  timestamp: number;
+  type: 'play' | 'pass' | 'wipe' | 'sabor' | 'round_end' | 'chat' | 'system';
+  userId?: string;
+  username?: string;
+  text: string;
+}
+
 interface GameStoreState {
   phase: GamePhase | null;
   round: number;
@@ -19,6 +28,7 @@ interface GameStoreState {
   gameOverData: { rankings: GameRanking[]; stats: GameStats } | null;
   roundSummaryData: { loserIds: string[]; playerTokens: Record<string, number> } | null;
   reactions: { userId: string; emoji: string; id: string }[];
+  gameLog: LogEntry[];
 
   syncState: (state: ClientGameState) => void;
   setMyHand: (hand: Card[]) => void;
@@ -34,6 +44,7 @@ interface GameStoreState {
   clearRoundSummary: () => void;
   addReaction: (userId: string, emoji: string) => void;
   updateMarket: (market: Card[]) => void;
+  addLog: (entry: Omit<LogEntry, 'id' | 'timestamp'>) => void;
   reset: () => void;
 }
 
@@ -55,6 +66,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   gameOverData: null,
   roundSummaryData: null,
   reactions: [],
+  gameLog: [],
 
   syncState: (state) =>
     set({
@@ -145,11 +157,19 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
 
   updateMarket: (market) => set({ market }),
 
+  addLog: (entry) =>
+    set((s) => ({
+      gameLog: [
+        ...s.gameLog.slice(-199),
+        { ...entry, id: `${Date.now()}-${Math.random()}`, timestamp: Date.now() },
+      ],
+    })),
+
   reset: () =>
     set({
       phase: null, round: 0, myHand: [], players: [], pile: [], drawPileCount: 0, market: null,
       saborActive: false, saborMinRequired: 0, saborTriggeredBy: null, currentTurnUserId: '',
       consecutivePasses: 0, selectedIndices: [], pendingPickFromPile: false,
-      gameOverData: null, roundSummaryData: null, reactions: [],
+      gameOverData: null, roundSummaryData: null, reactions: [], gameLog: [],
     }),
 }));

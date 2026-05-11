@@ -16,6 +16,7 @@ import type { RoomPublicState } from '@/types/game';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { startMusic, stopMusic } from '@/lib/music';
+import { playSound } from '@/lib/sounds';
 
 export default function RoomPage() {
   useEffect(() => {
@@ -72,15 +73,18 @@ export default function RoomPage() {
   useSocketEvent<{ countdown: number }>('lobby:game_starting', useCallback(({ countdown: ms }) => {
     const totalSeconds = Math.round(ms / 1000);
     setCountdown(totalSeconds);
+    playSound('countdown_tick');
     let current = totalSeconds;
     const interval = setInterval(() => {
       current--;
       if (current <= 0) {
         clearInterval(interval);
         setCountdown(0);
-        setTimeout(() => navigate(`/game/${roomCode}`), 600);
+        playSound('countdown_go');
+        setTimeout(() => navigate(`/game/${roomCode}`), 700);
       } else {
         setCountdown(current);
+        playSound('countdown_tick');
       }
     }, 1000);
   }, [navigate, roomCode]));

@@ -41,39 +41,28 @@ export function PlayerHand({
     return false;
   };
 
-  // Pick mode — carta do monte será inserida; escolha a posição na mão
+  // Pick mode — inserir carta do monte; escolha a posição na mão
   if (pickMode) {
     return (
-      <div className="flex flex-col items-center gap-3">
-        {drawnCard && (
-          <div className="flex flex-col items-center gap-2 mb-3">
-            <p className="text-xs text-[var(--color-text-muted)]">Carta sorteada:</p>
-            <CardComponent card={drawnCard} />
-          </div>
-        )}
-        <p className="text-sm text-[var(--color-warning)] font-medium">
-          {drawnCard ? 'Escolha onde inserir na sua mão:' : 'Escolha onde inserir (sem carta disponível):'}
-        </p>
-        <div className="flex gap-1 items-center flex-wrap justify-center pt-4 pb-4">
-          {[...Array(hand.length + 1)].map((_, insertIdx) => (
-            <div key={insertIdx} className="flex items-center">
-              <button
-                onClick={() => onPickInsert?.(insertIdx)}
-                onMouseEnter={() => setHoveredInsert(insertIdx)}
-                onMouseLeave={() => setHoveredInsert(null)}
-                className={cn(
-                  'w-1.5 h-16 rounded-full transition-all mx-0.5',
-                  hoveredInsert === insertIdx
-                    ? 'bg-[var(--color-warning)] w-2.5 scale-110'
-                    : 'bg-[var(--color-border)]',
-                )}
-              />
-              {insertIdx < hand.length && (
-                <CardComponent card={hand[insertIdx]} small disabled />
+      <div className="flex gap-1 items-center flex-wrap justify-center py-2">
+        {[...Array(hand.length + 1)].map((_, insertIdx) => (
+          <div key={insertIdx} className="flex items-center">
+            <button
+              onClick={() => onPickInsert?.(insertIdx)}
+              onMouseEnter={() => setHoveredInsert(insertIdx)}
+              onMouseLeave={() => setHoveredInsert(null)}
+              className={cn(
+                'w-1.5 h-16 rounded-full transition-all mx-0.5',
+                hoveredInsert === insertIdx
+                  ? 'bg-[var(--color-warning)] w-2.5 scale-110'
+                  : 'bg-[var(--color-border)]',
               )}
-            </div>
-          ))}
-        </div>
+            />
+            {insertIdx < hand.length && (
+              <CardComponent card={hand[insertIdx]} small disabled />
+            )}
+          </div>
+        ))}
       </div>
     );
   }

@@ -1,6 +1,6 @@
 import { useEffect, useCallback, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { LogOut } from 'lucide-react';
+import { LogOut, X } from 'lucide-react';
 import { AccessBar } from '@/components/ui/AccessBar';
 import { Modal } from '@/components/ui/modal';
 import { Button } from '@/components/ui/button';
@@ -21,6 +21,9 @@ import { RoundSummary } from './RoundSummary';
 import { GameOverModal } from './GameOverModal';
 import { MarketRow } from './MarketRow';
 import { ReactionBar } from './ReactionBar';
+import { ActionHistoryPanel } from './ActionHistoryPanel';
+import { ChatPanel } from './ChatPanel';
+import { CardComponent } from './CardComponent';
 import type { Card, ClientGameState, GameRanking, GameStats } from '@/types/game';
 import { validatePlayIndicesClient } from '@/lib/gameRules';
 import { playSound } from '@/lib/sounds';
@@ -34,10 +37,10 @@ export function GameBoard() {
     currentTurnUserId, consecutivePasses, selectedIndices,
     syncState, setMyHand, applyCardsPlayed, applyTurnPassed, applyWipe, drawPileCount,
     setSaborActive, applyRoundEnd, applyGameOver, clearRoundSummary,
-    roundSummaryData, gameOverData, addReaction, reactions, updateMarket,
+    roundSummaryData, gameOverData, addReaction, reactions, updateMarket, addLog,
   } = useGameStore();
 
-  const { playSelectedCards, drawCard, insertDrawnCard, swapWithMarket, sendReaction, requestState } = useGame(roomCode!);
+  const { playSelectedCards, drawCard, insertDrawnCard, swapWithMarket, sendReaction, sendMessage, requestState } = useGame(roomCode!);
 
   const [timerMs, setTimerMs] = useState(30_000);
   const [pickMode, setPickMode] = useState(false);
@@ -100,7 +103,17 @@ export function GameBoard() {
   useSocketEvent<{ userId: string; cards: Card[]; isSabor: boolean }>('game:cards_played', useCallback(({ userId, cards, isSabor }) => {
     applyCardsPlayed(userId, cards, isSabor);
     playSound('play');
-  }, [applyCardsPlayed]));
+    const name = useGameStore.getState().players.find(p => p.userId === userId)?.username ?? userId;
+    const cardDesc = cards.length === 1
+      ? `${cards[0].value}`
+      : `${cards.length}×${cards[0].value}`;
+    addLog({
+      type: 'play',
+      userId,
+      username: name,
+      text: `${name} jogou ${cardDesc}${isSabor ? ' 🔥' : ''}`,
+    });
+  }, [applyCardsPlayed, addLog]));
 
   useSocketEvent<{ userId: string; drawnCard: Card | null; drawPileCount: number }>('game:turn_passed', useCallback(({ userId, drawnCard, drawPileCount }) => {
     applyTurnPassed(userId, drawnCard, drawPileCount);
@@ -109,27 +122,42 @@ export function GameBoard() {
       setPickMode(false);
       setDrawnCard(null);
     }
-  }, [applyTurnPassed, user?.id]));
+    const name = useGameStore.getState().players.find(p => p.userId === userId)?.username ?? userId;
+    addLog({
+      type: 'pass',
+      userId,
+      username: name,
+      text: drawnCard ? `${name} passou e comprou do monte` : `${name} passou (monte vazio)`,
+    });
+  }, [applyTurnPassed, user?.id, addLog]));
 
   useSocketEvent<{ winnerId: string }>('game:wipe', useCallback(({ winnerId }) => {
     applyWipe(winnerId);
     playSound('wipe');
-  }, [applyWipe]));
+    const name = useGameStore.getState().players.find(p => p.userId === winnerId)?.username ?? winnerId;
+    addLog({ type: 'wipe', userId: winnerId, username: name, text: `${name} ganhou a vaza! 🧹` });
+  }, [applyWipe, addLog]));
 
   useSocketEvent<{ triggeredBy: string; minRequired: number }>('game:sabor_active', useCallback(({ triggeredBy, minRequired }) => {
     const name = players.find(p => p.userId === triggeredBy)?.username ?? triggeredBy;
     setSaborActive(true, minRequired, name);
     playSound('sabor');
-  }, [setSaborActive, players]));
+    addLog({ type: 'sabor', userId: triggeredBy, username: name, text: `🔥 Sabor ativo! Mínimo de ${minRequired} carta(s) por ${name}` });
+  }, [setSaborActive, players, addLog]));
 
-  useSocketEvent<{ brokenBy: string }>('game:sabor_broken', useCallback(() => {
+  useSocketEvent<{ brokenBy: string }>('game:sabor_broken', useCallback(({ brokenBy }) => {
     setSaborActive(false, 0);
-  }, [setSaborActive]));
+    const name = useGameStore.getState().players.find(p => p.userId === brokenBy)?.username ?? brokenBy;
+    addLog({ type: 'sabor', userId: brokenBy, username: name, text: `${name} quebrou o Sabor` });
+  }, [setSaborActive, addLog]));
 
   useSocketEvent<{ loserIds: string[]; playerTokens: Record<string, number> }>('game:round_ended', useCallback(({ loserIds, playerTokens }) => {
     applyRoundEnd(loserIds, playerTokens);
     playSound('round_end');
-  }, [applyRoundEnd]));
+    const allPlayers = useGameStore.getState().players;
+    const loserNames = loserIds.map(id => allPlayers.find(p => p.userId === id)?.username ?? id);
+    addLog({ type: 'round_end', text: `🏁 Rodada encerrada — ${loserNames.join(', ')} perde${loserIds.length === 1 ? '' : 'm'} 1 ficha` });
+  }, [applyRoundEnd, addLog]));
 
   useSocketEvent<{ rankings: GameRanking[]; stats: GameStats }>('game:game_over', useCallback(({ rankings, stats }) => {
     applyGameOver(rankings, stats);
@@ -149,6 +177,16 @@ export function GameBoard() {
   useSocketEvent<{ userId: string; emoji: string }>('game:reaction', useCallback(({ userId, emoji }) => {
     addReaction(userId, emoji);
   }, [addReaction]));
+
+  useSocketEvent<{ userId: string; username: string; text: string }>('game:message', useCallback(({ userId, username, text }) => {
+    addLog({ type: 'chat', userId, username, text });
+  }, [addLog]));
+
+  const handleSendMessage = useCallback((text: string) => {
+    sendMessage(text);
+    // Optimistic: add own message to log immediately
+    addLog({ type: 'chat', userId: user?.id, username: user?.username ?? 'Você', text });
+  }, [sendMessage, addLog, user]);
 
   const canPlay = isMyTurn && selectedIndices.length > 0 && validatePlayIndicesClient(
     myHand, selectedIndices, pile, saborActive, saborMinRequired,
@@ -174,7 +212,7 @@ export function GameBoard() {
   const handleLeaveGame = () => setLeaveConfirmOpen(true);
 
   return (
-    <div className="flex flex-col min-h-dvh bg-[var(--color-base)] overflow-hidden select-none">
+    <div className="flex flex-col h-dvh max-h-dvh bg-[var(--color-base)] overflow-hidden select-none">
       {/* Turn banner */}
       <AnimatePresence>
         {turnBanner && (
@@ -272,7 +310,7 @@ export function GameBoard() {
       </div>
 
       {/* My area */}
-      <div className="border-t border-[var(--color-border)] bg-[var(--color-surface)] px-2 pt-2 pb-3 sm:px-4 sm:pt-3 sm:pb-4">
+      <div className="border-t border-[var(--color-border)] bg-[var(--color-surface)] px-2 pt-2 pb-3 sm:px-4 sm:pt-3 sm:pb-4 flex flex-col">
         {/* Info bar */}
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
@@ -291,31 +329,52 @@ export function GameBoard() {
           </div>
         </div>
 
+        {/* Drawn card reveal + insertion prompt */}
+        <AnimatePresence>
+          {pickMode && (
+            <motion.div
+              initial={{ opacity: 0, y: -8, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -8, scale: 0.95 }}
+              transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+              className="self-center flex items-center gap-3 mb-2 px-3 py-2 rounded-xl bg-[var(--color-panel)] border border-[var(--color-warning)]/40 w-fit"
+            >
+              {drawnCard ? (
+                <>
+                  <CardComponent card={drawnCard} small />
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wider">Carta do monte</span>
+                    <span className="text-xs text-[var(--color-warning)] font-medium">Clique numa barra para inserir</span>
+                  </div>
+                </>
+              ) : (
+                <span className="text-xs text-[var(--color-text-muted)]">Monte vazio — passe sem comprar</span>
+              )}
+              <button
+                onClick={() => { setPickMode(false); setDrawnCard(null); }}
+                className="ml-2 text-[var(--color-text-muted)] hover:text-[var(--color-danger)] transition-colors shrink-0"
+              >
+                <X size={13} />
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* Hand — pt-4 gives room for selected cards that rise via -translate-y */}
-        <div className="pb-1 pt-4">
+        <div className="pb-1 pt-4 overflow-hidden">
           {pickMode ? (
             <PlayerHand
               hand={myHand}
               isMyTurn={isMyTurn}
               pickMode={true}
               onPickInsert={handleInsertAtIndex}
-              drawnCard={drawnCard ?? undefined}
             />
           ) : (
             <PlayerHand hand={myHand} isMyTurn={isMyTurn} />
           )}
         </div>
 
-        {/* Cancel pick mode */}
-        {pickMode && (
-          <div className="mt-2 flex justify-center">
-            <Button variant="ghost" size="sm" onClick={() => { setPickMode(false); setDrawnCard(null); }}>
-              Cancelar
-            </Button>
-          </div>
-        )}
-
-        {/* Actions */}
+        {/* Actions — hidden during pick mode (card reveal strip already has cancel) */}
         {!pickMode && !marketSwapMode && (
           <div className="mt-2 flex flex-col gap-2">
             <ActionBar
@@ -362,6 +421,10 @@ export function GameBoard() {
           </div>
         )}
       </div>
+
+      {/* Game action history (left) + chat (right) */}
+      <ActionHistoryPanel />
+      <ChatPanel onSendMessage={handleSendMessage} myUserId={user?.id ?? ''} />
 
       {/* Reactions overlay — float above center play area */}
       <AnimatePresence>

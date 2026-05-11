@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link, Navigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Layers, ChevronsUp, RefreshCw, Flame } from 'lucide-react';
@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { AccessBar } from '@/components/ui/AccessBar';
 import { useAuthStore } from '@/stores/authStore';
 import { toast } from 'sonner';
+import { startMusic, stopMusic } from '@/lib/music';
 
 const rules = [
   {
@@ -42,6 +43,11 @@ export default function LandingPage() {
   const user = useAuthStore(s => s.user);
   const [guestName, setGuestName] = useState('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    startMusic('landing');
+    return () => stopMusic();
+  }, []);
 
   if (user) return <Navigate to="/lobby" replace />;
 

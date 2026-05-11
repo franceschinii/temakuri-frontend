@@ -32,9 +32,13 @@ export function useGame(roomCode: string) {
     emitSocketEvent('game:send_reaction', { roomCode, emoji });
   }, [roomCode]);
 
+  const sendMessage = useCallback((text: string) => {
+    emitSocketEvent('game:send_message', { roomCode, text });
+  }, [roomCode]);
+
   const requestState = useCallback(() => {
     emitSocketEvent('game:request_state', { roomCode });
   }, [roomCode]);
 
-  return { playSelectedCards, drawCard, insertDrawnCard, swapWithMarket, sendReaction, requestState };
+  return { playSelectedCards, drawCard, insertDrawnCard, swapWithMarket, sendReaction, sendMessage, requestState };
 }

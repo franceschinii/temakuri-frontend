@@ -37,7 +37,9 @@ export default function LobbyPage() {
       const { data } = await api.get('/rooms?status=WAITING');
       return data;
     },
-    refetchInterval: 30000,
+    refetchInterval: 8000,       // poll every 8s to catch rooms that closed without event
+    refetchOnMount: 'always',    // always fresh when navigating back to lobby
+    staleTime: 0,
   });
 
   useSocketEvent('lobby:public_rooms_changed', useCallback(() => {
