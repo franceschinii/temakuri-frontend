@@ -83,8 +83,11 @@ export function GameBoard() {
 
   useSocketEvent<{ state: ClientGameState }>('game:state_sync', useCallback(({ state }) => {
     syncState(state);
-    setPickMode(false);
-    setDrawnCard(null);
+    // Don't discard active pick state — server sent PASS_PICK phase, player is mid-draw
+    if (state.phase !== 'PASS_PICK') {
+      setPickMode(false);
+      setDrawnCard(null);
+    }
     setMarketSwapMode(false);
     setSelectedHandIndexForSwap(null);
   }, [syncState]));

@@ -120,7 +120,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       ),
     })),
 
-  applyWipe: () =>
+  applyWipe: (_winnerId: string) =>
     set({ pile: [], consecutivePasses: 0, saborActive: false, saborMinRequired: 0, saborTriggeredBy: null }),
 
   setSaborActive: (active, minRequired, triggeredBy) =>
