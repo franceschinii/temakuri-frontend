@@ -87,5 +87,6 @@ const sounds: Record<SoundName, () => void> = {
 
 export function playSound(name: SoundName) {
   if (muted) return;
+  if (localStorage.getItem('soundEnabled') === 'false') return;
   sounds[name]?.();
 }
