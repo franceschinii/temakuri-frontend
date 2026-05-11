@@ -46,19 +46,19 @@ export function RulesDialog() {
                 <div className="space-y-4 text-sm text-[var(--color-text-secondary)] leading-relaxed">
                   <section>
                     <h3 className="text-[var(--color-text-primary)] font-medium mb-1">Objetivo</h3>
-                    <p>Esvazie sua mão antes dos adversários. Quem esvazia primeiro vence a rodada — todos os outros perdem 1 ficha. Sem fichas, eliminado. Último sobrevivente vence.</p>
+                    <p>Esvazie sua mão antes dos adversários. Quando todos exceto um jogador ficarem sem cartas, o último com cartas perde 1 Prato de Vida. Quem perder seu último Prato é eliminado — o sobrevivente vence.</p>
                   </section>
                   <section>
                     <h3 className="text-[var(--color-text-primary)] font-medium mb-1">Jogando cartas</h3>
-                    <p>Selecione cartas <strong>adjacentes de mesmo valor</strong> na mão e jogue. A jogada precisa superar a da pilha: mesmo número de cartas com valor maior, ou mais cartas (qualquer valor bate menos cartas).</p>
+                    <p>Selecione cartas <strong>adjacentes de mesmo valor</strong> na mão e jogue. A jogada precisa superar a da pilha: mesmo número de cartas com valor maior, ou mais cartas (qualquer valor bate menos cartas). No primeiro turno, você <strong>é obrigado a jogar</strong>.</p>
                   </section>
                   <section>
                     <h3 className="text-[var(--color-text-primary)] font-medium mb-1">Passando a vez</h3>
-                    <p>Se não puder ou não quiser jogar, compre uma carta do monte e insira em qualquer posição da mão. Monte esgotado? Passa sem comprar.</p>
+                    <p>Compre uma carta do monte e escolha: inserir em qualquer posição da mão ou descartar. Monte esgotado? Passa sem comprar.</p>
                   </section>
                   <section>
                     <h3 className="text-[var(--color-text-primary)] font-medium mb-1">Vaza</h3>
-                    <p>Se todos os outros jogadores passarem em sequência, o último que jogou cartas vence a vaza — a pilha é limpa e ele começa o próximo turno.</p>
+                    <p>Se todos os outros passarem em sequência, o último que jogou cartas ganha a vaza. Ele pode <strong>pegar as cartas da pilha</strong> (inserindo na mão) ou <strong>descartá-las</strong>. Em seguida, começa o próximo turno.</p>
                   </section>
                   <section className="border-t border-[var(--color-border)]/50 pt-4">
                     <h3 className="text-[var(--color-warning)] font-medium mb-1">🔥 Sabor (mecânica exclusiva)</h3>

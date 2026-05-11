@@ -17,7 +17,10 @@ interface GameStoreState {
   players: PublicPlayerState[];
   pile: Card[];
   drawPileCount: number;
+  discardPile: Card[];
   market: Card[] | null;
+  duelPlates: Record<string, Card[]> | null;
+  myDuelPlates: Card[] | null;
   saborActive: boolean;
   saborMinRequired: number;
   saborTriggeredBy: string | null;
@@ -38,6 +41,7 @@ interface GameStoreState {
   applyCardsPlayed: (userId: string, cards: Card[], isSabor: boolean) => void;
   applyTurnPassed: (userId: string, drawnCard: Card | null, drawPileCount: number) => void;
   applyWipe: (winnerId: string) => void;
+  addToDiscardPile: (cards: Card[]) => void;
   setSaborActive: (active: boolean, minRequired: number, triggeredBy?: string) => void;
   applyRoundEnd: (loserIds: string[], playerTokens: Record<string, number>) => void;
   applyGameOver: (rankings: GameRanking[], stats: GameStats) => void;
@@ -55,7 +59,10 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   players: [],
   pile: [],
   drawPileCount: 0,
+  discardPile: [],
   market: null,
+  duelPlates: null,
+  myDuelPlates: null,
   saborActive: false,
   saborMinRequired: 0,
   saborTriggeredBy: null,
@@ -77,6 +84,8 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       pile: state.pile,
       drawPileCount: state.drawPileCount,
       market: state.market,
+      duelPlates: state.duelPlates ?? null,
+      myDuelPlates: state.myDuelPlates ?? null,
       saborActive: state.saborActive,
       saborMinRequired: state.saborMinRequired,
       currentTurnUserId: state.currentTurnUserId,
@@ -121,7 +130,17 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     })),
 
   applyWipe: (_winnerId: string) =>
-    set({ pile: [], consecutivePasses: 0, saborActive: false, saborMinRequired: 0, saborTriggeredBy: null }),
+    set((s) => ({
+      discardPile: s.discardPile,
+      pile: [],
+      consecutivePasses: 0,
+      saborActive: false,
+      saborMinRequired: 0,
+      saborTriggeredBy: null,
+    })),
+
+  addToDiscardPile: (cards: Card[]) =>
+    set((s) => ({ discardPile: [...s.discardPile, ...cards] })),
 
   setSaborActive: (active, minRequired, triggeredBy) =>
     set((s) => ({
@@ -167,7 +186,8 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
 
   reset: () =>
     set({
-      phase: null, round: 0, myHand: [], players: [], pile: [], drawPileCount: 0, market: null,
+      phase: null, round: 0, myHand: [], players: [], pile: [], drawPileCount: 0, discardPile: [], market: null,
+      duelPlates: null, myDuelPlates: null,
       saborActive: false, saborMinRequired: 0, saborTriggeredBy: null, currentTurnUserId: '',
       consecutivePasses: 0, selectedIndices: [], pendingPickFromPile: false,
       gameOverData: null, roundSummaryData: null, reactions: [], gameLog: [],

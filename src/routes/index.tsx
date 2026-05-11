@@ -14,25 +14,25 @@ const rules = [
   {
     icon: Layers,
     label: 'Hierarquia de jogadas',
-    text: 'Cartas têm valores 1–7. Mais cartas batem qualquer jogada menor: uma dupla de 1s bate um 7 sozinho. Mesmo count? Valor maior vence.',
+    text: 'Mais cartas batem qualquer jogada menor: uma dupla de 1s bate um 7 sozinho. Mesmo count? Valor maior vence. No primeiro turno, você é obrigado a jogar.',
     accent: false,
   },
   {
     icon: ChevronsUp,
     label: 'Como jogar',
-    text: 'Selecione cartas adjacentes de mesmo valor na mão (1 carta, dupla, trinca…). A ordem da mão é fixa — só muda ao comprar.',
+    text: 'Selecione cartas adjacentes de mesmo valor na mão (1 carta, dupla, trinca…). A ordem da mão é fixa — só muda ao comprar ou receber cartas da vaza.',
     accent: false,
   },
   {
     icon: RefreshCw,
     label: 'Passar a vez',
-    text: 'Escolha 1 carta da pilha e insira em qualquer posição da mão. Se todos passarem em sequência, o último que jogou ganha a vaza e recomeça.',
+    text: 'Compre uma carta do monte e escolha: inserir na mão ou descartar. Se todos passarem em sequência, o último que jogou ganha a vaza e pode pegar ou descartar a pilha.',
     accent: false,
   },
   {
     icon: Flame,
     label: 'Sabor',
-    text: '2+ cartas do mesmo tipo de comida ativam o Sabor. O próximo deve jogar pelo menos essa quantidade. As regras normais continuam valendo — dá pra bater pelo valor dentro do mínimo. Categorias mistas quebram o Sabor.',
+    text: '2+ cartas do mesmo tipo de comida ativam o Sabor. O próximo deve jogar pelo menos essa quantidade. As regras normais continuam valendo. Categorias mistas quebram o Sabor.',
     accent: true,
   },
 ];
@@ -214,8 +214,8 @@ export default function LandingPage() {
             <div className="mt-2 pt-3 border-t border-[var(--color-border)]/40">
               <p className="text-[10px] text-[var(--color-text-muted)] leading-relaxed">
                 <span className="text-[var(--color-text-primary)] font-medium">Objetivo:</span>{' '}
-                esvazie sua mão antes dos adversários. Quem sobrar perde 1 ficha.
-                Cada jogador começa com <span className="text-[var(--color-token-gold)]">3 fichas</span> — chegou a zero, eliminado. O último restante vence.
+                esvazie sua mão. Quando só 1 jogador ainda tiver cartas, ele perde 1 Prato de Vida.
+                Cada jogador começa com <span className="text-[var(--color-token-gold)]">3 Pratos</span> — perde o último, eliminado. Último sobrevivente vence.
               </p>
             </div>
           </motion.div>

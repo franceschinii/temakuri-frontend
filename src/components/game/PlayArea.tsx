@@ -6,32 +6,61 @@ import { cn } from '@/lib/utils';
 interface PlayAreaProps {
   pile: Card[];
   drawPileCount: number;
+  discardPile: Card[];
   saborActive: boolean;
   saborMinRequired: number;
   consecutivePasses: number;
   pickMode?: boolean;
 }
 
-export function PlayArea({ pile, drawPileCount, saborActive, saborMinRequired, consecutivePasses, pickMode }: PlayAreaProps) {
+function PileStack({ count, topCard, label }: { count: number; topCard?: Card; label: string }) {
   return (
-    <div className="flex flex-col items-center gap-2">
-      {/* Monte (draw pile) counter */}
-      <div className="flex items-center gap-1.5 text-xs text-[var(--color-text-muted)]">
-        <span>Monte:</span>
-        <span className={cn(
-          'font-mono font-semibold tabular-nums',
-          drawPileCount === 0
-            ? 'text-[var(--color-danger)]'
-            : drawPileCount < 5
-              ? 'text-[var(--color-warning)]'
-              : 'text-[var(--color-text-primary)]',
-        )}>
-          {drawPileCount}
-        </span>
-        <span>carta{drawPileCount !== 1 ? 's' : ''}</span>
+    <div className="flex flex-col items-center gap-1 min-w-[52px]">
+      <span className="text-[10px] uppercase tracking-widest text-[var(--color-text-muted)] font-medium">{label}</span>
+      <div className="relative h-[68px] w-[48px] flex items-center justify-center">
+        {count > 1 && (
+          <div className="absolute inset-0 rounded-lg border border-[var(--color-border)] bg-[var(--color-panel)] translate-x-1 translate-y-1 opacity-60" />
+        )}
+        {count > 0 ? (
+          topCard ? (
+            <CardComponent card={topCard} small disabled />
+          ) : (
+            <div className="relative w-[48px] h-[68px] rounded-lg border border-[var(--color-border)] bg-[var(--color-panel)] flex items-center justify-center">
+              <span className="text-[var(--color-accent-mid)] font-mono text-xs font-semibold">{count}</span>
+            </div>
+          )
+        ) : (
+          <div className="w-[48px] h-[68px] rounded-lg border border-dashed border-[var(--color-border)] opacity-30" />
+        )}
       </div>
+      <span className={cn(
+        'text-[10px] font-mono tabular-nums font-semibold',
+        count === 0
+          ? 'text-[var(--color-danger)]'
+          : count < 5
+            ? 'text-[var(--color-warning)]'
+            : 'text-[var(--color-text-muted)]',
+      )}>
+        {count}
+      </span>
+    </div>
+  );
+}
+
+export function PlayArea({ pile, drawPileCount, discardPile, saborActive, saborMinRequired, consecutivePasses, pickMode }: PlayAreaProps) {
+  const topDiscard = discardPile[discardPile.length - 1];
+
+  return (
+    <div className="flex items-start justify-center gap-3 w-full max-w-md px-2">
+      {/* Draw pile (left) */}
+      <PileStack count={drawPileCount} label="Monte" />
+
+      {/* Divider */}
+      <div className="w-px bg-[var(--color-border)] self-stretch mt-6" />
+
+      {/* Active play area (center) */}
       <div className={cn(
-        'w-full max-w-xs sm:max-w-sm min-h-28 sm:min-h-32 rounded-xl border-2 flex flex-col items-center justify-center gap-2 p-3 sm:p-4 transition-all',
+        'flex-1 min-h-28 sm:min-h-32 rounded-xl border-2 flex flex-col items-center justify-center gap-2 p-2 sm:p-3 transition-all',
         pile.length === 0
           ? 'border-dashed border-[var(--color-border)]'
           : saborActive
@@ -39,14 +68,14 @@ export function PlayArea({ pile, drawPileCount, saborActive, saborMinRequired, c
             : 'border-[var(--color-border)] bg-[var(--color-surface)]',
       )}>
         {pile.length === 0 ? (
-          <p className="text-[var(--color-text-muted)] text-sm">Mesa vazia — jogue qualquer carta</p>
+          <p className="text-[var(--color-text-muted)] text-xs text-center">Mesa vazia</p>
         ) : (
           <>
-            <p className="text-xs text-[var(--color-text-muted)]">
+            <p className="text-[10px] text-[var(--color-text-muted)] text-center">
               {pile.length} carta{pile.length > 1 ? 's' : ''} • valor {pile[0]?.value}
-              {consecutivePasses > 0 && ` • ${consecutivePasses} passou${consecutivePasses > 1 ? 'ram' : ''}`}
+              {consecutivePasses > 0 && ` • ${consecutivePasses} pas${consecutivePasses > 1 ? 'ses' : 'se'}`}
             </p>
-            <div className="flex gap-2 flex-wrap justify-center">
+            <div className="flex gap-1.5 flex-wrap justify-center">
               <AnimatePresence>
                 {pile.map((card) => (
                   <motion.div
@@ -64,6 +93,12 @@ export function PlayArea({ pile, drawPileCount, saborActive, saborMinRequired, c
           </>
         )}
       </div>
+
+      {/* Divider */}
+      <div className="w-px bg-[var(--color-border)] self-stretch mt-6" />
+
+      {/* Discard pile (right) */}
+      <PileStack count={discardPile.length} topCard={topDiscard} label="Descarte" />
     </div>
   );
 }
