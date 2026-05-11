@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 220" role="img" aria-label="Temakuri">
+  <title>Temakuri</title>
+
+  <defs>
+    <linearGradient id="goldStroke" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"  stop-color="#f0cb58"/>
+      <stop offset="100%" stop-color="#a4760c"/>
+    </linearGradient>
+    <linearGradient id="cardFill" x1="0" y1="0" x2="0.18" y2="1">
+      <stop offset="0%"  stop-color="#fef9ee"/>
+      <stop offset="100%" stop-color="#e9d6a3"/>
+    </linearGradient>
+    <linearGradient id="wordRed" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"  stop-color="#c61515"/>
+      <stop offset="100%" stop-color="#8a0c0c"/>
+    </linearGradient>
+    <filter id="markShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="2" dy="6" stdDeviation="6" flood-color="#000" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+
+  <!-- ── MARK: kamon on a tilted card ─────────────────────────────── -->
+  <g transform="translate(110 110)" filter="url(#markShadow)">
+    <!-- ghost card behind for depth -->
+    <g transform="rotate(-10)" opacity="0.35">
+      <rect x="-58" y="-86" width="116" height="172" rx="10" fill="#1a0808"/>
+      <rect x="-58" y="-86" width="116" height="172" rx="10" fill="none" stroke="#c09018" stroke-width="1.6"/>
+    </g>
+
+    <!-- main card -->
+    <g transform="rotate(5)">
+      <rect x="-58" y="-86" width="116" height="172" rx="10" fill="url(#cardFill)"/>
+      <rect x="-58" y="-86" width="116" height="172" rx="10" fill="none" stroke="url(#goldStroke)" stroke-width="2.2"/>
+      <rect x="-52" y="-80" width="104" height="160" rx="7"  fill="none" stroke="#c8980e" stroke-width="0.9" opacity="0.55"/>
+
+      <!-- corner diamond ornaments -->
+      <polygon points="-46,-72 -42,-66 -46,-60 -50,-66" fill="#b01212"/>
+      <polygon points=" 46,-72  50,-66  46,-60  42,-66" fill="#b01212"/>
+      <polygon points="-46, 60 -42, 66 -46, 72 -50, 66" fill="#b01212"/>
+      <polygon points=" 46, 60  50, 66  46, 72  42, 66" fill="#b01212"/>
+
+      <!-- kamon centred -->
+      <g>
+        <circle r="40" fill="none" stroke="#b01212" stroke-width="1.6"/>
+        <!-- 4 card-petals N/E/S/W -->
+        <rect x="-5.5" y="-32.5" width="11" height="17.5" rx="2.5" fill="#b01212"/>
+        <g transform="rotate(90)"><rect  x="-5.5" y="-32.5" width="11" height="17.5" rx="2.5" fill="#b01212"/></g>
+        <g transform="rotate(180)"><rect x="-5.5" y="-32.5" width="11" height="17.5" rx="2.5" fill="#b01212"/></g>
+        <g transform="rotate(270)"><rect x="-5.5" y="-32.5" width="11" height="17.5" rx="2.5" fill="#b01212"/></g>
+        <!-- 4 small diamonds NE/SE/SW/NW -->
+        <g transform="rotate(45)"><polygon  points="0,-24 3.5,-20.5 0,-17 -3.5,-20.5" fill="#b01212" opacity="0.9"/></g>
+        <g transform="rotate(135)"><polygon points="0,-24 3.5,-20.5 0,-17 -3.5,-20.5" fill="#b01212" opacity="0.9"/></g>
+        <g transform="rotate(225)"><polygon points="0,-24 3.5,-20.5 0,-17 -3.5,-20.5" fill="#b01212" opacity="0.9"/></g>
+        <g transform="rotate(315)"><polygon points="0,-24 3.5,-20.5 0,-17 -3.5,-20.5" fill="#b01212" opacity="0.9"/></g>
+        <!-- centre diamond solid + hollow -->
+        <polygon points="0,-11 11,0 0,11 -11,0" fill="#b01212"/>
+        <polygon points="0,-6.5 6.5,0 0,6.5 -6.5,0" fill="#fef9ee"/>
+      </g>
+    </g>
+  </g>
+
+  <!-- ── WORDMARK ────────────────────────────────────────────────── -->
+  <g transform="translate(220 0)">
+    <text x="0" y="128"
+          font-family="'Cormorant Garamond','Playfair Display','Times New Roman',serif"
+          font-size="92"
+          font-weight="700"
+          letter-spacing="6"
+          fill="url(#wordRed)">TEMAKURI</text>
+
+    <!-- gold rule under wordmark -->
+    <line x1="2" y1="146" x2="468" y2="146" stroke="url(#goldStroke)" stroke-width="1.6"/>
+    <polygon points="235,141 241,146 235,151 229,146" fill="#b01212"/>
+
+    <!-- katakana reading -->
+    <text x="2" y="178"
+          font-family="'Yu Gothic','Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif"
+          font-size="20"
+          letter-spacing="14"
+          fill="#c8980e"
+          opacity="0.92">テマクリ</text>
+
+    <!-- tagline -->
+    <text x="468" y="178"
+          text-anchor="end"
+          font-family="'Inter','Segoe UI',system-ui,sans-serif"
+          font-size="14"
+          letter-spacing="5"
+          fill="#7a6020">CARD&#160;GAME</text>
+  </g>
+</svg>

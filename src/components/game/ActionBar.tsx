@@ -5,12 +5,13 @@ import type { Card } from '@/types/game';
 interface ActionBarProps {
   isMyTurn: boolean;
   pile: Card[];
+  drawPileCount: number;
   onPlay: () => void;
   onPass: () => void;
   canPlay: boolean;
 }
 
-export function ActionBar({ isMyTurn, pile, onPlay, onPass, canPlay }: ActionBarProps) {
+export function ActionBar({ isMyTurn, pile, drawPileCount, onPlay, onPass, canPlay }: ActionBarProps) {
   const selectedIndices = useGameStore(s => s.selectedIndices);
 
   if (!isMyTurn) {
@@ -22,25 +23,26 @@ export function ActionBar({ isMyTurn, pile, onPlay, onPass, canPlay }: ActionBar
   }
 
   return (
-    <div className="flex items-center gap-3 justify-center">
+    <div className="flex items-center gap-2 justify-center">
       <Button
         variant="primary"
-        size="lg"
+        size="md"
         onClick={onPlay}
         disabled={!canPlay || selectedIndices.length === 0}
+        className="min-w-[100px] sm:min-w-[120px]"
       >
         {selectedIndices.length > 0 ? `Jogar (${selectedIndices.length})` : 'Jogar'}
       </Button>
       <Button
         variant="secondary"
-        size="lg"
+        size="md"
         onClick={onPass}
-        disabled={pile.length === 0}
+        className="min-w-[90px] sm:min-w-[110px]"
       >
         Passar
-        {pile.length > 0 && (
-          <span className="text-xs text-[var(--color-text-muted)] ml-1">+1 carta</span>
-        )}
+        <span className="text-[10px] text-[var(--color-text-muted)] ml-1">
+          {drawPileCount > 0 ? `+1 (${drawPileCount})` : '—'}
+        </span>
       </Button>
     </div>
   );

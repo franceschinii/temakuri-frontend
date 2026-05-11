@@ -44,6 +44,7 @@ export interface PublicPlayerState {
   isConnected: boolean;
   isEliminated: boolean;
   isReady: boolean;
+  isBot?: boolean;
 }
 
 export interface ClientGameState {
@@ -54,6 +55,7 @@ export interface ClientGameState {
   currentTurnUserId: string;
   players: PublicPlayerState[];
   pile: Card[];
+  drawPileCount: number;
   market: Card[] | null;
   saborActive: boolean;
   saborMinRequired: number;

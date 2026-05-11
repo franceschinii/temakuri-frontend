@@ -16,8 +16,12 @@ export function useGame(roomCode: string) {
     clearSelection();
   }, [roomCode, selectedIndices, clearSelection]);
 
-  const passTurn = useCallback((pickCardIndex: number, insertAtIndex: number) => {
-    emitSocketEvent('game:pass_turn', { roomCode, pickCardIndex, insertAtIndex });
+  const drawCard = useCallback(() => {
+    emitSocketEvent('game:draw_card', { roomCode });
+  }, [roomCode]);
+
+  const insertDrawnCard = useCallback((insertAtIndex: number) => {
+    emitSocketEvent('game:insert_drawn_card', { roomCode, insertAtIndex });
   }, [roomCode]);
 
   const swapWithMarket = useCallback((handIndex: number, marketIndex: number) => {
@@ -28,9 +32,13 @@ export function useGame(roomCode: string) {
     emitSocketEvent('game:send_reaction', { roomCode, emoji });
   }, [roomCode]);
 
+  const sendMessage = useCallback((text: string) => {
+    emitSocketEvent('game:send_message', { roomCode, text });
+  }, [roomCode]);
+
   const requestState = useCallback(() => {
     emitSocketEvent('game:request_state', { roomCode });
   }, [roomCode]);
 
-  return { playSelectedCards, passTurn, swapWithMarket, sendReaction, requestState };
+  return { playSelectedCards, drawCard, insertDrawnCard, swapWithMarket, sendReaction, sendMessage, requestState };
 }

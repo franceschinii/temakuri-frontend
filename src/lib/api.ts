@@ -33,6 +33,10 @@ api.interceptors.response.use(
           sessionStorage.clear();
           window.location.href = '/auth/login';
         }
+      } else {
+        localStorage.clear();
+        sessionStorage.clear();
+        window.location.href = '/auth/login';
       }
     }
     return Promise.reject(error);

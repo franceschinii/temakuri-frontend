@@ -1,3 +1,4 @@
+import { Circle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { INITIAL_TOKENS } from '@/constants/game';
 
@@ -9,18 +10,18 @@ interface TokenDisplayProps {
 
 export function TokenDisplay({ tokens, max = INITIAL_TOKENS, size = 'md' }: TokenDisplayProps) {
   return (
-    <div className="flex gap-1 items-center">
+    <div className="flex gap-0.5 items-center">
       {Array.from({ length: max }).map((_, i) => (
-        <span
+        <Circle
           key={i}
+          size={size === 'sm' ? 10 : 14}
           className={cn(
             'transition-all duration-300',
-            size === 'sm' ? 'text-base' : 'text-xl',
-            i < tokens ? 'opacity-100' : 'opacity-20 grayscale',
+            i < tokens
+              ? 'fill-[var(--color-token-gold)] text-[var(--color-token-gold)]'
+              : 'fill-transparent text-[var(--color-border)] opacity-40',
           )}
-        >
-          🍱
-        </span>
+        />
       ))}
     </div>
   );

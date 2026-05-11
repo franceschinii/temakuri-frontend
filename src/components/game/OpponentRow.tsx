@@ -1,3 +1,4 @@
+import { Square } from 'lucide-react';
 import { TokenDisplay } from './TokenDisplay';
 import type { PublicPlayerState } from '@/types/game';
 import { cn } from '@/lib/utils';
@@ -27,7 +28,7 @@ export function OpponentRow({ player, isCurrentTurn }: OpponentRowProps) {
           {player.username[0].toUpperCase()}
         </div>
         <span className={cn(
-          'text-xs font-medium truncate max-w-20',
+          'text-xs font-medium truncate max-w-16 sm:max-w-20',
           isCurrentTurn ? 'text-[var(--color-accent-soft)]' : 'text-[var(--color-text-muted)]',
         )}>
           {player.username}
@@ -48,7 +49,7 @@ export function OpponentRow({ player, isCurrentTurn }: OpponentRowProps) {
             className="w-5 h-7 rounded border border-[var(--color-border)] bg-[var(--color-panel)] -ml-2 first:ml-0 flex items-center justify-center"
             style={{ zIndex: i }}
           >
-            <span className="text-[8px] opacity-40">🍱</span>
+            <Square size={6} className="opacity-40 text-[var(--color-text-muted)]" />
           </div>
         ))}
         {extraCards > 0 && (

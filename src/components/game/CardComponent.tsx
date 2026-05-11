@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import { EyeOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Card } from '@/types/game';
 import { CATEGORY_EMOJI, CATEGORY_COLOR, CATEGORY_DISPLAY } from '@/constants/cards';
@@ -20,7 +21,7 @@ export function CardComponent({ card, selected, onClick, faceDown, small, disabl
         'rounded-lg border border-[var(--color-border)] bg-[var(--color-panel)] flex items-center justify-center',
         small ? 'w-8 h-11' : 'w-14 h-20',
       )}>
-        <span className="text-[var(--color-text-muted)] text-lg">🍱</span>
+        <EyeOff size={small ? 12 : 18} className="text-[var(--color-text-muted)]" />
       </div>
     );
   }

@@ -42,7 +42,7 @@ export const useAuthStore = create<AuthState>()(
 
       loginAsGuest: async (username) => {
         const { data } = await api.post('/auth/guest', { username });
-        sessionStorage.setItem('accessToken', data.accessToken);
+        localStorage.setItem('accessToken', data.accessToken);
         set({ user: data.user, accessToken: data.accessToken, isGuest: true });
         connectSocket(data.accessToken);
       },
