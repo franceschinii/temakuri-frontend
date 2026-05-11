@@ -3,6 +3,8 @@ import { useAuthStore } from '@/stores/authStore';
 import LandingPage from '@/routes/index';
 import LoginPage from '@/routes/auth/login';
 import RegisterPage from '@/routes/auth/register';
+import ForgotPasswordPage from '@/routes/auth/forgot-password';
+import ResetPasswordPage from '@/routes/auth/reset-password';
 import LobbyPage from '@/routes/lobby/index';
 import RoomPage from '@/routes/lobby/room';
 import GamePage from '@/routes/game/index';
@@ -20,6 +22,8 @@ export default function App() {
       <Route path="/" element={<LandingPage />} />
       <Route path="/auth/login" element={<LoginPage />} />
       <Route path="/auth/register" element={<RegisterPage />} />
+      <Route path="/auth/forgot-password" element={<ForgotPasswordPage />} />
+      <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
 
       <Route element={<AuthGuard />}>
         <Route path="/lobby" element={<LobbyPage />} />
