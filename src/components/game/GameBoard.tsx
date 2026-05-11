@@ -40,7 +40,7 @@ export function GameBoard() {
     phase, round, myHand, players, pile, market, saborActive, saborMinRequired, saborTriggeredBy,
     currentTurnUserId, consecutivePasses, selectedIndices, discardPile, duelPlates, myDuelPlates,
     syncState, setMyHand, applyCardsPlayed, applyTurnPassed, applyWipe, drawPileCount,
-    setSaborActive, applyRoundEnd, applyGameOver, clearRoundSummary, addToDiscardPile,
+    setSaborActive, applyRoundEnd, applyGameOver, clearRoundSummary, addToDiscardPile, reset,
     roundSummaryData, gameOverData, addReaction, reactions, updateMarket, addLog,
     soundEnabled, musicEnabled, toggleSound, toggleMusic,
   } = useGameStore();

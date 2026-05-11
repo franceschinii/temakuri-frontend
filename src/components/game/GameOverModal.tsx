@@ -24,7 +24,7 @@ export function GameOverModal({ rankings, myUserId, onPlayAgain }: GameOverModal
     setSharing(true);
     try {
       const html2canvas = (await import('html2canvas')).default;
-      const canvas = await html2canvas(captureRef.current, { backgroundColor: '#1a1a2e', scale: 2 });
+      const canvas = await html2canvas(captureRef.current, { background: '#1a1a2e' });
       canvas.toBlob(blob => {
         if (!blob) return;
         const url = URL.createObjectURL(blob);
