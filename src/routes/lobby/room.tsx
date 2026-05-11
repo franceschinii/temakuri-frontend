@@ -17,6 +17,7 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { startMusic, stopMusic } from '@/lib/music';
 import { playSound } from '@/lib/sounds';
+import { RulesDialog } from '@/components/game/RulesDialog';
 
 export default function RoomPage() {
   useEffect(() => {
@@ -165,6 +166,7 @@ export default function RoomPage() {
           </span>
         </div>
         <div className="flex items-center gap-1">
+          <RulesDialog />
           <AccessBar />
           <Button variant="ghost" size="sm" onClick={handleLeave}>
             <LogOut size={14} /> Sair
@@ -331,16 +333,24 @@ export default function RoomPage() {
           {isHost && (
             <>
               <Button
+                variant={readyMap[user?.id ?? ''] ? 'secondary' : 'outline'}
+                onClick={handleToggleReady}
+                className="shrink-0"
+              >
+                {readyMap[user?.id ?? ''] ? 'Cancelar' : 'Pronto'}
+              </Button>
+              <Button
                 variant="outline"
                 onClick={handleAddBot}
                 disabled={addingBot || room.players.length >= room.maxPlayers}
+                className="shrink-0"
               >
                 <PlusCircle size={14} /> Bot
               </Button>
               <Button
                 className="flex-1"
                 onClick={handleStart}
-                disabled={room.players.length < 2}
+                disabled={room.players.length < 2 || (!allSlotsReady && humanPlayers.length > 1)}
               >
                 {allSlotsReady || humanPlayers.length <= 1 ? 'Iniciar Partida' : `Aguardando (${humanPlayers.filter(p => readyMap[p.userId]).length}/${humanPlayers.length})`}
               </Button>
