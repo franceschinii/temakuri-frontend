@@ -545,9 +545,7 @@ export function GameBoard() {
                 Jogada inválida — precisa de mais cartas ou valor maior
               </p>
             )}
-            {isMyTurn && (
-              <ReactionBar onReact={handleSendReaction} disabled={reactionCooldown} />
-            )}
+            <ReactionBar onReact={handleSendReaction} disabled={reactionCooldown} />
           </div>
         )}
 
