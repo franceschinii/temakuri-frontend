@@ -17,20 +17,22 @@ function PileStack({ count, topCard, label }: { count: number; topCard?: Card; l
   return (
     <div className="flex flex-col items-center gap-1 min-w-[52px]">
       <span className="text-[10px] uppercase tracking-widest text-[var(--color-text-muted)] font-medium">{label}</span>
-      <div className="relative h-[68px] w-[48px] flex items-center justify-center">
+      <div className="relative h-[68px] w-[48px]">
         {count > 1 && (
           <div className="absolute inset-0 rounded-lg border border-[var(--color-border)] bg-[var(--color-panel)] translate-x-1 translate-y-1 opacity-60" />
         )}
         {count > 0 ? (
           topCard ? (
-            <CardComponent card={topCard} small disabled />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <CardComponent card={topCard} small disabled />
+            </div>
           ) : (
-            <div className="relative w-[48px] h-[68px] rounded-lg border border-[var(--color-border)] bg-[var(--color-panel)] flex items-center justify-center">
+            <div className="absolute inset-0 rounded-lg border border-[var(--color-border)] bg-[var(--color-panel)] flex items-center justify-center">
               <span className="text-[var(--color-accent-mid)] font-mono text-xs font-semibold">{count}</span>
             </div>
           )
         ) : (
-          <div className="w-[48px] h-[68px] rounded-lg border border-dashed border-[var(--color-border)] opacity-30" />
+          <div className="absolute inset-0 rounded-lg border border-dashed border-[var(--color-border)] opacity-30" />
         )}
       </div>
       <span className={cn(
