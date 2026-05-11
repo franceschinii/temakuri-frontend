@@ -48,6 +48,7 @@ export function GameBoard() {
   const { playSelectedCards, drawCard, insertDrawnCard, swapWithMarket, sendReaction, sendMessage, requestState } = useGame(roomCode!);
 
   const [timerMs, setTimerMs] = useState(30_000);
+  const [timerKey, setTimerKey] = useState(0);
   const [reactionCooldown, setReactionCooldown] = useState(false);
   const [pickMode, setPickMode] = useState(false);
   const [drawnCard, setDrawnCard] = useState<Card | null>(null);
@@ -117,6 +118,7 @@ export function GameBoard() {
   useSocketEvent<{ userId: string; timeoutMs: number }>('game:turn_started', useCallback(({ userId, timeoutMs }) => {
     useGameStore.setState({ currentTurnUserId: userId });
     setTimerMs(timeoutMs);
+    setTimerKey(k => k + 1);
     setPickMode(false);
     setTrickPickOpen(false);
   }, []));
@@ -347,7 +349,7 @@ export function GameBoard() {
           )}
         </div>
         <div className="flex-1 flex items-center justify-center px-4">
-          <TurnTimer timeoutMs={timerMs} isMyTurn={isMyTurn} />
+          <TurnTimer key={timerKey} timeoutMs={timerMs} isMyTurn={isMyTurn} />
         </div>
         <div className="flex items-center gap-1">
           <RulesDialog />

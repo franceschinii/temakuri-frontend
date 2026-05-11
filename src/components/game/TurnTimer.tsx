@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
 
 interface TurnTimerProps {
@@ -8,23 +8,14 @@ interface TurnTimerProps {
 
 export function TurnTimer({ timeoutMs, isMyTurn }: TurnTimerProps) {
   const [remaining, setRemaining] = useState(timeoutMs);
-  // resetKey muda toda vez que um novo turno começa, mesmo que timeoutMs seja igual
-  const resetKey = useRef(0);
-  const [key, setKey] = useState(0);
 
   useEffect(() => {
-    resetKey.current += 1;
-    const currentKey = resetKey.current;
     setRemaining(timeoutMs);
-    setKey(currentKey);
-
     const interval = setInterval(() => {
-      if (resetKey.current !== currentKey) return;
       setRemaining(r => Math.max(0, r - 100));
     }, 100);
-
     return () => clearInterval(interval);
-  }, [timeoutMs, isMyTurn]);
+  }, [timeoutMs]);
 
   const pct = (remaining / timeoutMs) * 100;
   const seconds = Math.ceil(remaining / 1000);
