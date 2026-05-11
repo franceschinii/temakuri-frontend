@@ -16,6 +16,7 @@ export function ChatPanel({ onSendMessage, myUserId }: ChatPanelProps) {
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState('');
   const [unread, setUnread] = useState(0);
+  const [chatCooldown, setChatCooldown] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const prevLenRef = useRef(0);
 
@@ -39,10 +40,12 @@ export function ChatPanel({ onSendMessage, myUserId }: ChatPanelProps) {
 
   const handleSend = useCallback(() => {
     const text = input.trim();
-    if (!text) return;
+    if (!text || chatCooldown) return;
     onSendMessage(text);
     setInput('');
-  }, [input, onSendMessage]);
+    setChatCooldown(true);
+    setTimeout(() => setChatCooldown(false), 2000);
+  }, [input, chatCooldown, onSendMessage]);
 
   return (
     <>
@@ -134,11 +137,12 @@ export function ChatPanel({ onSendMessage, myUserId }: ChatPanelProps) {
                 onChange={e => setInput(e.target.value.slice(0, 80))}
                 onKeyDown={e => e.key === 'Enter' && handleSend()}
                 placeholder="Mensagem..."
-                className="flex-1 bg-[var(--color-panel)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-xs text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] outline-none focus:border-[var(--color-accent-mid)] transition-colors"
+                disabled={chatCooldown}
+                className="flex-1 bg-[var(--color-panel)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-xs text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] outline-none focus:border-[var(--color-accent-mid)] transition-colors disabled:opacity-50"
               />
               <button
                 onClick={handleSend}
-                disabled={!input.trim()}
+                disabled={!input.trim() || chatCooldown}
                 className="p-2 rounded-lg bg-[var(--color-accent-strong)] text-white disabled:opacity-40 hover:opacity-90 transition-all shrink-0"
               >
                 <Send size={12} />

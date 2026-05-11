@@ -352,7 +352,9 @@ export default function RoomPage() {
                 onClick={handleStart}
                 disabled={room.players.length < 2 || (!allSlotsReady && humanPlayers.length > 1)}
               >
-                {allSlotsReady || humanPlayers.length <= 1 ? 'Iniciar Partida' : `Aguardando (${humanPlayers.filter(p => readyMap[p.userId]).length}/${humanPlayers.length})`}
+                {allSlotsReady || humanPlayers.length <= 1
+                  ? 'Iniciar Partida'
+                  : `Aguardando (${humanPlayers.filter(p => readyMap[p.userId]).length}/${humanPlayers.length})`}
               </Button>
             </>
           )}

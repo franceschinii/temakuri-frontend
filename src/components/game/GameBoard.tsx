@@ -1,6 +1,6 @@
 import { useEffect, useCallback, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { LogOut, X } from 'lucide-react';
+import { LogOut, X, Volume2, VolumeX, Music, Music2 } from 'lucide-react';
 import { AccessBar } from '@/components/ui/AccessBar';
 import { Modal } from '@/components/ui/modal';
 import { Button } from '@/components/ui/button';
@@ -23,6 +23,7 @@ import { MarketRow } from './MarketRow';
 import { ReactionBar } from './ReactionBar';
 import { ActionHistoryPanel } from './ActionHistoryPanel';
 import { ChatPanel } from './ChatPanel';
+import { RulesDialog } from './RulesDialog';
 import { CardComponent } from './CardComponent';
 import { TrickPickModal } from './TrickPickModal';
 import { DuelPassPickModal } from './DuelPassPickModal';
@@ -41,11 +42,13 @@ export function GameBoard() {
     syncState, setMyHand, applyCardsPlayed, applyTurnPassed, applyWipe, drawPileCount,
     setSaborActive, applyRoundEnd, applyGameOver, clearRoundSummary, addToDiscardPile,
     roundSummaryData, gameOverData, addReaction, reactions, updateMarket, addLog,
+    soundEnabled, musicEnabled, toggleSound, toggleMusic,
   } = useGameStore();
 
   const { playSelectedCards, drawCard, insertDrawnCard, swapWithMarket, sendReaction, sendMessage, requestState } = useGame(roomCode!);
 
   const [timerMs, setTimerMs] = useState(30_000);
+  const [reactionCooldown, setReactionCooldown] = useState(false);
   const [pickMode, setPickMode] = useState(false);
   const [drawnCard, setDrawnCard] = useState<Card | null>(null);
   const [marketSwapMode, setMarketSwapMode] = useState(false);
@@ -63,13 +66,17 @@ export function GameBoard() {
   const isWipeWinner = phase === 'PLAYER_TURN' && market !== null && currentTurnUserId === user?.id && pile.length === 0;
 
   useEffect(() => {
-    startMusic('game');
-    return () => stopMusic();
+    if (musicEnabled) startMusic('game');
+    return () => {
+      stopMusic();
+      reset();
+    };
   }, []);
 
   useEffect(() => {
-    return () => { useGameStore.getState().reset(); };
-  }, []);
+    if (musicEnabled) startMusic('game');
+    else stopMusic();
+  }, [musicEnabled]);
 
   useEffect(() => {
     if (roomCode) requestState();
@@ -222,6 +229,16 @@ export function GameBoard() {
     addLog({ type: 'chat', userId, username, text });
   }, [addLog]));
 
+  useSocketEvent<{ userId: string }>('game:player_disconnected', useCallback(({ userId }) => {
+    const p = players.find(pl => pl.userId === userId);
+    toast(`${p?.username ?? 'Jogador'} desconectou`);
+  }, [players]));
+
+  useSocketEvent<{ userId: string }>('game:player_reconnected', useCallback(({ userId }) => {
+    const p = players.find(pl => pl.userId === userId);
+    toast.success(`${p?.username ?? 'Jogador'} voltou`);
+  }, [players]));
+
   const handleSendMessage = useCallback((text: string) => {
     sendMessage(text);
     // Optimistic: add own message to log immediately
@@ -286,6 +303,13 @@ export function GameBoard() {
     setSelectedHandIndexForSwap(null);
   };
 
+  const handleSendReaction = useCallback((emoji: string) => {
+    if (reactionCooldown) return;
+    sendReaction(emoji);
+    setReactionCooldown(true);
+    setTimeout(() => setReactionCooldown(false), 3000);
+  }, [reactionCooldown, sendReaction]);
+
   const handleLeaveGame = () => setLeaveConfirmOpen(true);
 
   return (
@@ -326,6 +350,21 @@ export function GameBoard() {
           <TurnTimer timeoutMs={timerMs} isMyTurn={isMyTurn} />
         </div>
         <div className="flex items-center gap-1">
+          <RulesDialog />
+          <button
+            onClick={toggleSound}
+            className="p-1.5 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-accent-mid)] hover:bg-[var(--color-panel)] transition-all"
+            title={soundEnabled ? 'Silenciar sons' : 'Ativar sons'}
+          >
+            {soundEnabled ? <Volume2 size={15} /> : <VolumeX size={15} />}
+          </button>
+          <button
+            onClick={toggleMusic}
+            className="p-1.5 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-accent-mid)] hover:bg-[var(--color-panel)] transition-all"
+            title={musicEnabled ? 'Silenciar música' : 'Ativar música'}
+          >
+            {musicEnabled ? <Music size={15} /> : <Music2 size={15} />}
+          </button>
           <AccessBar />
           <button
             onClick={handleLeaveGame}
@@ -505,7 +544,7 @@ export function GameBoard() {
               </p>
             )}
             {isMyTurn && (
-              <ReactionBar onReact={sendReaction} />
+              <ReactionBar onReact={handleSendReaction} disabled={reactionCooldown} />
             )}
           </div>
         )}
@@ -540,31 +579,28 @@ export function GameBoard() {
       <ActionHistoryPanel />
       <ChatPanel onSendMessage={handleSendMessage} myUserId={user?.id ?? ''} />
 
-      {/* Reactions overlay — float above center play area */}
-      <AnimatePresence>
-        {reactions.map((r) => {
-          const p = players.find(pl => pl.userId === r.userId);
-          // stable hash from reaction id to avoid jumps as others expire
-          const hash = r.id.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
-          const xOff = ((hash % 3) - 1) * 15; // spread -15vw, 0, +15vw
-          return (
-            <motion.div
-              key={r.id}
-              initial={{ opacity: 0, scale: 0.3, y: 30 }}
-              animate={{ opacity: 1, scale: 1.2, y: -30 }}
-              exit={{ opacity: 0, scale: 0.6, y: -80 }}
-              transition={{ duration: 0.4, ease: 'easeOut' }}
-              className="fixed top-[38%] pointer-events-none z-30"
-              style={{ left: `calc(50% + ${xOff}vw)`, transform: 'translateX(-50%)' }}
-            >
-              <div className="bg-[var(--color-panel)] border border-[var(--color-border)] px-3 py-1.5 rounded-full shadow-xl flex items-center gap-1.5">
-                <span className="text-2xl">{r.emoji}</span>
-                {p && <span className="text-xs text-[var(--color-text-muted)]">{p.username}</span>}
-              </div>
-            </motion.div>
-          );
-        })}
-      </AnimatePresence>
+      {/* Reactions overlay — canto inferior direito */}
+      <div className="fixed bottom-24 right-4 flex flex-col gap-2 z-40 pointer-events-none">
+        <AnimatePresence>
+          {reactions.map((r) => {
+            const p = players.find(pl => pl.userId === r.userId);
+            return (
+              <motion.div
+                key={r.id}
+                initial={{ opacity: 0, scale: 0.3, x: 20 }}
+                animate={{ opacity: 1, scale: 1, x: 0 }}
+                exit={{ opacity: 0, scale: 0.6, x: 20 }}
+                transition={{ duration: 0.35, ease: 'easeOut' }}
+              >
+                <div className="bg-[var(--color-panel)] border border-[var(--color-border)] px-3 py-1.5 rounded-full shadow-xl flex items-center gap-1.5">
+                  <span className="text-2xl">{r.emoji}</span>
+                  {p && <span className="text-xs text-[var(--color-text-muted)]">{p.username}</span>}
+                </div>
+              </motion.div>
+            );
+          })}
+        </AnimatePresence>
+      </div>
 
       {/* Modals */}
       {roundSummaryData && (

@@ -11,6 +11,10 @@ export interface LogEntry {
 }
 
 interface GameStoreState {
+  soundEnabled: boolean;
+  musicEnabled: boolean;
+  toggleSound: () => void;
+  toggleMusic: () => void;
   phase: GamePhase | null;
   round: number;
   myHand: Card[];
@@ -53,6 +57,18 @@ interface GameStoreState {
 }
 
 export const useGameStore = create<GameStoreState>((set, get) => ({
+  soundEnabled: localStorage.getItem('soundEnabled') !== 'false',
+  musicEnabled: localStorage.getItem('musicEnabled') !== 'false',
+  toggleSound: () => set(s => {
+    const next = !s.soundEnabled;
+    localStorage.setItem('soundEnabled', String(next));
+    return { soundEnabled: next };
+  }),
+  toggleMusic: () => set(s => {
+    const next = !s.musicEnabled;
+    localStorage.setItem('musicEnabled', String(next));
+    return { musicEnabled: next };
+  }),
   phase: null,
   round: 0,
   myHand: [],
