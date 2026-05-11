@@ -1,6 +1,6 @@
 import { useEffect, useCallback, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { LogOut, X, Volume2, VolumeX, Music, Music2 } from 'lucide-react';
+import { LogOut, X } from 'lucide-react';
 import { AccessBar } from '@/components/ui/AccessBar';
 import { Modal } from '@/components/ui/modal';
 import { Button } from '@/components/ui/button';
@@ -42,7 +42,7 @@ export function GameBoard() {
     syncState, setMyHand, applyCardsPlayed, applyTurnPassed, applyWipe, drawPileCount,
     setSaborActive, applyRoundEnd, applyGameOver, clearRoundSummary, addToDiscardPile, reset,
     roundSummaryData, gameOverData, addReaction, reactions, updateMarket, addLog,
-    soundEnabled, musicEnabled, toggleSound, toggleMusic,
+    soundEnabled, musicEnabled,
   } = useGameStore();
 
   const { playSelectedCards, drawCard, insertDrawnCard, swapWithMarket, sendReaction, sendMessage, requestState } = useGame(roomCode!);
@@ -353,20 +353,6 @@ export function GameBoard() {
         </div>
         <div className="flex items-center gap-1">
           <RulesDialog />
-          <button
-            onClick={toggleSound}
-            className="p-1.5 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-accent-mid)] hover:bg-[var(--color-panel)] transition-all"
-            title={soundEnabled ? 'Silenciar sons' : 'Ativar sons'}
-          >
-            {soundEnabled ? <Volume2 size={15} /> : <VolumeX size={15} />}
-          </button>
-          <button
-            onClick={toggleMusic}
-            className="p-1.5 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-accent-mid)] hover:bg-[var(--color-panel)] transition-all"
-            title={musicEnabled ? 'Silenciar música' : 'Ativar música'}
-          >
-            {musicEnabled ? <Music size={15} /> : <Music2 size={15} />}
-          </button>
           <AccessBar />
           <button
             onClick={handleLeaveGame}
