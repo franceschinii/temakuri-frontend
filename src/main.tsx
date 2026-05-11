@@ -16,6 +16,7 @@ function Root() {
       <App />
       <Toaster
         position="top-right"
+        closeButton
         toastOptions={{
           style: {
             background: 'var(--color-panel)',
