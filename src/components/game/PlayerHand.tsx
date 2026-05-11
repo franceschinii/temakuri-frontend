@@ -11,6 +11,7 @@ interface PlayerHandProps {
   // pick mode: passar turno — escolha onde inserir a carta do monte
   onPickInsert?: (insertAtIndex: number) => void;
   pickMode?: boolean;
+  drawnCard?: Card;
   // swap mode: mercado
   swapSelectIndex?: number | null;
   onSwapSelect?: (index: number) => void;
@@ -18,7 +19,7 @@ interface PlayerHandProps {
 
 export function PlayerHand({
   hand, isMyTurn,
-  onPickInsert, pickMode,
+  onPickInsert, pickMode, drawnCard,
   swapSelectIndex, onSwapSelect,
 }: PlayerHandProps) {
   const { selectedIndices, toggleCardSelection } = useGameStore();
@@ -44,8 +45,14 @@ export function PlayerHand({
   if (pickMode) {
     return (
       <div className="flex flex-col items-center gap-3">
+        {drawnCard && (
+          <div className="flex flex-col items-center gap-2 mb-3">
+            <p className="text-xs text-[var(--color-text-muted)]">Carta sorteada:</p>
+            <CardComponent card={drawnCard} />
+          </div>
+        )}
         <p className="text-sm text-[var(--color-warning)] font-medium">
-          Escolha onde inserir a carta do monte:
+          {drawnCard ? 'Escolha onde inserir na sua mão:' : 'Escolha onde inserir (sem carta disponível):'}
         </p>
         <div className="flex gap-1 items-center flex-wrap justify-center pt-4 pb-4">
           {[...Array(hand.length + 1)].map((_, insertIdx) => (

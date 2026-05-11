@@ -37,10 +37,11 @@ export function GameBoard() {
     roundSummaryData, gameOverData, addReaction, reactions, updateMarket,
   } = useGameStore();
 
-  const { playSelectedCards, passTurn, swapWithMarket, sendReaction, requestState } = useGame(roomCode!);
+  const { playSelectedCards, drawCard, insertDrawnCard, swapWithMarket, sendReaction, requestState } = useGame(roomCode!);
 
   const [timerMs, setTimerMs] = useState(30_000);
   const [pickMode, setPickMode] = useState(false);
+  const [drawnCard, setDrawnCard] = useState<Card | null>(null);
   const [marketSwapMode, setMarketSwapMode] = useState(false);
   const [selectedHandIndexForSwap, setSelectedHandIndexForSwap] = useState<number | null>(null);
   const [leaveConfirmOpen, setLeaveConfirmOpen] = useState(false);
@@ -79,9 +80,16 @@ export function GameBoard() {
   useSocketEvent<{ state: ClientGameState }>('game:state_sync', useCallback(({ state }) => {
     syncState(state);
     setPickMode(false);
+    setDrawnCard(null);
     setMarketSwapMode(false);
     setSelectedHandIndexForSwap(null);
   }, [syncState]));
+
+  useSocketEvent<{ card: Card; drawPileCount: number }>('game:card_drawn', useCallback(({ card, drawPileCount }) => {
+    setDrawnCard(card);
+    setPickMode(true);
+    useGameStore.setState({ drawPileCount });
+  }, []));
 
   useSocketEvent<{ userId: string; timeoutMs: number }>('game:turn_started', useCallback(({ userId, timeoutMs }) => {
     useGameStore.setState({ currentTurnUserId: userId });
@@ -97,7 +105,10 @@ export function GameBoard() {
   useSocketEvent<{ userId: string; drawnCard: Card | null; drawPileCount: number }>('game:turn_passed', useCallback(({ userId, drawnCard, drawPileCount }) => {
     applyTurnPassed(userId, drawnCard, drawPileCount);
     playSound('pass');
-    if (userId === user?.id) setPickMode(false);
+    if (userId === user?.id) {
+      setPickMode(false);
+      setDrawnCard(null);
+    }
   }, [applyTurnPassed, user?.id]));
 
   useSocketEvent<{ winnerId: string }>('game:wipe', useCallback(({ winnerId }) => {
@@ -144,11 +155,12 @@ export function GameBoard() {
   );
 
   const handlePass = () => {
-    setPickMode(true);
+    drawCard();
   };
 
   const handleInsertAtIndex = (insertAtIndex: number) => {
-    passTurn(insertAtIndex);
+    insertDrawnCard(insertAtIndex);
+    setDrawnCard(null);
     setPickMode(false);
   };
 
@@ -287,6 +299,7 @@ export function GameBoard() {
               isMyTurn={isMyTurn}
               pickMode={true}
               onPickInsert={handleInsertAtIndex}
+              drawnCard={drawnCard ?? undefined}
             />
           ) : (
             <PlayerHand hand={myHand} isMyTurn={isMyTurn} />
@@ -296,7 +309,7 @@ export function GameBoard() {
         {/* Cancel pick mode */}
         {pickMode && (
           <div className="mt-2 flex justify-center">
-            <Button variant="ghost" size="sm" onClick={() => setPickMode(false)}>
+            <Button variant="ghost" size="sm" onClick={() => { setPickMode(false); setDrawnCard(null); }}>
               Cancelar
             </Button>
           </div>
