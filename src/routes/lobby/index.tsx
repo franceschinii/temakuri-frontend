@@ -173,7 +173,7 @@ export default function LobbyPage() {
             <p className="text-xs font-semibold uppercase tracking-wider text-[var(--color-accent-mid)]">Objetivo</p>
             <p className="text-[var(--color-text-muted)] leading-relaxed">
               Esvazie sua mão antes dos adversários. Quem sobrar com cartas perde 1 ficha.
-              Cada jogador começa com <strong className="text-[var(--color-text-primary)]">3 fichas</strong> — quem chegar a zero é eliminado. O último restante vence.
+              Cada jogador começa com <strong className="text-[var(--color-text-primary)]">2 fichas</strong> — quem chegar a zero é eliminado. O último restante vence.
             </p>
           </section>
 

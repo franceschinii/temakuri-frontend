@@ -144,8 +144,9 @@ export function GameBoard() {
     });
   }, [applyCardsPlayed, addLog]));
 
-  useSocketEvent<{ userId: string; drawnCard: Card | null; drawPileCount: number }>('game:turn_passed', useCallback(({ userId, drawnCard, drawPileCount }) => {
+  useSocketEvent<{ userId: string; drawnCard: Card | null; discardedCard: Card | null; drawPileCount: number }>('game:turn_passed', useCallback(({ userId, drawnCard, discardedCard, drawPileCount }) => {
     applyTurnPassed(userId, drawnCard, drawPileCount);
+    if (discardedCard) addToDiscardPile([discardedCard]);
     playSound('pass');
     if (userId === user?.id) {
       setPickMode(false);
@@ -158,7 +159,7 @@ export function GameBoard() {
       username: name,
       text: drawnCard ? `${name} passou e comprou do monte` : `${name} passou (monte vazio)`,
     });
-  }, [applyTurnPassed, user?.id, addLog]));
+  }, [applyTurnPassed, addToDiscardPile, user?.id, addLog]));
 
   useSocketEvent<{ winnerId: string }>('game:wipe', useCallback(({ winnerId }) => {
     applyWipe(winnerId);

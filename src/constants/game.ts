@@ -7,5 +7,5 @@ export const GAME_MODES: { value: GameMode; label: string; description: string }
   { value: 'DEGUSTACAO', label: 'Degustação', description: 'Modo solo contra chefs-IA. 8 estágios progressivos.' },
 ];
 
-export const INITIAL_TOKENS = 3;
+export const INITIAL_TOKENS = 2;
 export const TURN_TIMEOUT_MS = 30_000;

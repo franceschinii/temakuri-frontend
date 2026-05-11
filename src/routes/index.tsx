@@ -215,12 +215,23 @@ export default function LandingPage() {
               <p className="text-[10px] text-[var(--color-text-muted)] leading-relaxed">
                 <span className="text-[var(--color-text-primary)] font-medium">Objetivo:</span>{' '}
                 esvazie sua mão. Quando só 1 jogador ainda tiver cartas, ele perde 1 Prato de Vida.
-                Cada jogador começa com <span className="text-[var(--color-token-gold)]">3 Pratos</span> — perde o último, eliminado. Último sobrevivente vence.
+                Cada jogador começa com <span className="text-[var(--color-token-gold)]">2 Pratos</span> — perde o último, eliminado. Último sobrevivente vence.
               </p>
             </div>
           </motion.div>
 
         </div>
+
+        <p className="text-[9px] text-[var(--color-text-muted)] opacity-50 tracking-wide">
+          desenvolvido por{' '}
+          <a
+            href="mailto:contato@andrefranceschini.com.br"
+            className="hover:text-[var(--color-text-primary)] transition-colors"
+          >
+            contato@andrefranceschini.com.br
+          </a>
+        </p>
+
       </div>
       </div>
     </div>
