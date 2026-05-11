@@ -20,8 +20,8 @@ export function useGame(roomCode: string) {
     emitSocketEvent('game:draw_card', { roomCode });
   }, [roomCode]);
 
-  const insertDrawnCard = useCallback((insertAtIndex: number) => {
-    emitSocketEvent('game:insert_drawn_card', { roomCode, insertAtIndex });
+  const insertDrawnCard = useCallback((insertAtIndex: number, action: 'insert' | 'discard' = 'insert') => {
+    emitSocketEvent('game:insert_drawn_card', { roomCode, insertAtIndex, action });
   }, [roomCode]);
 
   const swapWithMarket = useCallback((handIndex: number, marketIndex: number) => {

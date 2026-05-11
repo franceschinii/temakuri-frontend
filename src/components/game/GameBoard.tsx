@@ -24,6 +24,8 @@ import { ReactionBar } from './ReactionBar';
 import { ActionHistoryPanel } from './ActionHistoryPanel';
 import { ChatPanel } from './ChatPanel';
 import { CardComponent } from './CardComponent';
+import { TrickPickModal } from './TrickPickModal';
+import { DuelPassPickModal } from './DuelPassPickModal';
 import type { Card, ClientGameState, GameRanking, GameStats } from '@/types/game';
 import { validatePlayIndicesClient } from '@/lib/gameRules';
 import { playSound } from '@/lib/sounds';
@@ -35,9 +37,9 @@ export function GameBoard() {
   const user = useAuthStore(s => s.user);
   const {
     phase, round, myHand, players, pile, market, saborActive, saborMinRequired, saborTriggeredBy,
-    currentTurnUserId, consecutivePasses, selectedIndices,
+    currentTurnUserId, consecutivePasses, selectedIndices, discardPile, duelPlates, myDuelPlates,
     syncState, setMyHand, applyCardsPlayed, applyTurnPassed, applyWipe, drawPileCount,
-    setSaborActive, applyRoundEnd, applyGameOver, clearRoundSummary,
+    setSaborActive, applyRoundEnd, applyGameOver, clearRoundSummary, addToDiscardPile,
     roundSummaryData, gameOverData, addReaction, reactions, updateMarket, addLog,
   } = useGameStore();
 
@@ -50,6 +52,9 @@ export function GameBoard() {
   const [selectedHandIndexForSwap, setSelectedHandIndexForSwap] = useState<number | null>(null);
   const [leaveConfirmOpen, setLeaveConfirmOpen] = useState(false);
   const [turnBanner, setTurnBanner] = useState<{ name: string; isMe: boolean } | null>(null);
+  const [trickPickOpen, setTrickPickOpen] = useState(false);
+  const [trickPile, setTrickPile] = useState<Card[]>([]);
+  const [duelPickOpen, setDuelPickOpen] = useState(false);
   const prevTurnRef = useRef<string>('');
 
   const isMyTurn = user?.id === currentTurnUserId;
@@ -60,6 +65,10 @@ export function GameBoard() {
   useEffect(() => {
     startMusic('game');
     return () => stopMusic();
+  }, []);
+
+  useEffect(() => {
+    return () => { useGameStore.getState().reset(); };
   }, []);
 
   useEffect(() => {
@@ -102,6 +111,7 @@ export function GameBoard() {
     useGameStore.setState({ currentTurnUserId: userId });
     setTimerMs(timeoutMs);
     setPickMode(false);
+    setTrickPickOpen(false);
   }, []));
 
   useSocketEvent<{ userId: string; cards: Card[]; isSabor: boolean }>('game:cards_played', useCallback(({ userId, cards, isSabor }) => {
@@ -178,6 +188,32 @@ export function GameBoard() {
     setSelectedHandIndexForSwap(null);
   }, [updateMarket]));
 
+  useSocketEvent<{ pile: Card[] }>('game:trick_pick_offer', useCallback(({ pile }) => {
+    setTrickPile(pile);
+    setTrickPickOpen(true);
+  }, []));
+
+  useSocketEvent<{ plates: Card[] }>('game:duel_pass_offer', useCallback(({ plates }) => {
+    useGameStore.setState(s => ({ myDuelPlates: plates }));
+    setDuelPickOpen(true);
+  }, []));
+
+  useSocketEvent<{ userId: string }>('game:player_hand_empty', useCallback(({ userId }) => {
+    useGameStore.setState(s => ({
+      players: s.players.map(p => p.userId === userId ? { ...p, cardCount: 0 } : p),
+    }));
+  }, []));
+
+  useSocketEvent<{ userId: string }>('game:player_disconnected', useCallback(({ userId }) => {
+    const name = useGameStore.getState().players.find(p => p.userId === userId)?.username ?? userId;
+    toast.warning(`${name} saiu do jogo`);
+  }, []));
+
+  useSocketEvent<{ userId: string }>('game:player_reconnected', useCallback(({ userId }) => {
+    const name = useGameStore.getState().players.find(p => p.userId === userId)?.username ?? userId;
+    toast.success(`${name} voltou`);
+  }, []));
+
   useSocketEvent<{ userId: string; emoji: string }>('game:reaction', useCallback(({ userId, emoji }) => {
     addReaction(userId, emoji);
   }, [addReaction]));
@@ -196,7 +232,27 @@ export function GameBoard() {
     myHand, selectedIndices, pile, saborActive, saborMinRequired,
   );
 
+  const handleTrickTake = (insertAtIndex: number) => {
+    setTrickPickOpen(false);
+    emitSocketEvent('game:trick_pick', { roomCode, action: 'take', insertAtIndex });
+  };
+
+  const handleTrickDiscard = () => {
+    addToDiscardPile(trickPile);
+    setTrickPickOpen(false);
+    emitSocketEvent('game:trick_pick', { roomCode, action: 'discard' });
+  };
+
+  const handleDuelPick = (plateIndex: number, action: 'insert' | 'discard', insertAtIndex?: number) => {
+    setDuelPickOpen(false);
+    emitSocketEvent('game:duel_pass_pick', { roomCode, plateIndex, action, insertAtIndex: insertAtIndex ?? 0 });
+  };
+
   const handlePass = () => {
+    if (pile.length === 0 && consecutivePasses === 0) {
+      toast.warning('No primeiro turno, você é obrigado a jogar cartas!');
+      return;
+    }
     if (drawPileCount === 0) {
       toast.info('Monte esgotado — passando sem comprar');
     }
@@ -214,7 +270,13 @@ export function GameBoard() {
     }
     setDrawnCard(null);
     setPickMode(false);
-    insertDrawnCard(insertAtIndex);
+    insertDrawnCard(insertAtIndex, 'insert');
+  };
+
+  const handleDiscardDrawn = () => {
+    setPickMode(false);
+    setDrawnCard(null);
+    insertDrawnCard(0, 'discard');
   };
 
   const handleMarketSwap = (marketIndex: number) => {
@@ -300,11 +362,42 @@ export function GameBoard() {
         <PlayArea
           pile={pile}
           drawPileCount={drawPileCount}
+          discardPile={discardPile}
           saborActive={saborActive}
           saborMinRequired={saborMinRequired}
           consecutivePasses={consecutivePasses}
           pickMode={pickMode}
         />
+
+        {phase === 'TRICK_PICK' && currentTurnUserId !== user?.id && (
+          <div className="text-xs text-center text-[var(--color-text-muted)] animate-pulse">
+            {players.find(p => p.userId === currentTurnUserId)?.username ?? '...'} está escolhendo...
+          </div>
+        )}
+
+        {/* Duelo: Pratos do Dia visíveis de todos os jogadores */}
+        {duelPlates && (
+          <div className="flex flex-col gap-1 w-full max-w-md">
+            <span className="text-[10px] uppercase tracking-widest text-[var(--color-text-muted)] text-center font-medium">Pratos do Dia</span>
+            <div className="flex gap-3 justify-center flex-wrap">
+              {Object.entries(duelPlates).map(([playerId, plates]) => {
+                const player = players.find(p => p.userId === playerId);
+                return (
+                  <div key={playerId} className="flex flex-col items-center gap-1">
+                    <span className="text-[10px] text-[var(--color-text-muted)]">{player?.username ?? '...'}</span>
+                    <div className="flex gap-1">
+                      {plates.length > 0 ? plates.map((card, i) => (
+                        <CardComponent key={card.id ?? i} card={card} small disabled />
+                      )) : (
+                        <span className="text-[10px] text-[var(--color-danger)] italic">sem pratos</span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Mercado */}
         {market && market.length > 0 && (
@@ -361,12 +454,18 @@ export function GameBoard() {
                     <span className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wider">Carta do monte</span>
                     <span className="text-xs text-[var(--color-warning)] font-medium">Clique numa barra para inserir</span>
                   </div>
+                  <button
+                    onClick={handleDiscardDrawn}
+                    className="px-2 py-1 text-xs rounded-lg bg-[var(--color-panel)] border border-[var(--color-border)] text-[var(--color-text-muted)] hover:text-[var(--color-danger)] hover:border-[var(--color-danger)] transition-all shrink-0"
+                  >
+                    Descartar
+                  </button>
                 </>
               ) : (
                 <span className="text-xs text-[var(--color-text-muted)]">Monte vazio — passe sem comprar</span>
               )}
               <button
-                onClick={() => { setPickMode(false); setDrawnCard(null); }}
+                onClick={handleDiscardDrawn}
                 className="ml-2 text-[var(--color-text-muted)] hover:text-[var(--color-danger)] transition-colors shrink-0"
               >
                 <X size={13} />
@@ -483,6 +582,21 @@ export function GameBoard() {
           myUserId={user?.id ?? ''}
         />
       )}
+
+      <TrickPickModal
+        open={trickPickOpen}
+        pile={trickPile}
+        myHand={myHand}
+        onTake={handleTrickTake}
+        onDiscard={handleTrickDiscard}
+      />
+
+      <DuelPassPickModal
+        open={duelPickOpen}
+        plates={myDuelPlates ?? []}
+        myHand={myHand}
+        onPick={handleDuelPick}
+      />
 
       <Modal open={leaveConfirmOpen} onClose={() => setLeaveConfirmOpen(false)} title="Sair da partida?">
         <div className="flex flex-col gap-4">
