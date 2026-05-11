@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Eye, EyeOff, UserPlus } from 'lucide-react';
+import { Eye, EyeOff, UserPlus, Layers, Flame, Swords } from 'lucide-react';
 import { Logo } from '@/components/ui/Logo';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -54,12 +54,12 @@ export default function RegisterPage() {
           </p>
           <div className="mt-10 flex flex-col gap-3 text-left">
             {[
-              { icon: '🎴', text: 'Mão de 8 cartas, 7 valores diferentes' },
-              { icon: '🔥', text: 'Mecânica Sabor muda tudo na hora certa' },
-              { icon: '🏆', text: 'Modo duelo 1v1 com regras exclusivas' },
+              { icon: <Layers size={16} />, text: 'Mão de 8 cartas, 7 valores diferentes' },
+              { icon: <Flame size={16} />, text: 'Mecânica Sabor muda tudo na hora certa' },
+              { icon: <Swords size={16} />, text: 'Modo duelo 1v1 com regras exclusivas' },
             ].map(item => (
               <div key={item.text} className="flex items-start gap-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)] p-3">
-                <span className="text-xl mt-0.5">{item.icon}</span>
+                <span className="mt-0.5 text-[var(--color-accent-mid)] shrink-0">{item.icon}</span>
                 <span className="text-sm text-[var(--color-text-muted)]">{item.text}</span>
               </div>
             ))}

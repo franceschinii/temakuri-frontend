@@ -15,9 +15,11 @@ export function connectSocket(token: string): WebSocket {
   socket = new WebSocket(`${wsUrl}?token=${token}`);
 
   socket.addEventListener('open', () => {
+    const ws = socket;
+    if (!ws) return;
     while (outbox.length > 0) {
       const payload = outbox.shift()!;
-      socket?.send(payload);
+      ws.send(payload);
     }
   });
 

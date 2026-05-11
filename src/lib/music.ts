@@ -19,6 +19,9 @@ function getCtx(): AudioContext {
   if (!ctx) {
     ctx = new (window.AudioContext ?? (window as any).webkitAudioContext)();
   }
+  if (ctx.state === 'suspended') {
+    ctx.resume().catch(() => {});
+  }
   return ctx;
 }
 
@@ -249,34 +252,47 @@ function startLandingMusic(gen: number, sg: GainNode): void {
 
 // ─── Public API ──────────────────────────────────────────────────────────────
 
-export function startMusic(mode: 'landing' | 'lobby' | 'game') {
-  if (currentMode === mode) return;
-  currentMode = mode;
+let pendingMode: 'landing' | 'lobby' | 'game' | null = null;
 
-  // Increment generation — all old loops will bail on next iteration.
+function resumeAndStart(mode: 'landing' | 'lobby' | 'game') {
   generation++;
   const gen = generation;
 
   try {
     const c = getCtx();
-    if (c.state === 'suspended') {
-      c.resume().catch(() => {});
-    }
-
-    // Orphan old session gain (fades silently), get fresh one for this session.
     const sg = rotateSession();
 
     if (mode === 'landing') startLandingMusic(gen, sg);
     else if (mode === 'lobby') startLobbyMusic(gen, sg);
     else startGameMusic(gen, sg);
   } catch {
-    // AudioContext blocked before user interaction
+    // AudioContext unavailable
   }
+}
+
+function unlockAndPlay() {
+  if (!pendingMode) return;
+  resumeAndStart(pendingMode);
+}
+
+export function startMusic(mode: 'landing' | 'lobby' | 'game') {
+  if (currentMode === mode) return;
+  currentMode = mode;
+  pendingMode = mode;
+
+  if (!ctx || ctx.state === 'suspended') {
+    document.addEventListener('click', unlockAndPlay, { once: true, capture: true });
+    document.addEventListener('keydown', unlockAndPlay, { once: true, capture: true });
+    return;
+  }
+
+  resumeAndStart(mode);
 }
 
 export function stopMusic() {
   generation++;
   currentMode = null;
+  pendingMode = null;
 
   if (sessionGain && ctx) {
     const old = sessionGain;
