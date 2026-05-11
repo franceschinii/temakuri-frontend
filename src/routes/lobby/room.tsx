@@ -96,7 +96,7 @@ export default function RoomPage() {
   const room = currentRoom ?? initialRoom;
   if (isError) return null;
   if (!room || isLoading) return (
-    <div className="min-h-dvh flex items-center justify-center bg-[var(--color-base)]">
+    <div className="h-dvh flex items-center justify-center bg-[var(--color-base)] overflow-hidden">
       <div className="flex flex-col items-center gap-3">
         <div className="w-8 h-8 rounded-full border-2 border-[var(--color-accent-strong)] border-t-transparent animate-spin" />
         <span className="text-sm text-[var(--color-text-muted)]">Carregando sala...</span>
@@ -153,8 +153,8 @@ export default function RoomPage() {
   const emptySlots = room.maxPlayers - room.players.length;
 
   return (
-    <div className="min-h-dvh bg-[var(--color-base)] flex flex-col">
-      <header className="border-b border-[var(--color-border)] bg-[var(--color-surface)]/95 backdrop-blur-sm px-6 py-3 flex items-center justify-between sticky top-0 z-20">
+    <div className="h-dvh bg-[var(--color-base)] flex flex-col overflow-hidden">
+      <header className="border-b border-[var(--color-border)] bg-[var(--color-surface)]/95 backdrop-blur-sm px-6 py-3 flex items-center justify-between shrink-0 z-20">
         <div className="flex items-center gap-2.5">
           <Logo variant="mark" size={20} />
           <span
@@ -172,7 +172,8 @@ export default function RoomPage() {
         </div>
       </header>
 
-      <main className="max-w-lg mx-auto w-full p-4 sm:p-6 flex flex-col gap-5 sm:gap-6">
+      <main className="flex-1 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="max-w-lg mx-auto w-full p-4 sm:p-6 flex flex-col gap-5 sm:gap-6">
 
         {/* Room code card */}
         <motion.div
@@ -346,6 +347,7 @@ export default function RoomPage() {
             </>
           )}
         </motion.div>
+        </div>
       </main>
 
       {/* Game starting countdown overlay */}

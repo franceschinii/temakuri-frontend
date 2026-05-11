@@ -76,19 +76,22 @@ export function ActionHistoryPanel() {
         title="Ver histórico completo"
       >
         <AnimatePresence initial={false}>
-          {recent.map((entry, i) => (
+          {recent.map((entry) => (
             <motion.div
               key={entry.id}
               initial={{ opacity: 0, x: -8, height: 0 }}
               animate={{ opacity: 1, x: 0, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
               transition={{ duration: 0.18 }}
-              className="flex items-center gap-1.5 bg-[var(--color-panel)]/80 backdrop-blur-md border border-[var(--color-border)]/50 rounded-lg px-2 py-1 shadow-sm overflow-hidden"
+              className="flex items-center gap-0 overflow-hidden"
             >
-              <span className="text-xs leading-none shrink-0">{TYPE_ICON[entry.type]}</span>
-              <span className={cn('text-[10px] leading-tight line-clamp-1 min-w-0', TYPE_COLOR[entry.type])}>
-                {entry.text}
-              </span>
+              {/* type icon floats outside the pill */}
+              <span className="text-[11px] leading-none shrink-0 w-5 text-center">{TYPE_ICON[entry.type]}</span>
+              <div className="bg-[var(--color-panel)]/80 backdrop-blur-md border border-[var(--color-border)]/50 rounded-lg px-2 py-1 shadow-sm min-w-0">
+                <span className={cn('text-[10px] leading-tight line-clamp-1 block min-w-0', TYPE_COLOR[entry.type])}>
+                  {entry.text}
+                </span>
+              </div>
             </motion.div>
           ))}
         </AnimatePresence>
@@ -136,10 +139,10 @@ export function ActionHistoryPanel() {
                 ) : (
                   actionLog.map(entry => (
                     <div key={entry.id} className="flex items-start gap-2">
-                      <span className="text-sm leading-4 mt-0.5 shrink-0">{TYPE_ICON[entry.type]}</span>
                       <span className={cn('flex-1 text-[11px] leading-relaxed break-words min-w-0', TYPE_COLOR[entry.type])}>
                         {entry.text}
                       </span>
+                      <span className="text-[10px] shrink-0 mt-0.5">{TYPE_ICON[entry.type]}</span>
                       <span className="text-[9px] text-[var(--color-text-muted)] shrink-0 mt-0.5 tabular-nums">
                         {new Date(entry.timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                       </span>

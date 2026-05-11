@@ -68,7 +68,7 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="min-h-dvh bg-[var(--color-base)] flex items-center justify-center relative overflow-hidden px-6 py-12">
+    <div className="h-dvh bg-[var(--color-base)] flex flex-col relative overflow-hidden">
       {/* Atmospheric glows */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-[40%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[600px] rounded-full bg-[var(--color-accent-strong)]/8 blur-[160px]" />
@@ -76,7 +76,9 @@ export default function LandingPage() {
         <div className="absolute top-[-5%] right-[-5%] w-72 h-72 rounded-full bg-[var(--color-token-gold)]/5 blur-[80px]" />
       </div>
 
-      <div className="relative z-10 w-full max-w-6xl flex flex-col items-center gap-8">
+      {/* Scrollable content container — hides OS scrollbar but allows internal scroll on small screens */}
+      <div className="relative z-10 flex-1 overflow-y-auto flex flex-col items-center justify-center gap-8 px-6 py-10 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div className="w-full max-w-6xl flex flex-col items-center gap-8">
 
         {/* Logo — top, centered, large */}
         <motion.div
@@ -219,6 +221,7 @@ export default function LandingPage() {
           </motion.div>
 
         </div>
+      </div>
       </div>
     </div>
   );

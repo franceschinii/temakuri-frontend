@@ -58,9 +58,9 @@ export default function LobbyPage() {
   };
 
   return (
-    <div className="min-h-dvh bg-[var(--color-base)] flex flex-col">
+    <div className="h-dvh bg-[var(--color-base)] flex flex-col overflow-hidden">
       {/* Header */}
-      <header className="border-b border-[var(--color-border)] bg-[var(--color-surface)]/95 backdrop-blur-sm px-6 py-3 flex items-center justify-between sticky top-0 z-20">
+      <header className="border-b border-[var(--color-border)] bg-[var(--color-surface)]/95 backdrop-blur-sm px-6 py-3 flex items-center justify-between shrink-0 z-20">
         <div className="flex items-center gap-2.5">
           <Logo variant="mark" size={22} />
           <span
@@ -89,7 +89,8 @@ export default function LobbyPage() {
         </div>
       </header>
 
-      <main className="flex-1 max-w-2xl mx-auto w-full p-4 sm:p-6 flex flex-col gap-5 sm:gap-6">
+      <main className="flex-1 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="max-w-2xl mx-auto w-full p-4 sm:p-6 flex flex-col gap-5 sm:gap-6">
         {/* Join or Create */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
@@ -159,6 +160,7 @@ export default function LobbyPage() {
               ))}
             </div>
           )}
+        </div>
         </div>
       </main>
 
