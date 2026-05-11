@@ -20,7 +20,10 @@ export const useLobbyStore = create<LobbyState>((set) => ({
 
   setRooms: (rooms) => set({ rooms }),
 
-  setCurrentRoom: (room) => set({ currentRoom: room, readyMap: {} }),
+  setCurrentRoom: (room) => set((s) => ({
+    currentRoom: room,
+    readyMap: room && s.currentRoom?.code === room.code ? s.readyMap : {},
+  })),
 
   updateRoom: (room) =>
     set((s) => ({

@@ -1,6 +1,11 @@
 import { useEffect, useCallback, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { LogOut } from 'lucide-react';
+import { AccessBar } from '@/components/ui/AccessBar';
+import { Modal } from '@/components/ui/modal';
+import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
+import { startMusic, stopMusic } from '@/lib/music';
 import { useGameStore } from '@/stores/gameStore';
 import { useAuthStore } from '@/stores/authStore';
 import { useSocketEvent, emitSocketEvent } from '@/hooks/useSocket';
@@ -25,7 +30,7 @@ export function GameBoard() {
   const navigate = useNavigate();
   const user = useAuthStore(s => s.user);
   const {
-    phase, myHand, players, pile, market, saborActive, saborMinRequired, saborTriggeredBy,
+    phase, round, myHand, players, pile, market, saborActive, saborMinRequired, saborTriggeredBy,
     currentTurnUserId, consecutivePasses, selectedIndices,
     syncState, setMyHand, applyCardsPlayed, applyTurnPassed, applyWipe,
     setSaborActive, applyRoundEnd, applyGameOver, clearRoundSummary,
@@ -39,6 +44,8 @@ export function GameBoard() {
   const [pickedPileIndex, setPickedPileIndex] = useState<number | null>(null);
   const [marketSwapMode, setMarketSwapMode] = useState(false);
   const [selectedHandIndexForSwap, setSelectedHandIndexForSwap] = useState<number | null>(null);
+  const [leaveConfirmOpen, setLeaveConfirmOpen] = useState(false);
+  const [turnBanner, setTurnBanner] = useState<{ name: string; isMe: boolean } | null>(null);
   const prevTurnRef = useRef<string>('');
 
   const isMyTurn = user?.id === currentTurnUserId;
@@ -47,16 +54,28 @@ export function GameBoard() {
   const isWipeWinner = phase === 'PLAYER_TURN' && market !== null && currentTurnUserId === user?.id && pile.length === 0;
 
   useEffect(() => {
+    startMusic('game');
+    return () => stopMusic();
+  }, []);
+
+  useEffect(() => {
     if (roomCode) requestState();
   }, [roomCode]);
 
-  // Notifica meu turno com som
+  // Notifica meu turno + banner de turno
   useEffect(() => {
+    if (!currentTurnUserId || players.length === 0) return;
     if (isMyTurn && currentTurnUserId !== prevTurnRef.current) {
       playSound('your_turn');
     }
-    prevTurnRef.current = currentTurnUserId;
-  }, [isMyTurn, currentTurnUserId]);
+    if (currentTurnUserId !== prevTurnRef.current) {
+      const player = players.find(p => p.userId === currentTurnUserId);
+      setTurnBanner({ name: isMyTurn ? 'Seu turno!' : `${player?.username ?? ''}`, isMe: isMyTurn });
+      const t = setTimeout(() => setTurnBanner(null), 1800);
+      prevTurnRef.current = currentTurnUserId;
+      return () => clearTimeout(t);
+    }
+  }, [isMyTurn, currentTurnUserId, players]);
 
   useSocketEvent<{ state: ClientGameState }>('game:state_sync', useCallback(({ state }) => {
     syncState(state);
@@ -151,10 +170,59 @@ export function GameBoard() {
     setSelectedHandIndexForSwap(null);
   };
 
+  const handleLeaveGame = () => setLeaveConfirmOpen(true);
+
   return (
     <div className="flex flex-col min-h-dvh bg-[var(--color-base)] overflow-hidden select-none">
+      {/* Turn banner */}
+      <AnimatePresence>
+        {turnBanner && (
+          <motion.div
+            key={turnBanner.name}
+            initial={{ opacity: 0, y: -16, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 16, scale: 0.9 }}
+            transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+            className="fixed top-16 left-1/2 -translate-x-1/2 z-40 pointer-events-none"
+          >
+            <div className={`px-4 py-1.5 rounded-full text-sm font-semibold shadow-lg border ${
+              turnBanner.isMe
+                ? 'bg-[var(--color-accent-strong)] border-[var(--color-accent-glow)] text-white'
+                : 'bg-[var(--color-panel)] border-[var(--color-border)] text-[var(--color-text-primary)]'
+            }`}>
+              {turnBanner.name}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Game header */}
+      <div className="flex items-center justify-between px-4 py-2 border-b border-[var(--color-border)] bg-[var(--color-surface)] shrink-0">
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-[var(--color-text-muted)] font-mono uppercase tracking-widest">{roomCode}</span>
+          {round > 0 && (
+            <span className="text-[10px] bg-[var(--color-panel)] border border-[var(--color-border)] text-[var(--color-accent-mid)] rounded-full px-1.5 py-0.5 font-mono">
+              R{round}
+            </span>
+          )}
+        </div>
+        <div className="flex-1 flex items-center justify-center px-4">
+          <TurnTimer timeoutMs={timerMs} isMyTurn={isMyTurn} />
+        </div>
+        <div className="flex items-center gap-1">
+          <AccessBar />
+          <button
+            onClick={handleLeaveGame}
+            className="p-1.5 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-danger)] hover:bg-[var(--color-panel)] transition-all"
+            title="Sair da partida"
+          >
+            <LogOut size={15} />
+          </button>
+        </div>
+      </div>
+
       {/* Opponents */}
-      <div className="flex gap-2 justify-center flex-wrap p-3 border-b border-[var(--color-border)] bg-[var(--color-surface)]">
+      <div className="flex gap-1.5 justify-center flex-wrap px-2 py-2 border-b border-[var(--color-border)] bg-[var(--color-surface)]">
         {opponents.map(p => (
           <OpponentRow key={p.userId} player={p} isCurrentTurn={p.userId === currentTurnUserId} />
         ))}
@@ -164,7 +232,7 @@ export function GameBoard() {
       </div>
 
       {/* Center area */}
-      <div className="flex-1 flex flex-col items-center justify-center gap-3 p-4">
+      <div className="flex-1 flex flex-col items-center justify-center gap-2 px-2 py-3 sm:px-4">
         <AnimatePresence>
           {saborActive && (
             <SaborIndicator
@@ -174,10 +242,6 @@ export function GameBoard() {
             />
           )}
         </AnimatePresence>
-
-        {isMyTurn && (
-          <TurnTimer timeoutMs={timerMs} isMyTurn={isMyTurn} />
-        )}
 
         <PlayArea
           pile={pile}
@@ -208,7 +272,7 @@ export function GameBoard() {
       </div>
 
       {/* My area */}
-      <div className="border-t border-[var(--color-border)] bg-[var(--color-surface)] px-4 pt-3 pb-4">
+      <div className="border-t border-[var(--color-border)] bg-[var(--color-surface)] px-2 pt-2 pb-3 sm:px-4 sm:pt-3 sm:pb-4">
         {/* Info bar */}
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
@@ -227,8 +291,8 @@ export function GameBoard() {
           </div>
         </div>
 
-        {/* Hand */}
-        <div className="overflow-x-auto pb-1">
+        {/* Hand — pt-4 gives room for selected cards that rise via -translate-y */}
+        <div className="pb-1 pt-4">
           {pickMode ? (
             <PlayerHand
               hand={myHand}
@@ -286,21 +350,25 @@ export function GameBoard() {
         )}
       </div>
 
-      {/* Reactions overlay */}
+      {/* Reactions overlay — float above center play area */}
       <AnimatePresence>
-        {reactions.map(r => {
+        {reactions.map((r, idx) => {
           const p = players.find(pl => pl.userId === r.userId);
+          const xOff = ((idx % 3) - 1) * 15; // spread -15vw, 0, +15vw
           return (
             <motion.div
               key={r.id}
-              initial={{ opacity: 0, scale: 0.5, y: 0 }}
-              animate={{ opacity: 1, scale: 1.2, y: -80 }}
-              exit={{ opacity: 0, scale: 0.5 }}
-              transition={{ duration: 0.3 }}
-              className="fixed bottom-36 left-1/2 -translate-x-1/2 bg-[var(--color-panel)] px-3 py-1.5 rounded-full text-2xl shadow-xl pointer-events-none z-30 border border-[var(--color-border)]"
+              initial={{ opacity: 0, scale: 0.3, y: 30 }}
+              animate={{ opacity: 1, scale: 1.2, y: -30 }}
+              exit={{ opacity: 0, scale: 0.6, y: -80 }}
+              transition={{ duration: 0.4, ease: 'easeOut' }}
+              className="fixed top-[38%] pointer-events-none z-30"
+              style={{ left: `calc(50% + ${xOff}vw)`, transform: 'translateX(-50%)' }}
             >
-              {r.emoji}
-              {p && <span className="text-xs text-[var(--color-text-muted)] ml-1">{p.username}</span>}
+              <div className="bg-[var(--color-panel)] border border-[var(--color-border)] px-3 py-1.5 rounded-full shadow-xl flex items-center gap-1.5">
+                <span className="text-2xl">{r.emoji}</span>
+                {p && <span className="text-xs text-[var(--color-text-muted)]">{p.username}</span>}
+              </div>
             </motion.div>
           );
         })}
@@ -322,6 +390,23 @@ export function GameBoard() {
           myUserId={user?.id ?? ''}
         />
       )}
+
+      <Modal open={leaveConfirmOpen} onClose={() => setLeaveConfirmOpen(false)} title="Sair da partida?">
+        <div className="flex flex-col gap-4">
+          <p className="text-sm text-[var(--color-text-muted)]">
+            Você abandonará a partida em andamento. Os outros jogadores continuarão sem você.
+          </p>
+          <div className="flex gap-2 justify-end">
+            <Button variant="ghost" onClick={() => setLeaveConfirmOpen(false)}>Cancelar</Button>
+            <Button
+              className="bg-[var(--color-danger)] hover:opacity-90 text-white border-0"
+              onClick={() => navigate('/lobby')}
+            >
+              Sair mesmo assim
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

@@ -1,4 +1,8 @@
-type SoundName = 'play' | 'pass' | 'wipe' | 'sabor' | 'round_end' | 'game_over' | 'your_turn';
+export type SoundName = 'play' | 'pass' | 'wipe' | 'sabor' | 'round_end' | 'game_over' | 'your_turn';
+
+let muted = false;
+export function setMuted(v: boolean) { muted = v; }
+export function isMuted() { return muted; }
 
 const AudioContext = window.AudioContext ?? (window as any).webkitAudioContext;
 
@@ -53,5 +57,6 @@ const sounds: Record<SoundName, () => void> = {
 };
 
 export function playSound(name: SoundName) {
+  if (muted) return;
   sounds[name]?.();
 }

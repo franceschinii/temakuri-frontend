@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <radialGradient id="bg" cx="46%" cy="38%" r="75%">
+      <stop offset="0%"   stop-color="#1a2070"/>
+      <stop offset="55%"  stop-color="#0c0e38"/>
+      <stop offset="100%" stop-color="#04040f"/>
+    </radialGradient>
+    <linearGradient id="card" x1="0" y1="0" x2="0.15" y2="1">
+      <stop offset="0%"   stop-color="#fef9ee"/>
+      <stop offset="100%" stop-color="#e4d09a"/>
+    </linearGradient>
+    <linearGradient id="goldV" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"   stop-color="#f0cb58"/>
+      <stop offset="100%" stop-color="#b07e10"/>
+    </linearGradient>
+    <filter id="cardShadow" x="-14%" y="-10%" width="128%" height="128%">
+      <feDropShadow dx="6" dy="14" stdDeviation="22" flood-color="#000" flood-opacity="0.78"/>
+    </filter>
+    <filter id="glow" x="-25%" y="-25%" width="150%" height="150%">
+      <feGaussianBlur stdDeviation="5" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- background -->
+  <rect width="512" height="512" rx="96" fill="url(#bg)"/>
+
+  <!-- soft centre glow -->
+  <radialGradient id="centreGlow" cx="50%" cy="50%" r="42%">
+    <stop offset="0%"  stop-color="#2038c8" stop-opacity="0.18"/>
+    <stop offset="100%" stop-color="#000" stop-opacity="0"/>
+  </radialGradient>
+  <rect width="512" height="512" rx="96" fill="url(#centreGlow)"/>
+
+  <!-- ghost card behind (depth) -->
+  <g transform="rotate(-8 256 256)" opacity="0.38">
+    <rect x="134" y="78" width="244" height="356" rx="20" fill="#1a0808"/>
+    <rect x="134" y="78" width="244" height="356" rx="20" fill="none" stroke="#c09018" stroke-width="2.5"/>
+  </g>
+
+  <!-- main card -->
+  <g transform="rotate(4 256 256)" filter="url(#cardShadow)">
+    <rect x="134" y="78" width="244" height="356" rx="20" fill="url(#card)"/>
+    <!-- outer gold border -->
+    <rect x="134" y="78" width="244" height="356" rx="20" fill="none" stroke="url(#goldV)" stroke-width="3.5"/>
+    <!-- inner gold border -->
+    <rect x="148" y="92"  width="216" height="328" rx="14" fill="none" stroke="#c8980e" stroke-width="1.5" opacity="0.6"/>
+
+    <!-- corner diamond ornaments -->
+    <polygon points="158,100  166,110  158,120  150,110" fill="#b01212"/>
+    <polygon points="354,100  362,110  354,120  346,110" fill="#b01212"/>
+    <polygon points="158,392  166,402  158,412  150,402" fill="#b01212"/>
+    <polygon points="354,392  362,402  354,412  346,402" fill="#b01212"/>
+
+    <!-- ── KAMON ── centred on card -->
+    <g transform="translate(256,258)" filter="url(#glow)">
+      <!-- outer ceremonial ring -->
+      <circle r="80" fill="none" stroke="#b01212" stroke-width="3"/>
+
+      <!-- 4 card-shaped petals, N / E / S / W -->
+      <rect  x="-11" y="-65" width="22" height="35" rx="5" fill="#b01212"/>
+      <g transform="rotate(90)">
+        <rect x="-11" y="-65" width="22" height="35" rx="5" fill="#b01212"/>
+      </g>
+      <g transform="rotate(180)">
+        <rect x="-11" y="-65" width="22" height="35" rx="5" fill="#b01212"/>
+      </g>
+      <g transform="rotate(270)">
+        <rect x="-11" y="-65" width="22" height="35" rx="5" fill="#b01212"/>
+      </g>
+
+      <!-- 4 small diamonds NE / SE / SW / NW -->
+      <g transform="rotate(45)">
+        <polygon points="0,-48  7,-41  0,-34  -7,-41" fill="#b01212" opacity="0.9"/>
+      </g>
+      <g transform="rotate(135)">
+        <polygon points="0,-48  7,-41  0,-34  -7,-41" fill="#b01212" opacity="0.9"/>
+      </g>
+      <g transform="rotate(225)">
+        <polygon points="0,-48  7,-41  0,-34  -7,-41" fill="#b01212" opacity="0.9"/>
+      </g>
+      <g transform="rotate(315)">
+        <polygon points="0,-48  7,-41  0,-34  -7,-41" fill="#b01212" opacity="0.9"/>
+      </g>
+
+      <!-- inner accent ring -->
+      <circle r="26" fill="none" stroke="#b01212" stroke-width="1.5" opacity="0.4"/>
+
+      <!-- centre diamond, solid -->
+      <polygon points="0,-22  22,0  0,22  -22,0" fill="#b01212"/>
+      <!-- centre diamond, hollow -->
+      <polygon points="0,-13  13,0  0,13  -13,0" fill="#fef9ee"/>
+    </g>
+  </g>
+</svg>

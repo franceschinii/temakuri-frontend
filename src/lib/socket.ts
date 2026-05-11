@@ -1,15 +1,25 @@
 let socket: WebSocket | null = null;
 const listeners = new Map<string, Set<(data: unknown) => void>>();
+const outbox: string[] = [];
 
 export function getSocket(): WebSocket | null {
   return socket;
 }
 
 export function connectSocket(token: string): WebSocket {
-  if (socket && socket.readyState === WebSocket.OPEN) return socket;
+  if (socket && (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING)) {
+    return socket;
+  }
 
   const wsUrl = import.meta.env.VITE_WS_URL ?? 'ws://localhost:3001/ws';
   socket = new WebSocket(`${wsUrl}?token=${token}`);
+
+  socket.addEventListener('open', () => {
+    while (outbox.length > 0) {
+      const payload = outbox.shift()!;
+      socket?.send(payload);
+    }
+  });
 
   socket.addEventListener('message', (event) => {
     try {
@@ -31,6 +41,7 @@ export function connectSocket(token: string): WebSocket {
 export function disconnectSocket() {
   socket?.close();
   socket = null;
+  outbox.length = 0;
   listeners.clear();
 }
 
@@ -41,7 +52,10 @@ export function onSocketEvent<T = unknown>(event: string, handler: (data: T) => 
 }
 
 export function emitSocketEvent(event: string, data: unknown) {
+  const payload = JSON.stringify({ event, data });
   if (socket?.readyState === WebSocket.OPEN) {
-    socket.send(JSON.stringify({ event, data }));
+    socket.send(payload);
+  } else {
+    outbox.push(payload);
   }
 }

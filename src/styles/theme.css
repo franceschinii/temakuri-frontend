@@ -14,7 +14,9 @@
   --color-token-gold:     oklch(80% 0.18 85);
   --color-border:         oklch(38% 0.06 148);
 
-  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-display: 'Cormorant Garamond', Georgia, serif;
+  --font-sans: 'Outfit', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
 
   --radius-sm:  4px;
   --radius-md:  8px;

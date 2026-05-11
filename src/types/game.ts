@@ -44,6 +44,7 @@ export interface PublicPlayerState {
   isConnected: boolean;
   isEliminated: boolean;
   isReady: boolean;
+  isBot?: boolean;
 }
 
 export interface ClientGameState {

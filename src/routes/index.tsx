@@ -1,10 +1,40 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, Navigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { Layers, ChevronsUp, RefreshCw, Flame } from 'lucide-react';
+import { Logo } from '@/components/ui/Logo';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { AccessBar } from '@/components/ui/AccessBar';
 import { useAuthStore } from '@/stores/authStore';
 import { toast } from 'sonner';
+
+const rules = [
+  {
+    icon: Layers,
+    label: 'Hierarquia de jogadas',
+    text: 'Cartas têm valores 1–7. Mais cartas batem qualquer jogada menor: uma dupla de 1s bate um 7 sozinho. Mesmo count? Valor maior vence.',
+    accent: false,
+  },
+  {
+    icon: ChevronsUp,
+    label: 'Como jogar',
+    text: 'Selecione cartas adjacentes de mesmo valor na mão (1 carta, dupla, trinca…). A ordem da mão é fixa — só muda ao comprar.',
+    accent: false,
+  },
+  {
+    icon: RefreshCw,
+    label: 'Passar a vez',
+    text: 'Escolha 1 carta da pilha e insira em qualquer posição da mão. Se todos passarem em sequência, o último que jogou ganha a vaza e recomeça.',
+    accent: false,
+  },
+  {
+    icon: Flame,
+    label: 'Sabor',
+    text: '2+ cartas do mesmo tipo de comida ativam o Sabor. O próximo deve jogar pelo menos essa quantidade. As regras normais continuam valendo — dá pra bater pelo valor dentro do mínimo. Categorias mistas quebram o Sabor.',
+    accent: true,
+  },
+];
 
 export default function LandingPage() {
   const navigate = useNavigate();
@@ -13,10 +43,7 @@ export default function LandingPage() {
   const [guestName, setGuestName] = useState('');
   const [loading, setLoading] = useState(false);
 
-  if (user) {
-    navigate('/lobby', { replace: true });
-    return null;
-  }
+  if (user) return <Navigate to="/lobby" replace />;
 
   const handleGuest = async () => {
     if (!guestName.trim() || guestName.length < 2) {
@@ -35,72 +62,158 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="min-h-dvh bg-[var(--color-base)] flex flex-col items-center justify-center p-6 gap-8">
-      <motion.div
-        initial={{ opacity: 0, y: -30 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="text-center"
-      >
-        <h1 className="text-6xl font-bold text-[var(--color-accent-soft)] tracking-tight">
-          🍱 Temakuri
-        </h1>
-        <p className="mt-2 text-[var(--color-text-muted)] text-lg">
-          Roll your hand. Clear the table.
-        </p>
-      </motion.div>
+    <div className="min-h-dvh bg-[var(--color-base)] flex items-center justify-center relative overflow-hidden px-6 py-12">
+      {/* Atmospheric glows */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-[40%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[600px] rounded-full bg-[var(--color-accent-strong)]/8 blur-[160px]" />
+        <div className="absolute bottom-[-10%] left-[-5%] w-96 h-96 rounded-full bg-[var(--color-accent-strong)]/5 blur-[100px]" />
+        <div className="absolute top-[-5%] right-[-5%] w-72 h-72 rounded-full bg-[var(--color-token-gold)]/5 blur-[80px]" />
+      </div>
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.15 }}
-        className="w-full max-w-sm flex flex-col gap-3"
-      >
-        <div className="flex gap-2">
-          <Input
-            placeholder="Seu nome de convidado"
-            value={guestName}
-            onChange={e => setGuestName(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && handleGuest()}
-            maxLength={20}
+      <div className="relative z-10 w-full max-w-6xl flex flex-col items-center gap-8">
+
+        {/* Logo — top, centered, large */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+          className="relative flex flex-col items-center gap-2"
+        >
+          <div className="absolute inset-0 scale-150 rounded-full bg-[var(--color-accent-strong)]/10 blur-3xl pointer-events-none" />
+          <Logo
+            variant="full"
+            size={110}
+            className="relative drop-shadow-[0_0_48px_oklch(68%_0.15_145_/_0.5)]"
           />
-          <Button onClick={handleGuest} disabled={loading} size="md">
-            Jogar
-          </Button>
-        </div>
+          <p
+            className="text-[var(--color-text-muted)] text-sm tracking-widest"
+            style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic' }}
+          >
+            Roll your hand. Clear the table.
+          </p>
+        </motion.div>
 
-        <div className="flex items-center gap-3">
-          <div className="flex-1 h-px bg-[var(--color-border)]" />
-          <span className="text-xs text-[var(--color-text-muted)]">ou</span>
-          <div className="flex-1 h-px bg-[var(--color-border)]" />
-        </div>
+        {/* Two-column: login card | rules */}
+        <div className="w-full flex flex-col md:flex-row md:items-start md:justify-center gap-6 md:gap-10">
 
-        <div className="flex gap-2">
-          <Link to="/auth/login" className="flex-1">
-            <Button variant="outline" className="w-full">Entrar</Button>
-          </Link>
-          <Link to="/auth/register" className="flex-1">
-            <Button variant="secondary" className="w-full">Criar Conta</Button>
-          </Link>
-        </div>
-      </motion.div>
+          {/* Login card */}
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
+            className="w-full md:max-w-sm rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)]/90 backdrop-blur-md p-6 flex flex-col gap-5 shadow-[0_8px_48px_oklch(0%_0_0_/_0.45)]"
+          >
+            <div>
+              <p className="text-[9px] uppercase tracking-[0.2em] text-[var(--color-text-muted)] mb-3 font-medium">
+                Jogar como convidado
+              </p>
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Seu apelido"
+                  value={guestName}
+                  onChange={e => setGuestName(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && handleGuest()}
+                  maxLength={20}
+                />
+                <Button onClick={handleGuest} disabled={loading} size="md" className="shrink-0">
+                  {loading ? '...' : 'Jogar'}
+                </Button>
+              </div>
+            </div>
 
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.3 }}
-        className="w-full max-w-lg"
-      >
-        <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5">
-          <h2 className="text-sm font-semibold text-[var(--color-accent-soft)] mb-3">Como jogar</h2>
-          <ul className="text-xs text-[var(--color-text-muted)] space-y-1.5">
-            <li>🃏 Seja o primeiro a descartar todas as cartas</li>
-            <li>👆 Só pode jogar cartas <strong className="text-[var(--color-text-primary)]">adjacentes</strong> na mão (não reorganize!)</li>
-            <li>📈 Jogue mais cartas <em>ou</em> mesmo número com valor maior</li>
-            <li>🔄 Ao passar, pegue uma carta da pilha e insira onde quiser</li>
-            <li>🔥 <strong className="text-[var(--color-warning)]">Sabor</strong>: conjuntos da mesma categoria forçam mais cartas do próximo</li>
-          </ul>
+            <div className="flex items-center gap-3">
+              <div className="flex-1 h-px bg-[var(--color-border)]" />
+              <span className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-widest">ou</span>
+              <div className="flex-1 h-px bg-[var(--color-border)]" />
+            </div>
+
+            <div className="flex gap-2">
+              <Link to="/auth/login" className="flex-1">
+                <Button variant="outline" className="w-full">Entrar</Button>
+              </Link>
+              <Link to="/auth/register" className="flex-1">
+                <Button variant="secondary" className="w-full">Criar Conta</Button>
+              </Link>
+            </div>
+
+            {/* Hierarquia visual */}
+            <div className="pt-1 flex flex-col gap-2">
+              <p className="text-[9px] uppercase tracking-[0.15em] text-[var(--color-text-muted)] font-medium">Hierarquia de jogadas</p>
+              <div className="flex items-center gap-2 flex-wrap">
+                {[
+                  { count: 1, label: 'simples' },
+                  { count: 2, label: 'dupla' },
+                  { count: 3, label: 'trinca' },
+                  { count: 4, label: 'quadra' },
+                ].map((group, gi) => (
+                  <div key={gi} className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-0.5">
+                      {Array.from({ length: group.count }).map((_, i) => (
+                        <div key={i} className="w-5 h-7 rounded border border-[var(--color-border)] bg-[var(--color-panel)] flex items-center justify-center">
+                          <span className="text-[9px] font-mono font-bold text-[var(--color-accent-soft)]">1</span>
+                        </div>
+                      ))}
+                    </div>
+                    <span className="text-[9px] text-[var(--color-text-muted)]">{group.label}</span>
+                    {gi < 3 && <span className="text-[var(--color-accent-mid)] font-bold text-sm leading-none">‹</span>}
+                  </div>
+                ))}
+                <span className="text-[9px] text-[var(--color-text-muted)]">‹ quinta ‹ ...</span>
+              </div>
+              <p className="text-[10px] text-[var(--color-text-muted)]">
+                Dentro do mesmo count: <span className="text-[var(--color-text-primary)]">valor maior</span> vence.
+              </p>
+            </div>
+            {/* Sound control */}
+            <div className="flex items-center gap-2 pt-1">
+              <AccessBar />
+              <span className="text-[10px] text-[var(--color-text-muted)]">Som</span>
+            </div>
+          </motion.div>
+
+          {/* Divider — only md+ */}
+          <div className="hidden md:block w-px self-stretch bg-[var(--color-border)] opacity-40 shrink-0" />
+
+          {/* Rules */}
+          <motion.div
+            initial={{ opacity: 0, x: 12 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
+            className="w-full md:flex-1 flex flex-col gap-1"
+          >
+            <p className="text-[9px] uppercase tracking-[0.2em] font-medium text-[var(--color-text-muted)] mb-3">
+              Como jogar
+            </p>
+
+            <div className="flex flex-col gap-3">
+              {rules.map((rule, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, x: 8 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.35 + i * 0.07 }}
+                  className={`flex flex-col gap-1 pb-3 ${i < rules.length - 1 ? 'border-b border-[var(--color-border)]/40' : ''}`}
+                >
+                  <div className={`flex items-center gap-1.5 ${rule.accent ? 'text-[var(--color-warning)]' : 'text-[var(--color-accent-mid)]'}`}>
+                    <rule.icon size={11} />
+                    <span className="text-[10px] uppercase tracking-widest font-semibold">{rule.label}</span>
+                  </div>
+                  <p className="text-xs text-[var(--color-text-muted)] leading-relaxed">{rule.text}</p>
+                </motion.div>
+              ))}
+            </div>
+
+            <div className="mt-2 pt-3 border-t border-[var(--color-border)]/40">
+              <p className="text-[10px] text-[var(--color-text-muted)] leading-relaxed">
+                <span className="text-[var(--color-text-primary)] font-medium">Objetivo:</span>{' '}
+                esvazie sua mão antes dos adversários. Quem sobrar perde 1 ficha.
+                Cada jogador começa com <span className="text-[var(--color-token-gold)]">3 fichas</span> — chegou a zero, eliminado. O último restante vence.
+              </p>
+            </div>
+          </motion.div>
+
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 }

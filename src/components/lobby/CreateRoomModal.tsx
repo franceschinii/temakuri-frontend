@@ -9,6 +9,7 @@ import type { GameMode } from '@/types/game';
 import api from '@/lib/api';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 
 const schema = z.object({
   mode: z.string(),
@@ -38,8 +39,11 @@ export function CreateRoomModal({ open, onClose }: CreateRoomModalProps) {
       const { data } = await api.post('/rooms', values);
       onClose();
       navigate(`/lobby/${data.code}`);
-    } catch {
-      // handled by interceptor
+    } catch (e: any) {
+      const detail = e?.response?.data?.message;
+      const msg = Array.isArray(detail) ? detail.join(', ') : detail ?? e?.message ?? 'Erro ao criar sala';
+      toast.error(msg);
+      console.error('[create room] failed', e?.response?.status, e?.response?.data);
     } finally {
       setLoading(false);
     }

@@ -1,5 +1,6 @@
 import * as React from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -7,11 +8,12 @@ interface ModalProps {
   open: boolean;
   onClose?: () => void;
   title?: string;
+  description?: string;
   children: React.ReactNode;
   className?: string;
 }
 
-export function Modal({ open, onClose, title, children, className }: ModalProps) {
+export function Modal({ open, onClose, title, description, children, className }: ModalProps) {
   return (
     <Dialog.Root open={open} onOpenChange={(o) => !o && onClose?.()}>
       <Dialog.Portal>
@@ -23,7 +25,7 @@ export function Modal({ open, onClose, title, children, className }: ModalProps)
             className,
           )}
         >
-          {title && (
+          {title ? (
             <div className="flex items-center justify-between mb-4">
               <Dialog.Title className="text-lg font-semibold text-[var(--color-text-primary)]">
                 {title}
@@ -34,6 +36,19 @@ export function Modal({ open, onClose, title, children, className }: ModalProps)
                 </button>
               )}
             </div>
+          ) : (
+            <VisuallyHidden asChild>
+              <Dialog.Title>Modal</Dialog.Title>
+            </VisuallyHidden>
+          )}
+          {description ? (
+            <Dialog.Description className="text-sm text-[var(--color-text-muted)] mb-4">
+              {description}
+            </Dialog.Description>
+          ) : (
+            <VisuallyHidden asChild>
+              <Dialog.Description>{title ?? 'Conteúdo da janela'}</Dialog.Description>
+            </VisuallyHidden>
           )}
           {children}
         </Dialog.Content>

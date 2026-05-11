@@ -32,6 +32,7 @@ export function PlayerHand({
   const isCardDisabled = (i: number): boolean => {
     if (pickMode || swapSelectIndex !== undefined) return true;
     if (!isMyTurn) return true;
+    if (selectedIndices.includes(i)) return false; // already selected — clicking deselects
     if (selectedIndices.length === 0) return false;
     const allSorted = [...selectedIndices, i].sort((a, b) => a - b);
     const contiguous = allSorted.every((v, idx) => idx === 0 || v === allSorted[idx - 1] + 1);

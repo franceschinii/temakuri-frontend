@@ -17,7 +17,7 @@ export function PlayArea({ pile, saborActive, saborMinRequired, consecutivePasse
   return (
     <div className="flex flex-col items-center gap-3">
       <div className={cn(
-        'w-full max-w-sm min-h-32 rounded-xl border-2 flex flex-col items-center justify-center gap-2 p-4 transition-all',
+        'w-full max-w-xs sm:max-w-sm min-h-28 sm:min-h-32 rounded-xl border-2 flex flex-col items-center justify-center gap-2 p-3 sm:p-4 transition-all',
         pile.length === 0
           ? 'border-dashed border-[var(--color-border)]'
           : saborActive
