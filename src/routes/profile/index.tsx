@@ -123,16 +123,16 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-dvh bg-[var(--color-base)] flex flex-col">
-      <header className="sticky top-0 z-20 border-b border-[var(--color-border)] bg-[var(--color-surface)]/95 backdrop-blur-sm px-4 py-3 flex items-center justify-between shrink-0">
+      <header className="sticky top-0 z-20 border-b border-[var(--color-border)] bg-[var(--color-surface)]/95 backdrop-blur-sm px-4 py-3 flex items-center gap-2 shrink-0">
         <button
           onClick={() => navigate('/lobby')}
-          className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors p-1.5 rounded-lg hover:bg-[var(--color-panel)]"
+          className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors p-1.5 rounded-lg hover:bg-[var(--color-panel)] shrink-0"
           title="Voltar ao lobby"
         >
           <ArrowLeft size={18} />
         </button>
-        <h1 className="text-base font-semibold text-[var(--color-text-primary)]">Perfil</h1>
-        <div className="flex items-center gap-0.5">
+        <h1 className="text-base font-semibold text-[var(--color-text-primary)] flex-1">Perfil</h1>
+        <div className="flex items-center gap-0.5 shrink-0">
           {/* Moedas */}
           {!user?.isGuest && (
             <span className="px-1">

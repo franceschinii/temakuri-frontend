@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { AvatarImage } from '@/components/ui/Avatar';
 import { useSocketEvent, emitSocketEvent } from '@/hooks/useSocket';
 import { useAuthStore } from '@/stores/authStore';
+import { toast } from 'sonner';
 
 interface QueuePlayer {
   userId: string;
@@ -123,6 +124,11 @@ export function MatchmakingDialog({ open, onClose }: Props) {
     setStatus('found');
   }, []));
 
+  useSocketEvent<{ message: string }>('matchmaking:error', useCallback((data) => {
+    toast.error(data.message);
+    resetState();
+  }, [resetState]));
+
   useSocketEvent<{ userId: string; ready: boolean }>('lobby:player_ready', useCallback((data) => {
     if (status !== 'found') return;
     if (data.ready) {
@@ -197,9 +203,12 @@ export function MatchmakingDialog({ open, onClose }: Props) {
                     <span className="text-xs font-medium">Casual</span>
                   </button>
                   <button
-                    onClick={() => setType('RANKED')}
+                    onClick={() => (user?.level ?? 1) >= 10 && setType('RANKED')}
+                    disabled={(user?.level ?? 1) < 10}
+                    title={(user?.level ?? 1) < 10 ? 'Nível 10 necessário' : undefined}
                     className={[
                       'flex flex-col items-center gap-1.5 rounded-xl border p-3 transition-all',
+                      (user?.level ?? 1) < 10 && 'opacity-40 cursor-not-allowed',
                       type === 'RANKED'
                         ? 'border-[var(--color-accent-strong)] bg-[var(--color-accent-strong)]/10 text-[var(--color-accent-soft)]'
                         : 'border-[var(--color-border)] text-[var(--color-text-muted)] hover:border-[var(--color-accent-strong)]/50',
@@ -207,6 +216,7 @@ export function MatchmakingDialog({ open, onClose }: Props) {
                   >
                     <Trophy size={18} />
                     <span className="text-xs font-medium">Ranqueada</span>
+                    {(user?.level ?? 1) < 10 && <span className="text-[9px] text-[var(--color-text-muted)]">Nível 10+</span>}
                   </button>
                 </div>
               </div>
