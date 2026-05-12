@@ -596,7 +596,7 @@ export function GameBoard() {
 
         {/* Hand — oculta para espectadores */}
         {!isSpectator && (
-          <div className="pb-1 pt-2 overflow-hidden">
+          <div className="pb-3 pt-2 overflow-visible">
             {pickMode ? (
               <PlayerHand
                 hand={myHand}
