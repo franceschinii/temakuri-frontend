@@ -54,6 +54,7 @@ export const useAuthStore = create<AuthState>()(
         }
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
+        localStorage.removeItem('temakuri-auth');
         sessionStorage.removeItem('accessToken');
         disconnectSocket();
         set({ user: null, accessToken: null, isGuest: false });

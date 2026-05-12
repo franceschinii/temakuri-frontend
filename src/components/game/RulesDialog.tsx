@@ -46,11 +46,11 @@ export function RulesDialog() {
                 <div className="space-y-4 text-sm text-[var(--color-text-secondary)] leading-relaxed">
                   <section>
                     <h3 className="text-[var(--color-text-primary)] font-medium mb-1">Objetivo</h3>
-                    <p>Esvazie sua mão antes dos adversários. Quando todos exceto um jogador ficarem sem cartas, o último com cartas perde 1 Prato de Vida. Quem perder seu último Prato é eliminado — o sobrevivente vence.</p>
+                    <p>Esvazie sua mão antes dos adversários. <strong>Quem esvaziar a mão perde 1 Prato</strong> — o objetivo é perder todos os seus Pratos. O primeiro a chegar a zero Pratos vence a partida.</p>
                   </section>
                   <section>
                     <h3 className="text-[var(--color-text-primary)] font-medium mb-1">Jogando cartas</h3>
-                    <p>Selecione cartas <strong>adjacentes de mesmo valor</strong> na mão e jogue. A jogada precisa superar a da pilha: mesmo número de cartas com valor maior, ou mais cartas (qualquer valor bate menos cartas). No primeiro turno, você <strong>é obrigado a jogar</strong>.</p>
+                    <p>Selecione cartas <strong>adjacentes de mesmo valor</strong> na mão e jogue na mesa. A jogada precisa superar a anterior: mesmo número de cartas com valor maior, ou mais cartas (qualquer valor bate menos cartas). No primeiro turno, você <strong>é obrigado a jogar</strong>.</p>
                   </section>
                   <section>
                     <h3 className="text-[var(--color-text-primary)] font-medium mb-1">Passando a vez</h3>

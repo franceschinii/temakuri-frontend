@@ -26,7 +26,7 @@ const rules = [
   {
     icon: RefreshCw,
     label: 'Passar a vez',
-    text: 'Compre uma carta do monte e escolha: inserir na mão ou descartar. Se todos passarem em sequência, o último que jogou ganha a vaza e pode pegar ou descartar a pilha.',
+    text: 'Compre uma carta do monte e escolha: inserir na mão ou descartar. Monte esgotado? Passa sem comprar. Se todos passarem, o último que jogou ganha a vaza: pode pegar ou descartar a pilha.',
     accent: false,
   },
   {
@@ -214,8 +214,8 @@ export default function LandingPage() {
             <div className="mt-2 pt-3 border-t border-[var(--color-border)]/40">
               <p className="text-[10px] text-[var(--color-text-muted)] leading-relaxed">
                 <span className="text-[var(--color-text-primary)] font-medium">Objetivo:</span>{' '}
-                esvazie sua mão. Quando só 1 jogador ainda tiver cartas, ele perde 1 Prato de Vida.
-                Cada jogador começa com <span className="text-[var(--color-token-gold)]">2 Pratos</span> — perde o último, eliminado. Último sobrevivente vence.
+                esvazie sua mão para perder Pratos. <span className="text-[var(--color-text-primary)] font-medium">Quem esvaziar a mão primeiro perde 1 Prato</span> — o objetivo é chegar a zero.
+                Cada jogador começa com <span className="text-[var(--color-token-gold)]">2 Pratos</span>. O primeiro a perder todos os seus Pratos vence.
               </p>
             </div>
           </motion.div>

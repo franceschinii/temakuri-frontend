@@ -9,10 +9,18 @@ import LobbyPage from '@/routes/lobby/index';
 import RoomPage from '@/routes/lobby/room';
 import GamePage from '@/routes/game/index';
 import ProfilePage from '@/routes/profile/index';
+import AdminPage from '@/routes/admin/index';
 
 function AuthGuard() {
   const user = useAuthStore(s => s.user);
   if (!user) return <Navigate to="/" replace />;
+  return <Outlet />;
+}
+
+function AdminGuard() {
+  const user = useAuthStore(s => s.user);
+  if (!user) return <Navigate to="/" replace />;
+  if (!user.isAdmin) return <Navigate to="/lobby" replace />;
   return <Outlet />;
 }
 
@@ -30,6 +38,10 @@ export default function App() {
         <Route path="/lobby/:roomCode" element={<RoomPage />} />
         <Route path="/game/:roomCode" element={<GamePage />} />
         <Route path="/profile" element={<ProfilePage />} />
+      </Route>
+
+      <Route element={<AdminGuard />}>
+        <Route path="/admin" element={<AdminPage />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />

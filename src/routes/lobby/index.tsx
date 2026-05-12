@@ -79,6 +79,14 @@ export default function LobbyPage() {
           >
             <HelpCircle size={17} />
           </button>
+          {user?.isAdmin && (
+            <button
+              onClick={() => navigate('/admin')}
+              className="text-xs text-[var(--color-warning)] hover:text-[var(--color-text-primary)] transition-colors px-2 py-1 rounded-lg hover:bg-[var(--color-panel)]"
+            >
+              Admin
+            </button>
+          )}
           <button
             onClick={() => navigate('/profile')}
             className="text-sm text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors px-2 py-1 rounded-lg hover:bg-[var(--color-panel)]"
@@ -172,8 +180,8 @@ export default function LobbyPage() {
           <section className="flex flex-col gap-2">
             <p className="text-xs font-semibold uppercase tracking-wider text-[var(--color-accent-mid)]">Objetivo</p>
             <p className="text-[var(--color-text-muted)] leading-relaxed">
-              Esvazie sua mão antes dos adversários. Quem sobrar com cartas perde 1 ficha.
-              Cada jogador começa com <strong className="text-[var(--color-text-primary)]">2 fichas</strong> — quem chegar a zero é eliminado. O último restante vence.
+              Esvazie sua mão para perder Pratos — esse é o objetivo. <strong className="text-[var(--color-text-primary)]">Quem esvaziar a mão perde 1 Prato</strong>.
+              Cada jogador começa com <strong className="text-[var(--color-text-primary)]">2 Pratos</strong>. O primeiro a chegar a zero Pratos vence a partida.
             </p>
           </section>
 
@@ -195,8 +203,8 @@ export default function LobbyPage() {
             <p className="text-xs font-semibold uppercase tracking-wider text-[var(--color-accent-mid)]">Passar a vez</p>
             <p className="text-[var(--color-text-muted)] leading-relaxed flex items-start gap-2">
               <RefreshCw size={13} className="mt-0.5 shrink-0" />
-              <span>Escolha 1 carta da pilha e insira em qualquer posição da mão.
-              Se todos passarem em sequência, o último que jogou ganha a <strong className="text-[var(--color-text-primary)]">vaza</strong>: pilha limpa e ele começa a próxima rodada.</span>
+              <span>Compre uma carta do monte e escolha: inserir em qualquer posição da mão ou descartar. Monte esgotado? Passa sem comprar.
+              Se todos passarem em sequência, o último que jogou ganha a <strong className="text-[var(--color-text-primary)]">vaza</strong>: pode pegar ou descartar a pilha e inicia o próximo turno.</span>
             </p>
           </section>
 

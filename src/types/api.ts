@@ -3,6 +3,8 @@ export interface User {
   username: string;
   email?: string;
   isGuest: boolean;
+  isBot: boolean;
+  isAdmin: boolean;
   avatarIndex: number;
   createdAt: string;
   updatedAt: string;

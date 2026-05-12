@@ -44,7 +44,7 @@ export function PlayerHand({
   // Pick mode — inserir carta do monte; escolha a posição na mão
   if (pickMode) {
     return (
-      <div className="flex gap-1 items-center flex-wrap justify-start py-2">
+      <div className="flex gap-1 items-center flex-wrap justify-center py-2">
         {[...Array(hand.length + 1)].map((_, insertIdx) => (
           <div key={insertIdx} className="flex items-center">
             <button
@@ -70,7 +70,7 @@ export function PlayerHand({
   // Swap mode — seleção para mercado
   if (onSwapSelect !== undefined) {
     return (
-      <div className="flex items-end gap-1.5 flex-wrap justify-start px-2 pb-2">
+      <div className="flex items-end gap-1.5 flex-wrap justify-center px-2 pb-2">
         {hand.map((card, i) => (
           <CardComponent
             key={card.id}
@@ -85,7 +85,7 @@ export function PlayerHand({
 
   // Normal mode
   return (
-    <div className="flex items-end gap-1.5 flex-wrap justify-start px-2 pb-2">
+    <div className="flex items-end gap-1.5 flex-wrap justify-center px-2 pb-2">
       <AnimatePresence>
         {hand.map((card, i) => (
           <motion.div

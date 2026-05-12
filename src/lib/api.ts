@@ -15,7 +15,8 @@ api.interceptors.response.use(
   (res) => res,
   async (error) => {
     const original = error.config;
-    if (error.response?.status === 401 && !original._retry) {
+    const isAuthRoute = original.url?.includes('/auth/');
+    if (error.response?.status === 401 && !original._retry && !isAuthRoute) {
       original._retry = true;
       const refreshToken = localStorage.getItem('refreshToken');
       if (refreshToken) {
@@ -29,14 +30,9 @@ api.interceptors.response.use(
           original.headers.Authorization = `Bearer ${data.accessToken}`;
           return api(original);
         } catch {
-          localStorage.clear();
-          sessionStorage.clear();
-          window.location.href = '/auth/login';
+          localStorage.removeItem('accessToken');
+          localStorage.removeItem('refreshToken');
         }
-      } else {
-        localStorage.clear();
-        sessionStorage.clear();
-        window.location.href = '/auth/login';
       }
     }
     return Promise.reject(error);

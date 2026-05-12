@@ -51,7 +51,6 @@ export function GameBoard() {
   const [timerKey, setTimerKey] = useState(0);
   const [reactionCooldown, setReactionCooldown] = useState(false);
   const [reactionCount, setReactionCount] = useState(0);
-  const reactionCountResetRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [pickMode, setPickMode] = useState(false);
   const [drawnCard, setDrawnCard] = useState<Card | null>(null);
   const hasSubmittedPickRef = useRef(false);
@@ -192,7 +191,7 @@ export function GameBoard() {
     playSound('round_end');
     const allPlayers = useGameStore.getState().players;
     const loserNames = loserIds.map(id => allPlayers.find(p => p.userId === id)?.username ?? id);
-    addLog({ type: 'round_end', text: `🏁 Rodada encerrada — ${loserNames.join(', ')} perde${loserIds.length === 1 ? '' : 'm'} 1 ficha` });
+    addLog({ type: 'round_end', text: `🏁 Rodada encerrada — ${loserNames.join(', ')} perde${loserIds.length === 1 ? '' : 'm'} 1 Prato` });
   }, [applyRoundEnd, addLog]));
 
   useSocketEvent<{ rankings: GameRanking[]; stats: GameStats }>('game:game_over', useCallback(({ rankings, stats }) => {
@@ -323,23 +322,18 @@ export function GameBoard() {
     setSelectedHandIndexForSwap(null);
   };
 
-  // 5 uses then 3-second cooldown; also shows own emoji optimistically
   const handleSendReaction = useCallback((emoji: string) => {
     if (reactionCooldown) return;
     sendReaction(emoji);
-    // Show own emoji locally (server uses broadcastToRoomExcept)
     addReaction(user?.id ?? '', emoji);
 
     const newCount = reactionCount + 1;
     if (newCount >= 5) {
       setReactionCooldown(true);
       setReactionCount(0);
-      if (reactionCountResetRef.current) clearTimeout(reactionCountResetRef.current);
       setTimeout(() => setReactionCooldown(false), 3000);
     } else {
       setReactionCount(newCount);
-      if (reactionCountResetRef.current) clearTimeout(reactionCountResetRef.current);
-      reactionCountResetRef.current = setTimeout(() => setReactionCount(0), 5000);
     }
   }, [reactionCooldown, reactionCount, sendReaction, addReaction, user?.id]);
 
@@ -370,7 +364,7 @@ export function GameBoard() {
       </AnimatePresence>
 
       {/* Game header */}
-      <div className="flex items-center justify-between px-4 py-2 border-b border-[var(--color-border)] bg-[var(--color-surface)] shrink-0">
+      <div className="flex items-center justify-between px-6 py-3 border-b border-[var(--color-border)] bg-[var(--color-surface)]/95 backdrop-blur-sm shrink-0">
         <div className="flex items-center gap-2">
           <span className="text-xs text-[var(--color-text-muted)] font-mono uppercase tracking-widest">{roomCode}</span>
           {round > 0 && (
