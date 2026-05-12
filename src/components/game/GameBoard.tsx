@@ -42,7 +42,7 @@ export function GameBoard() {
     syncState, setMyHand, applyCardsPlayed, applyTurnPassed, applyWipe, drawPileCount,
     setSaborActive, applyRoundEnd, applyGameOver, clearRoundSummary, addToDiscardPile, reset,
     roundSummaryData, gameOverData, addReaction, reactions, updateMarket, addLog,
-    soundEnabled, musicEnabled,
+    musicEnabled,
   } = useGameStore();
 
   const { playSelectedCards, drawCard, insertDrawnCard, swapWithMarket, sendReaction, sendMessage, requestState } = useGame(roomCode!);
@@ -50,8 +50,11 @@ export function GameBoard() {
   const [timerMs, setTimerMs] = useState(30_000);
   const [timerKey, setTimerKey] = useState(0);
   const [reactionCooldown, setReactionCooldown] = useState(false);
+  const [reactionCount, setReactionCount] = useState(0);
+  const reactionCountResetRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [pickMode, setPickMode] = useState(false);
   const [drawnCard, setDrawnCard] = useState<Card | null>(null);
+  const hasSubmittedPickRef = useRef(false);
   const [marketSwapMode, setMarketSwapMode] = useState(false);
   const [selectedHandIndexForSwap, setSelectedHandIndexForSwap] = useState<number | null>(null);
   const [leaveConfirmOpen, setLeaveConfirmOpen] = useState(false);
@@ -83,7 +86,7 @@ export function GameBoard() {
     if (roomCode) requestState();
   }, [roomCode]);
 
-  // Notifica meu turno + banner de turno
+  // Turn banner + sound for own turn
   useEffect(() => {
     if (!currentTurnUserId || players.length === 0) return;
     if (isMyTurn && currentTurnUserId !== prevTurnRef.current) {
@@ -100,8 +103,8 @@ export function GameBoard() {
 
   useSocketEvent<{ state: ClientGameState }>('game:state_sync', useCallback(({ state }) => {
     syncState(state);
-    // Don't discard active pick state — server sent PASS_PICK phase, player is mid-draw
-    if (state.phase !== 'PASS_PICK') {
+    // Only reset pick mode if we haven't submitted yet OR the server is no longer in PASS_PICK
+    if (state.phase !== 'PASS_PICK' || hasSubmittedPickRef.current) {
       setPickMode(false);
       setDrawnCard(null);
     }
@@ -110,6 +113,7 @@ export function GameBoard() {
   }, [syncState]));
 
   useSocketEvent<{ card: Card; drawPileCount: number }>('game:card_drawn', useCallback(({ card, drawPileCount }) => {
+    hasSubmittedPickRef.current = false;
     setDrawnCard(card);
     setPickMode(true);
     useGameStore.setState({ drawPileCount });
@@ -122,6 +126,7 @@ export function GameBoard() {
     setPickMode(false);
     setDrawnCard(null);
     setTrickPickOpen(false);
+    hasSubmittedPickRef.current = false;
     // Resyncs if hand appears empty mid-game (lost game:your_hand event)
     const { myHand, phase } = useGameStore.getState();
     if (myHand.length === 0 && phase !== 'GAME_OVER' && phase !== 'ROUND_END') {
@@ -209,6 +214,12 @@ export function GameBoard() {
     setTrickPickOpen(true);
   }, []));
 
+  useSocketEvent<{ userId: string; action: 'take' | 'discard'; discardedCards: Card[] }>('game:trick_pick_result', useCallback(({ action, discardedCards }) => {
+    if (action === 'discard' && discardedCards.length > 0) {
+      addToDiscardPile(discardedCards);
+    }
+  }, [addToDiscardPile]));
+
   useSocketEvent<{ plates: Card[] }>('game:duel_pass_offer', useCallback(({ plates }) => {
     useGameStore.setState(s => ({ myDuelPlates: plates }));
     setDuelPickOpen(true);
@@ -222,19 +233,19 @@ export function GameBoard() {
 
   useSocketEvent<{ code: string; message: string }>('game:error', useCallback(({ message }) => {
     toast.error(message);
-    // Resync on any server-side rejection to recover from desyncs
     emitSocketEvent('game:request_state', { roomCode });
   }, [roomCode]));
 
+  // Disconnection/reconnection go to game log, not toast
   useSocketEvent<{ userId: string }>('game:player_disconnected', useCallback(({ userId }) => {
     const name = useGameStore.getState().players.find(p => p.userId === userId)?.username ?? userId;
-    toast.warning(`${name} saiu do jogo`);
-  }, []));
+    addLog({ type: 'system', text: `${name} desconectou` });
+  }, [addLog]));
 
   useSocketEvent<{ userId: string }>('game:player_reconnected', useCallback(({ userId }) => {
     const name = useGameStore.getState().players.find(p => p.userId === userId)?.username ?? userId;
-    toast.success(`${name} voltou`);
-  }, []));
+    addLog({ type: 'system', text: `${name} voltou` });
+  }, [addLog]));
 
   useSocketEvent<{ userId: string; emoji: string }>('game:reaction', useCallback(({ userId, emoji }) => {
     addReaction(userId, emoji);
@@ -243,16 +254,6 @@ export function GameBoard() {
   useSocketEvent<{ userId: string; username: string; text: string }>('game:message', useCallback(({ userId, username, text }) => {
     addLog({ type: 'chat', userId, username, text });
   }, [addLog]));
-
-  useSocketEvent<{ userId: string }>('game:player_disconnected', useCallback(({ userId }) => {
-    const p = players.find(pl => pl.userId === userId);
-    toast(`${p?.username ?? 'Jogador'} desconectou`);
-  }, [players]));
-
-  useSocketEvent<{ userId: string }>('game:player_reconnected', useCallback(({ userId }) => {
-    const p = players.find(pl => pl.userId === userId);
-    toast.success(`${p?.username ?? 'Jogador'} voltou`);
-  }, [players]));
 
   const handleSendMessage = useCallback((text: string) => {
     sendMessage(text);
@@ -270,9 +271,9 @@ export function GameBoard() {
   };
 
   const handleTrickDiscard = () => {
-    addToDiscardPile(trickPile);
     setTrickPickOpen(false);
     emitSocketEvent('game:trick_pick', { roomCode, action: 'discard' });
+    // game:trick_pick_result will handle adding to discardPile for all players
   };
 
   const handleDuelPick = (plateIndex: number, action: 'insert' | 'discard', insertAtIndex?: number) => {
@@ -288,9 +289,7 @@ export function GameBoard() {
   };
 
   const handleInsertAtIndex = (insertAtIndex: number) => {
-    // Optimistic update: insert the drawn card locally before server confirms.
-    // When game:your_hand arrives, card.id values match so AnimatePresence
-    // won't re-animate existing cards — only the new one gets an enter animation.
+    hasSubmittedPickRef.current = true;
     if (drawnCard) {
       const optimistic = [...myHand];
       optimistic.splice(insertAtIndex, 0, drawnCard);
@@ -302,6 +301,7 @@ export function GameBoard() {
   };
 
   const handleDiscardDrawn = () => {
+    hasSubmittedPickRef.current = true;
     setPickMode(false);
     setDrawnCard(null);
     insertDrawnCard(0, 'discard');
@@ -314,12 +314,25 @@ export function GameBoard() {
     setSelectedHandIndexForSwap(null);
   };
 
+  // 5 uses then 3-second cooldown; also shows own emoji optimistically
   const handleSendReaction = useCallback((emoji: string) => {
     if (reactionCooldown) return;
     sendReaction(emoji);
-    setReactionCooldown(true);
-    setTimeout(() => setReactionCooldown(false), 3000);
-  }, [reactionCooldown, sendReaction]);
+    // Show own emoji locally (server uses broadcastToRoomExcept)
+    addReaction(user?.id ?? '', emoji);
+
+    const newCount = reactionCount + 1;
+    if (newCount >= 5) {
+      setReactionCooldown(true);
+      setReactionCount(0);
+      if (reactionCountResetRef.current) clearTimeout(reactionCountResetRef.current);
+      setTimeout(() => setReactionCooldown(false), 3000);
+    } else {
+      setReactionCount(newCount);
+      if (reactionCountResetRef.current) clearTimeout(reactionCountResetRef.current);
+      reactionCountResetRef.current = setTimeout(() => setReactionCount(0), 5000);
+    }
+  }, [reactionCooldown, reactionCount, sendReaction, addReaction, user?.id]);
 
   const handleLeaveGame = () => setLeaveConfirmOpen(true);
 
@@ -411,7 +424,7 @@ export function GameBoard() {
           </div>
         )}
 
-        {/* Duelo: Pratos do Dia visíveis de todos os jogadores */}
+        {/* Duelo: Pratos do Dia */}
         {duelPlates && (
           <div className="flex flex-col gap-1 w-full max-w-md">
             <span className="text-[10px] uppercase tracking-widest text-[var(--color-text-muted)] text-center font-medium">Pratos do Dia</span>
@@ -510,7 +523,7 @@ export function GameBoard() {
           )}
         </AnimatePresence>
 
-        {/* Hand — pt-4 gives room for selected cards that rise via -translate-y */}
+        {/* Hand */}
         <div className="pb-1 pt-4 overflow-hidden">
           {pickMode ? (
             <PlayerHand
@@ -524,7 +537,7 @@ export function GameBoard() {
           )}
         </div>
 
-        {/* Actions — hidden during pick mode (card reveal strip already has cancel) */}
+        {/* Actions */}
         {!pickMode && !marketSwapMode && (
           <div className="mt-2 flex flex-col gap-2">
             <ActionBar
@@ -540,11 +553,11 @@ export function GameBoard() {
                 Jogada inválida — precisa de mais cartas ou valor maior
               </p>
             )}
-            <ReactionBar onReact={handleSendReaction} disabled={reactionCooldown} />
+            <ReactionBar onReact={handleSendReaction} disabled={reactionCooldown} usesLeft={5 - reactionCount} />
           </div>
         )}
 
-        {/* Market swap: select hand card */}
+        {/* Market swap */}
         {marketSwapMode && (
           <div className="mt-2 flex flex-col items-center gap-2">
             <p className="text-xs text-[var(--color-token-gold)]">
@@ -574,22 +587,25 @@ export function GameBoard() {
       <ActionHistoryPanel />
       <ChatPanel onSendMessage={handleSendMessage} myUserId={user?.id ?? ''} />
 
-      {/* Reactions overlay — canto inferior direito */}
-      <div className="fixed bottom-24 right-4 flex flex-col gap-2 z-40 pointer-events-none">
+      {/* Reactions overlay — dedicated zone above reaction bar */}
+      <div className="fixed bottom-28 right-16 flex flex-col-reverse gap-1.5 z-40 pointer-events-none items-end min-w-[96px]">
         <AnimatePresence>
           {reactions.map((r) => {
             const p = players.find(pl => pl.userId === r.userId);
+            const isMe = r.userId === user?.id;
             return (
               <motion.div
                 key={r.id}
-                initial={{ opacity: 0, scale: 0.3, x: 20 }}
-                animate={{ opacity: 1, scale: 1, x: 0 }}
-                exit={{ opacity: 0, scale: 0.6, x: 20 }}
-                transition={{ duration: 0.35, ease: 'easeOut' }}
+                initial={{ opacity: 0, y: 8, scale: 0.5 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -16, scale: 0.3 }}
+                transition={{ duration: 0.3, ease: 'easeOut' }}
               >
-                <div className="bg-[var(--color-panel)] border border-[var(--color-border)] px-3 py-1.5 rounded-full shadow-xl flex items-center gap-1.5">
-                  <span className="text-2xl">{r.emoji}</span>
-                  {p && <span className="text-xs text-[var(--color-text-muted)]">{p.username}</span>}
+                <div className="bg-[var(--color-panel)]/90 backdrop-blur-sm border border-[var(--color-border)] px-2.5 py-1 rounded-full shadow-lg flex items-center gap-1.5">
+                  <span className="text-xl">{r.emoji}</span>
+                  <span className="text-[9px] text-[var(--color-text-muted)]">
+                    {isMe ? 'Você' : (p?.username ?? '...')}
+                  </span>
                 </div>
               </motion.div>
             );

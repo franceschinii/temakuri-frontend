@@ -63,6 +63,7 @@ export interface ClientGameState {
   saborMinRequired: number;
   consecutivePasses: number;
   myHand: Card[];
+  discardPileCount: number;
   duelPlates: Record<string, Card[]> | null;
   myDuelPlates: Card[] | null;
 }

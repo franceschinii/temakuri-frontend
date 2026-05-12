@@ -1,10 +1,12 @@
 import { create } from 'zustand';
 import type { Card, ClientGameState, GamePhase, GameRanking, GameStats, PublicPlayerState } from '../types/game';
+import { setMuted } from '@/lib/sounds';
+import { setMusicMuted } from '@/lib/music';
 
 export interface LogEntry {
   id: string;
   timestamp: number;
-  type: 'play' | 'pass' | 'wipe' | 'sabor' | 'round_end' | 'chat' | 'system';
+  type: 'play' | 'pass' | 'wipe' | 'sabor' | 'round_end' | 'chat' | 'system' | 'info';
   userId?: string;
   username?: string;
   text: string;
@@ -62,11 +64,13 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   toggleSound: () => set(s => {
     const next = !s.soundEnabled;
     localStorage.setItem('soundEnabled', String(next));
+    setMuted(!next);
     return { soundEnabled: next };
   }),
   toggleMusic: () => set(s => {
     const next = !s.musicEnabled;
     localStorage.setItem('musicEnabled', String(next));
+    setMusicMuted(!next);
     return { musicEnabled: next };
   }),
   phase: null,

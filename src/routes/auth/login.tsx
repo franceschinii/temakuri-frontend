@@ -53,7 +53,7 @@ export default function LoginPage() {
           </p>
           <div className="mt-10 grid grid-cols-3 gap-4 text-center">
             {[
-              { label: 'Partidas', value: '63 cartas' },
+              { label: 'Cartas', value: '63' },
               { label: 'Modos', value: '4' },
               { label: 'Jogadores', value: '2–6' },
             ].map(item => (

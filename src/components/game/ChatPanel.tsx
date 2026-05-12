@@ -17,19 +17,32 @@ export function ChatPanel({ onSendMessage, myUserId }: ChatPanelProps) {
   const [input, setInput] = useState('');
   const [unread, setUnread] = useState(0);
   const [chatCooldown, setChatCooldown] = useState(false);
+  const [msgPreview, setMsgPreview] = useState<{ username: string; text: string } | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const prevLenRef = useRef(0);
+  const previewTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (chatEntries.length > prevLenRef.current) {
-      if (!open) setUnread(u => u + (chatEntries.length - prevLenRef.current));
+      const added = chatEntries.length - prevLenRef.current;
+      if (!open) {
+        setUnread(u => u + added);
+        // Show preview for the newest incoming message (not own)
+        const newest = chatEntries[chatEntries.length - 1];
+        if (newest && newest.userId !== myUserId) {
+          setMsgPreview({ username: newest.username ?? '...', text: newest.text });
+          if (previewTimerRef.current) clearTimeout(previewTimerRef.current);
+          previewTimerRef.current = setTimeout(() => setMsgPreview(null), 3500);
+        }
+      }
       prevLenRef.current = chatEntries.length;
     }
-  }, [chatEntries.length, open]);
+  }, [chatEntries.length, open, chatEntries, myUserId]);
 
   useEffect(() => {
     if (open) {
       setUnread(0);
+      setMsgPreview(null);
       setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 60);
     }
   }, [open]);
@@ -49,6 +62,30 @@ export function ChatPanel({ onSendMessage, myUserId }: ChatPanelProps) {
 
   return (
     <>
+      {/* Message preview popup — appears left of the toggle button */}
+      <AnimatePresence>
+        {msgPreview && !open && (
+          <motion.div
+            key="msg-preview"
+            initial={{ opacity: 0, x: 20, scale: 0.95 }}
+            animate={{ opacity: 1, x: 0, scale: 1 }}
+            exit={{ opacity: 0, x: 20, scale: 0.95 }}
+            transition={{ duration: 0.2 }}
+            className="fixed right-12 z-40 pointer-events-none"
+            style={{ top: 'calc(58% - 32px)' }}
+          >
+            <div className="bg-[var(--color-panel)] border border-[var(--color-border)] rounded-xl px-3 py-2 shadow-xl max-w-[180px]">
+              <span className="text-[9px] font-semibold text-[var(--color-accent-mid)] uppercase tracking-wider block">
+                {msgPreview.username}
+              </span>
+              <p className="text-[11px] text-[var(--color-text-primary)] mt-0.5 line-clamp-2 break-words">
+                {msgPreview.text}
+              </p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Fixed right toggle */}
       <button
         onClick={() => setOpen(v => !v)}
