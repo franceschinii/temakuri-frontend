@@ -68,17 +68,16 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="h-dvh bg-[var(--color-base)] flex flex-col relative overflow-hidden">
+    <div className="min-h-dvh bg-[var(--color-base)] flex flex-col relative overflow-x-hidden">
       {/* Atmospheric glows */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-[40%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-3xl h-[600px] rounded-full bg-[var(--color-accent-strong)]/8 blur-[160px]" />
-        <div className="absolute bottom-[-10%] left-[-5%] w-96 h-96 rounded-full bg-[var(--color-accent-strong)]/5 blur-[100px]" />
-        <div className="absolute top-[-5%] right-[-5%] w-72 h-72 rounded-full bg-[var(--color-token-gold)]/5 blur-[80px]" />
+        <div className="absolute bottom-[-10%] left-[-5%] w-64 h-64 rounded-full bg-[var(--color-accent-strong)]/5 blur-[100px]" />
+        <div className="absolute top-[-5%] right-[-5%] w-64 h-64 rounded-full bg-[var(--color-token-gold)]/5 blur-[80px]" />
       </div>
 
-      {/* Scrollable content container — hides OS scrollbar but allows internal scroll on small screens */}
-      <div className="relative z-10 flex-1 overflow-y-auto flex flex-col items-center justify-center gap-8 px-6 py-10 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-      <div className="w-full max-w-6xl flex flex-col items-center gap-8">
+      <div className="relative z-10 flex-1 flex flex-col items-center justify-start gap-8 px-4 sm:px-6 py-8 sm:py-10">
+      <div className="w-full max-w-4xl flex flex-col items-center gap-6 sm:gap-8">
 
         {/* Logo — top, centered, large */}
         <motion.div
@@ -102,14 +101,14 @@ export default function LandingPage() {
         </motion.div>
 
         {/* Two-column: login card | rules */}
-        <div className="w-full flex flex-col md:flex-row md:items-start md:justify-center gap-6 md:gap-10">
+        <div className="w-full flex flex-col md:flex-row md:items-start md:justify-center gap-5 md:gap-10">
 
           {/* Login card */}
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
-            className="w-full md:max-w-sm rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)]/90 backdrop-blur-md p-6 flex flex-col gap-5 shadow-[0_8px_48px_oklch(0%_0_0_/_0.45)]"
+            className="w-full md:max-w-sm rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)]/90 backdrop-blur-md p-4 sm:p-6 flex flex-col gap-4 sm:gap-5 shadow-[0_8px_48px_oklch(0%_0_0_/_0.45)]"
           >
             <div>
               <p className="text-[10px] uppercase tracking-[0.2em] text-[var(--color-text-muted)] mb-3 font-medium">
@@ -184,8 +183,8 @@ export default function LandingPage() {
 
           {/* Rules */}
           <motion.div
-            initial={{ opacity: 0, x: 12 }}
-            animate={{ opacity: 1, x: 0 }}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
             className="w-full md:flex-1 flex flex-col gap-1"
           >
@@ -197,8 +196,8 @@ export default function LandingPage() {
               {rules.map((rule, i) => (
                 <motion.div
                   key={i}
-                  initial={{ opacity: 0, x: 8 }}
-                  animate={{ opacity: 1, x: 0 }}
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.35 + i * 0.07 }}
                   className={`flex flex-col gap-1 pb-3 ${i < rules.length - 1 ? 'border-b border-[var(--color-border)]/40' : ''}`}
                 >
@@ -222,15 +221,13 @@ export default function LandingPage() {
 
         </div>
 
-        <div className="flex items-center justify-between w-full max-w-6xl">
+        <div className="flex flex-col sm:flex-row items-center justify-between w-full gap-1 sm:gap-0 pb-2">
           <span className="text-[10px] text-[var(--color-text-muted)] opacity-40 tracking-widest" style={{ fontFamily: 'var(--font-display)' }}>
             寿司 · 拉麺 · 餃子
           </span>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-wrap justify-center">
+            <span className="text-[10px] text-[var(--color-text-muted)] opacity-25 font-mono">v0.1.0 beta</span>
             <span className="text-[10px] text-[var(--color-text-muted)] opacity-40">Desenvolvido por André Franceschini</span>
-            <a href="mailto:contato@andrefranceschini.com.br" className="text-[10px] text-[var(--color-text-muted)] opacity-40 hover:opacity-80 hover:text-[var(--color-accent-mid)] transition-all">
-              contato@andrefranceschini.com.br
-            </a>
           </div>
         </div>
 
