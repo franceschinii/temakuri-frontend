@@ -93,7 +93,7 @@ export function MatchmakingDialog({ open, onClose }: Props) {
           if (t <= 1) {
             if (confirmTimerRef.current) clearInterval(confirmTimerRef.current);
             if (roomCodeRef.current) {
-              navigate(`/lobby/${roomCodeRef.current}`);
+              navigate(`/lobby/${roomCodeRef.current}`, { state: { isMatchmaking: true } });
             }
             return 0;
           }

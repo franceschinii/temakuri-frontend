@@ -1,5 +1,5 @@
 import { useEffect, useCallback, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Copy, Crown, LogOut, Bot, PlusCircle, X } from 'lucide-react';
 import { AccessBar } from '@/components/ui/AccessBar';
@@ -32,6 +32,7 @@ export default function RoomPage() {
 
   const { roomCode } = useParams<{ roomCode: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const user = useAuthStore(s => s.user);
   const { currentRoom, setCurrentRoom, updateRoom, readyMap, setPlayerReady } = useLobbyStore();
   const [addingBot, setAddingBot] = useState(false);
@@ -130,7 +131,8 @@ export default function RoomPage() {
   );
 
   const isHost = room.hostId === user?.id;
-  const isMatchmakingRoom = !room.isPrivate;
+  // Sala de matchmaking = veio via navigate com state.isMatchmaking (MatchmakingDialog)
+  const isMatchmakingRoom = !!(location.state as any)?.isMatchmaking;
   const mode = GAME_MODES.find(m => m.value === room.mode);
   const allSlotsReady = room.players.filter(p => !p.isBot).every(p => readyMap[p.userId]);
   const humanPlayers = room.players.filter(p => !p.isBot);
@@ -296,6 +298,17 @@ export default function RoomPage() {
                           </div>
                           {p.isBot
                             ? <span className="text-[9px] text-[var(--color-text-muted)] uppercase tracking-wider">bot</span>
+                            : p.isGuest
+                            ? <span
+                                className="text-[9px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded-full w-fit mt-0.5"
+                                style={{
+                                  background: 'var(--color-panel)',
+                                  color: 'var(--color-text-muted)',
+                                  border: '1px solid var(--color-border)',
+                                }}
+                              >
+                                Convidado
+                              </span>
                             : <div className="flex flex-col gap-0.5 mt-0.5">
                                 <div className="flex items-center gap-1.5">
                                   <LevelBadge level={p.level ?? 1} size="xs" />

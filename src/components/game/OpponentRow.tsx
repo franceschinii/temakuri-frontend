@@ -48,8 +48,19 @@ export function OpponentRow({ player, isCurrentTurn }: OpponentRowProps) {
             )}
           </div>
           <div className="flex items-center gap-1 flex-wrap">
-            <LevelBadge level={player.level ?? 1} size="xs" />
-            <RankBadge pds={player.pds ?? 0} size="sm" showPds={false} />
+            {player.isGuest ? (
+              <span
+                className="text-[8px] font-semibold uppercase tracking-wider px-1 py-0.5 rounded-full"
+                style={{ background: 'var(--color-panel)', color: 'var(--color-text-muted)', border: '1px solid var(--color-border)' }}
+              >
+                Convidado
+              </span>
+            ) : (
+              <>
+                <LevelBadge level={player.level ?? 1} size="xs" />
+                <RankBadge pds={player.pds ?? 0} size="sm" showPds={false} />
+              </>
+            )}
             {player.isAdmin && (
               <span
                 className="text-[8px] font-bold uppercase tracking-wider px-1 py-0.5 rounded-full shrink-0"

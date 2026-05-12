@@ -47,6 +47,7 @@ export interface PublicPlayerState {
   isEliminated: boolean;
   isReady: boolean;
   isBot?: boolean;
+  isGuest?: boolean;
   isAdmin?: boolean;
   isSpectator?: boolean;
   sessionWins?: number;
@@ -89,6 +90,7 @@ export interface GameStats {
 
 export interface RoomPlayer extends PublicPlayerState {
   isBot: boolean;
+  isGuest?: boolean;
   isAdmin?: boolean;
   isSpectator: boolean;
   sessionWins: number;

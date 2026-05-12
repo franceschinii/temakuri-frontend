@@ -53,11 +53,17 @@ export function getSocket(): WebSocket | null {
 export function reconnectSocket(token: string) {
   currentToken = token;
   reconnectAttempts = 0;
-  intentionalClose = false;
-  if (socket && (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING)) {
+  // Marcar como intencional ANTES de fechar para o close handler não
+  // disparar scheduleReconnect em paralelo com a reconexão manual.
+  intentionalClose = true;
+  clearTimers();
+  if (socket) {
     socket.close();
     socket = null;
   }
+  outbox.length = 0;
+  // Resetar flag antes de conectar para que reconexões automáticas funcionem
+  intentionalClose = false;
   connectSocket(token);
 }
 
