@@ -8,6 +8,7 @@ import { Eye, EyeOff, Lock, ArrowLeft, CheckCircle } from 'lucide-react';
 import { Logo } from '@/components/ui/Logo';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { DevFooter } from '@/components/ui/DevFooter';
 import api from '@/lib/api';
 import { toast } from 'sonner';
 
@@ -54,7 +55,8 @@ export default function ResetPasswordPage() {
   };
 
   return (
-    <div className="min-h-dvh flex items-center justify-center bg-[var(--color-base)] p-6 relative overflow-hidden">
+    <div className="min-h-dvh flex flex-col bg-[var(--color-base)] overflow-hidden">
+      <div className="flex-1 flex items-center justify-center p-6 relative">
       <div className="fixed inset-0 pointer-events-none">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full bg-[var(--color-accent-strong)]/8 blur-[120px]" />
       </div>
@@ -152,6 +154,8 @@ export default function ResetPasswordPage() {
           )}
         </AnimatePresence>
       </motion.div>
+      </div>
+      <DevFooter />
     </div>
   );
 }

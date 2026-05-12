@@ -86,10 +86,10 @@ export function ChatPanel({ onSendMessage, myUserId }: ChatPanelProps) {
         )}
       </AnimatePresence>
 
-      {/* Fixed right toggle */}
+      {/* Fixed right toggle — lateral no desktop, canto inferior no mobile */}
       <button
         onClick={() => setOpen(v => !v)}
-        className="fixed right-0 top-[58%] -translate-y-1/2 z-40 flex flex-col items-center justify-center gap-1 bg-[var(--color-surface)]/80 backdrop-blur-sm border border-r-0 border-[var(--color-border)] rounded-l-xl px-1.5 py-3 shadow-lg hover:bg-[var(--color-panel)] transition-colors"
+        className="fixed right-0 top-[58%] -translate-y-1/2 z-40 sm:flex hidden flex-col items-center justify-center gap-1 bg-[var(--color-surface)]/80 backdrop-blur-sm border border-r-0 border-[var(--color-border)] rounded-l-xl px-1.5 py-3 shadow-lg hover:bg-[var(--color-panel)] transition-colors"
         title="Chat"
       >
         {unread > 0 && (
@@ -98,6 +98,20 @@ export function ChatPanel({ onSendMessage, myUserId }: ChatPanelProps) {
           </span>
         )}
         <MessageSquare size={13} className={unread > 0 ? 'text-[var(--color-accent-mid)]' : 'text-[var(--color-text-muted)]'} />
+      </button>
+
+      {/* Mobile: botão fixo no canto inferior direito */}
+      <button
+        onClick={() => setOpen(v => !v)}
+        className="sm:hidden fixed right-2 bottom-2 z-40 relative flex items-center justify-center bg-[var(--color-surface)]/90 backdrop-blur-sm border border-[var(--color-border)] rounded-xl p-2.5 shadow-lg hover:bg-[var(--color-panel)] transition-colors"
+        title="Chat"
+      >
+        {unread > 0 && (
+          <span className="absolute -top-1 -right-1 text-[9px] bg-[var(--color-accent-strong)] text-white rounded-full w-4 h-4 flex items-center justify-center font-mono leading-none">
+            {unread > 9 ? '9+' : unread}
+          </span>
+        )}
+        <MessageSquare size={14} className={unread > 0 ? 'text-[var(--color-accent-mid)]' : 'text-[var(--color-text-muted)]'} />
       </button>
 
       {/* Backdrop */}

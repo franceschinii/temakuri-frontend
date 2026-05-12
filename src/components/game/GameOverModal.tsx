@@ -1,10 +1,13 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
+import { CoinDisplay } from '@/components/ui/CoinDisplay';
 import { useNavigate } from 'react-router-dom';
 import { Share2 } from 'lucide-react';
 import type { GameRanking } from '@/types/game';
+import type { MatchReward } from '@/types/api';
+import { useAuthStore } from '@/stores/authStore';
 
 interface GameOverModalProps {
   rankings: GameRanking[];
@@ -18,6 +21,14 @@ export function GameOverModal({ rankings, myUserId, onPlayAgain }: GameOverModal
   const navigate = useNavigate();
   const captureRef = useRef<HTMLDivElement>(null);
   const [sharing, setSharing] = useState(false);
+  const refreshUser = useAuthStore(s => s.refreshUser);
+
+  const myRanking = rankings.find(r => r.userId === myUserId);
+  const myReward = myRanking?.reward as MatchReward | undefined;
+
+  useEffect(() => {
+    refreshUser();
+  }, []);
 
   const handleShare = async () => {
     if (!captureRef.current) return;
@@ -66,6 +77,34 @@ export function GameOverModal({ rankings, myUserId, onPlayAgain }: GameOverModal
               </div>
             ))}
           </div>
+
+          {/* Rewards for local player */}
+          {myReward && (
+            <div className="mt-1 border border-[var(--color-border)] rounded-xl p-3 flex flex-col gap-1.5 bg-[var(--color-panel)]">
+              <p className="text-[10px] uppercase tracking-widest text-[var(--color-text-muted)] font-medium">Recompensas</p>
+              <div className="flex items-center gap-3 flex-wrap">
+                {myReward.xpEarned > 0 && (
+                  <span className="text-xs font-semibold text-[var(--color-accent-mid)]">+{myReward.xpEarned} XP</span>
+                )}
+                {myReward.coinsEarned > 0 && (
+                  <span className="flex items-center gap-0.5 text-xs">
+                    <span className="font-semibold">+</span>
+                    <CoinDisplay amount={myReward.coinsEarned} size="sm" />
+                  </span>
+                )}
+                {myReward.pdsChange !== 0 && (
+                  <span className={`text-xs font-semibold ${myReward.pdsChange > 0 ? 'text-[var(--color-accent-mid)]' : 'text-[var(--color-danger)]'}`}>
+                    {myReward.pdsChange > 0 ? '+' : ''}{myReward.pdsChange} PDS
+                  </span>
+                )}
+                {myReward.leveledUp && (
+                  <span className="text-xs font-bold text-[var(--color-token-gold)]">
+                    Level {myReward.newLevel}!
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="flex gap-2 flex-wrap">

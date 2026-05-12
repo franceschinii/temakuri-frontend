@@ -1,11 +1,12 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Pencil, KeyRound, Trash2, BarChart2, Search, X, Ban, Clock, ShieldCheck } from 'lucide-react';
+import { ArrowLeft, Pencil, KeyRound, Trash2, BarChart2, Search, X, Ban, Clock, ShieldCheck, Users, DoorOpen, UserX, RefreshCw } from 'lucide-react';
 import { Logo } from '@/components/ui/Logo';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Modal } from '@/components/ui/modal';
+import { DevFooter } from '@/components/ui/DevFooter';
 import api from '@/lib/api';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -31,6 +32,30 @@ interface AdminUser {
 
 type ModalType = 'edit' | 'password' | 'stats' | 'delete' | 'moderation' | null;
 type FilterType = 'all' | 'registered' | 'guest' | 'admin' | 'banned' | 'suspended';
+type AdminTab = 'users' | 'rooms';
+
+interface AdminRoomPlayer {
+  userId: string;
+  username: string;
+  seat: number;
+  status: string;
+  isBot: boolean;
+  avatarIndex: number;
+}
+
+interface AdminRoom {
+  id: string;
+  code: string;
+  status: string;
+  mode: string;
+  maxPlayers: number;
+  isPrivate: boolean;
+  createdAt: string;
+  startedAt: string | null;
+  endedAt: string | null;
+  hostId: string;
+  players: AdminRoomPlayer[];
+}
 
 interface ModalState {
   type: ModalType;
@@ -69,6 +94,7 @@ const FILTER_LABELS: Record<FilterType, string> = {
 export default function AdminPage() {
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const [tab, setTab] = useState<AdminTab>('users');
   const [modal, setModal] = useState<ModalState>({ type: null, user: null });
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<FilterType>('all');
@@ -82,6 +108,28 @@ export default function AdminPage() {
       const { data } = await api.get('/admin/users');
       return data;
     },
+  });
+
+  const { data: rooms = [], isLoading: roomsLoading, refetch: refetchRooms } = useQuery<AdminRoom[]>({
+    queryKey: ['admin', 'rooms'],
+    queryFn: async () => {
+      const { data } = await api.get('/admin/rooms');
+      return data;
+    },
+    enabled: tab === 'rooms',
+    refetchInterval: tab === 'rooms' ? 10000 : false,
+  });
+
+  const deleteRoomMutation = useMutation({
+    mutationFn: (code: string) => api.delete(`/admin/rooms/${code}`),
+    onSuccess: () => { toast.success('Sala removida'); qc.invalidateQueries({ queryKey: ['admin', 'rooms'] }); },
+    onError: (e: any) => toast.error(e.response?.data?.message ?? 'Erro ao remover sala'),
+  });
+
+  const kickPlayerMutation = useMutation({
+    mutationFn: ({ code, userId }: { code: string; userId: string }) => api.delete(`/admin/rooms/${code}/players/${userId}`),
+    onSuccess: () => { toast.success('Jogador removido'); qc.invalidateQueries({ queryKey: ['admin', 'rooms'] }); },
+    onError: (e: any) => toast.error(e.response?.data?.message ?? 'Erro ao remover jogador'),
   });
 
   const filtered = useMemo(() => {
@@ -118,11 +166,97 @@ export default function AdminPage() {
           <Logo variant="mark" size={20} />
           <h1 className="text-lg font-semibold text-[var(--color-text-primary)]">Painel de Administração</h1>
         </div>
+        <div className="ml-auto flex items-center gap-1">
+          {(['users', 'rooms'] as AdminTab[]).map(t => (
+            <button
+              key={t}
+              onClick={() => setTab(t)}
+              className={cn(
+                'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all',
+                tab === t
+                  ? 'bg-[var(--color-accent-strong)] text-white'
+                  : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-panel)]'
+              )}
+            >
+              {t === 'users' ? <Users size={13} /> : <DoorOpen size={13} />}
+              {t === 'users' ? 'Usuários' : 'Salas'}
+            </button>
+          ))}
+        </div>
       </header>
 
       <main className="flex-1 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <div className="max-w-5xl mx-auto w-full p-4 sm:p-6 flex flex-col gap-4">
 
+        {tab === 'rooms' && (
+          <>
+            <div className="flex items-center gap-3">
+              <span className="text-xs uppercase tracking-[0.15em] font-medium text-[var(--color-text-muted)]">Salas ativas</span>
+              <span className="text-xs bg-[var(--color-panel)] border border-[var(--color-border)] text-[var(--color-accent-mid)] rounded-full px-2 py-0.5 font-mono">{rooms.length}</span>
+              <div className="flex-1 h-px bg-[var(--color-border)]" />
+              <button onClick={() => refetchRooms()} className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors p-1.5 rounded-lg hover:bg-[var(--color-panel)]" title="Atualizar">
+                <RefreshCw size={13} />
+              </button>
+            </div>
+            {roomsLoading ? (
+              <div className="flex flex-col gap-2">
+                {[0,1,2].map(i => <div key={i} className="h-16 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)] animate-pulse" />)}
+              </div>
+            ) : rooms.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16 border border-dashed border-[var(--color-border)] rounded-2xl text-center gap-2">
+                <p className="text-sm text-[var(--color-text-muted)]">Nenhuma sala no banco</p>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-2">
+                {rooms.map(room => (
+                  <div key={room.id} className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4 flex flex-col gap-3">
+                    <div className="flex items-center justify-between flex-wrap gap-2">
+                      <div className="flex items-center gap-3">
+                        <span className="font-mono text-base font-bold text-[var(--color-accent-soft)] tracking-widest">{room.code}</span>
+                        <span className={cn(
+                          'text-[10px] px-2 py-0.5 rounded-full border font-medium',
+                          room.status === 'WAITING' && 'text-[var(--color-accent-mid)] border-[var(--color-accent-mid)]/30 bg-[var(--color-accent-mid)]/10',
+                          room.status === 'IN_PROGRESS' && 'text-[var(--color-warning)] border-[var(--color-warning)]/30 bg-[var(--color-warning)]/10',
+                          room.status === 'FINISHED' && 'text-[var(--color-text-muted)] border-[var(--color-border)] bg-[var(--color-panel)]',
+                        )}>{room.status}</span>
+                        <span className="text-[10px] text-[var(--color-text-muted)]">{room.mode}</span>
+                        <span className="text-[10px] text-[var(--color-text-muted)]">{room.players.length}/{room.maxPlayers} jogadores</span>
+                        {room.isPrivate && <span className="text-[10px] text-[var(--color-text-muted)]">privada</span>}
+                      </div>
+                      <button
+                        onClick={() => { if (confirm(`Remover sala ${room.code}?`)) deleteRoomMutation.mutate(room.code); }}
+                        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs text-[var(--color-danger)] hover:bg-[var(--color-danger)]/10 border border-[var(--color-danger)]/30 transition-all"
+                      >
+                        <Trash2 size={12} /> Remover sala
+                      </button>
+                    </div>
+                    {room.players.length > 0 && (
+                      <div className="flex flex-wrap gap-2">
+                        {room.players.map(p => (
+                          <div key={p.userId} className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[var(--color-panel)] border border-[var(--color-border)] text-xs">
+                            <span className={cn('text-[var(--color-text-primary)]', p.userId === room.hostId && 'text-[var(--color-token-gold)]')}>{p.username}</span>
+                            {p.isBot && <span className="text-[9px] text-[var(--color-text-muted)]">bot</span>}
+                            {p.userId === room.hostId && <span className="text-[9px] text-[var(--color-token-gold)]">host</span>}
+                            <button
+                              onClick={() => kickPlayerMutation.mutate({ code: room.code, userId: p.userId })}
+                              className="ml-1 text-[var(--color-text-muted)] hover:text-[var(--color-danger)] transition-colors"
+                              title={`Kickar ${p.username}`}
+                            >
+                              <UserX size={11} />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    <span className="text-[10px] text-[var(--color-text-muted)]">Criada em {formatDate(room.createdAt)}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
+        )}
+
+        {tab === 'users' && <>
           {/* Search + filters */}
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="relative flex-1">
@@ -237,6 +371,7 @@ export default function AdminPage() {
               </table>
             </div>
           )}
+        </>}
         </div>
       </main>
 
@@ -245,6 +380,7 @@ export default function AdminPage() {
       <EditStatsModal open={modal.type === 'stats'} user={modal.user} onClose={closeModal} onSuccess={invalidate} />
       <DeleteUserModal open={modal.type === 'delete'} user={modal.user} onClose={closeModal} onSuccess={invalidate} />
       <ModerationModal open={modal.type === 'moderation'} user={modal.user} onClose={closeModal} onSuccess={invalidate} />
+      <DevFooter />
     </div>
   );
 }

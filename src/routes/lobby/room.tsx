@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/ui/Logo';
 import { TokenDisplay } from '@/components/game/TokenDisplay';
+import { AvatarImage } from '@/components/ui/Avatar';
 import { useAuthStore } from '@/stores/authStore';
 import { useLobbyStore } from '@/stores/lobbyStore';
 import { useSocketEvent, emitSocketEvent } from '@/hooks/useSocket';
@@ -201,7 +202,7 @@ export default function RoomPage() {
           <RulesDialog />
           <AccessBar />
           <Button variant="ghost" size="sm" onClick={handleLeave}>
-            <LogOut size={14} /> Sair
+            <LogOut size={14} /> Sair da sala
           </Button>
         </div>
       </header>
@@ -281,12 +282,15 @@ export default function RoomPage() {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2 min-w-0">
                         <div className={cn(
-                          'w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0',
+                          'w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 overflow-hidden',
                           isReady
-                            ? 'bg-[var(--color-accent-strong)]/30 text-[var(--color-accent-soft)]'
-                            : 'bg-[var(--color-panel)] text-[var(--color-accent-soft)]',
+                            ? 'ring-2 ring-[var(--color-accent-strong)]'
+                            : 'ring-1 ring-[var(--color-border)]',
                         )}>
-                          {p.isBot ? <Bot size={13} /> : p.username[0].toUpperCase()}
+                          {p.isBot
+                            ? <div className="w-full h-full bg-[var(--color-panel)] flex items-center justify-center"><Bot size={13} className="text-[var(--color-accent-soft)]" /></div>
+                            : <AvatarImage index={p.avatarIndex ?? 0} size={32} />
+                          }
                         </div>
                         <div className="min-w-0">
                           <div className="flex items-center gap-1 flex-wrap">

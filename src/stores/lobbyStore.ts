@@ -20,16 +20,26 @@ export const useLobbyStore = create<LobbyState>((set) => ({
 
   setRooms: (rooms) => set({ rooms }),
 
-  setCurrentRoom: (room) => set((s) => ({
-    currentRoom: room,
-    readyMap: room && s.currentRoom?.code === room.code ? s.readyMap : {},
-  })),
+  setCurrentRoom: (room) => set((s) => {
+    const sameRoom = room && s.currentRoom?.code === room.code;
+    const wasInProgress = s.currentRoom?.status === 'IN_PROGRESS';
+    const nowWaiting = room?.status === 'WAITING';
+    const keepReady = sameRoom && !(wasInProgress && nowWaiting);
+    return { currentRoom: room, readyMap: keepReady ? s.readyMap : {} };
+  }),
 
   updateRoom: (room) =>
-    set((s) => ({
-      currentRoom: s.currentRoom?.code === room.code ? room : s.currentRoom,
-      rooms: s.rooms.map(r => r.code === room.code ? room : r),
-    })),
+    set((s) => {
+      const isCurrent = s.currentRoom?.code === room.code;
+      const wasInProgress = s.currentRoom?.status === 'IN_PROGRESS';
+      const nowWaiting = room.status === 'WAITING';
+      return {
+        currentRoom: isCurrent ? room : s.currentRoom,
+        rooms: s.rooms.map(r => r.code === room.code ? room : r),
+        // Clear ready state when room resets to WAITING after a game
+        readyMap: isCurrent && wasInProgress && nowWaiting ? {} : s.readyMap,
+      };
+    }),
 
   setPlayerReady: (userId, ready) =>
     set((s) => ({ readyMap: { ...s.readyMap, [userId]: ready } })),

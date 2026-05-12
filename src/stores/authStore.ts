@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { User } from '../types/api';
 import api from '../lib/api';
-import { connectSocket, disconnectSocket } from '../lib/socket';
+import { connectSocket, disconnectSocket, isSocketConnected, reconnectSocket } from '../lib/socket';
 
 interface AuthState {
   user: User | null;
@@ -14,6 +14,7 @@ interface AuthState {
   loginAsGuest: (username: string) => Promise<void>;
   logout: () => Promise<void>;
   setUser: (user: User) => void;
+  setAccessToken: (token: string) => void;
   initSocket: () => void;
   refreshUser: () => Promise<void>;
 }
@@ -49,23 +50,28 @@ export const useAuthStore = create<AuthState>()(
       },
 
       logout: async () => {
+        // Close socket first (intentional), then fire-and-forget logout API
+        disconnectSocket(true);
         const refreshToken = localStorage.getItem('refreshToken');
-        if (refreshToken) {
-          try { await api.post('/auth/logout', { refreshToken }); } catch {}
-        }
+        if (refreshToken) api.post('/auth/logout', { refreshToken }).catch(() => {});
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
         localStorage.removeItem('temakuri-auth');
-        sessionStorage.removeItem('accessToken');
-        disconnectSocket();
         set({ user: null, accessToken: null, isGuest: false });
       },
 
       setUser: (user) => set({ user }),
 
+      setAccessToken: (token) => {
+        set({ accessToken: token });
+        localStorage.setItem('accessToken', token);
+        // Reconnect socket with fresh token if disconnected
+        if (!isSocketConnected()) reconnectSocket(token);
+      },
+
       initSocket: () => {
         const token = get().accessToken;
-        if (token) connectSocket(token);
+        if (token && !isSocketConnected()) connectSocket(token);
       },
 
       refreshUser: async () => {
@@ -75,7 +81,6 @@ export const useAuthStore = create<AuthState>()(
           const { data } = await api.get('/auth/me');
           set({ user: data });
         } catch {
-          // token inválido — limpa sessão
           localStorage.removeItem('accessToken');
           localStorage.removeItem('refreshToken');
           localStorage.removeItem('temakuri-auth');

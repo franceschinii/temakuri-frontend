@@ -1,7 +1,8 @@
 import { useRef, useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { History, X } from 'lucide-react';
-import { useGameStore, type LogEntry } from '@/stores/gameStore';
+import { useGameStore } from '@/stores/gameStore';
+import type { LogEntry } from '@/stores/gameStore';
 import { cn } from '@/lib/utils';
 
 const TYPE_COLOR: Record<LogEntry['type'], string> = {
@@ -36,31 +37,17 @@ export function ActionHistoryPanel() {
 
   const [showFull, setShowFull] = useState(false);
   const [feedOpacity, setFeedOpacity] = useState(IDLE_OPACITY);
-  const [lastAction, setLastAction] = useState<LogEntry | null>(null);
-  const [previewVisible, setPreviewVisible] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const prevLenRef = useRef(0);
   const fadeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const previewTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (actionLog.length > prevLenRef.current) {
       prevLenRef.current = actionLog.length;
-      const newest = actionLog[actionLog.length - 1];
-
       if (!showFull) {
-        // Desktop: acende o feed flutuante
         setFeedOpacity(ACTIVE_OPACITY);
         if (fadeTimerRef.current) clearTimeout(fadeTimerRef.current);
         fadeTimerRef.current = setTimeout(() => setFeedOpacity(IDLE_OPACITY), ACTIVE_DURATION);
-
-        // Mobile: mostra preview da última ação
-        if (newest) {
-          setLastAction(newest);
-          setPreviewVisible(true);
-          if (previewTimerRef.current) clearTimeout(previewTimerRef.current);
-          previewTimerRef.current = setTimeout(() => setPreviewVisible(false), 3000);
-        }
       }
     }
   }, [actionLog.length, showFull]);
@@ -68,7 +55,6 @@ export function ActionHistoryPanel() {
   useEffect(() => {
     if (showFull) {
       setFeedOpacity(IDLE_OPACITY);
-      setPreviewVisible(false);
       setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 80);
     }
   }, [showFull]);
@@ -119,38 +105,14 @@ export function ActionHistoryPanel() {
         )}
       </motion.div>
 
-      {/* ── MOBILE: botão fixo à esquerda + preview da última ação ── */}
-      <div className="sm:hidden">
-        {/* Preview da última ação — aparece à direita do botão */}
-        <AnimatePresence>
-          {previewVisible && lastAction && !showFull && (
-            <motion.div
-              key="action-preview"
-              initial={{ opacity: 0, x: -12, scale: 0.95 }}
-              animate={{ opacity: 1, x: 0, scale: 1 }}
-              exit={{ opacity: 0, x: -12, scale: 0.95 }}
-              transition={{ duration: 0.18 }}
-              className="fixed left-12 z-40 pointer-events-none"
-              style={{ top: 'calc(42% - 16px)' }}
-            >
-              <div className="bg-[var(--color-panel)] border border-[var(--color-border)] rounded-xl px-2.5 py-1.5 shadow-xl max-w-[160px]">
-                <p className={cn('text-[11px] leading-tight line-clamp-2 break-words', TYPE_COLOR[lastAction.type])}>
-                  {TYPE_ICON[lastAction.type]} {lastAction.text}
-                </p>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Botão fixo na lateral esquerda */}
-        <button
-          onClick={() => setShowFull(v => !v)}
-          className="fixed left-0 top-[42%] -translate-y-1/2 z-40 flex flex-col items-center justify-center gap-1 bg-[var(--color-surface)]/80 backdrop-blur-sm border border-l-0 border-[var(--color-border)] rounded-r-xl px-1.5 py-3 shadow-lg hover:bg-[var(--color-panel)] transition-colors"
-          title="Histórico de jogadas"
-        >
-          <History size={13} className="text-[var(--color-text-muted)]" />
-        </button>
-      </div>
+      {/* ── MOBILE: botão fixo no canto inferior esquerdo ── */}
+      <button
+        onClick={() => setShowFull(v => !v)}
+        className="sm:hidden fixed left-2 bottom-2 z-40 flex items-center justify-center bg-[var(--color-surface)]/90 backdrop-blur-sm border border-[var(--color-border)] rounded-xl p-2.5 shadow-lg hover:bg-[var(--color-panel)] transition-colors"
+        title="Histórico de jogadas"
+      >
+        <History size={14} className="text-[var(--color-text-muted)]" />
+      </button>
 
       {/* ── MODAL/OVERLAY compartilhado — desktop: centrado; mobile: drawer da esquerda ── */}
       <AnimatePresence>

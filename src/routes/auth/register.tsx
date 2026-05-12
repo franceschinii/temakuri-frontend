@@ -8,6 +8,7 @@ import { Eye, EyeOff, UserPlus, Layers, Flame, Swords } from 'lucide-react';
 import { Logo } from '@/components/ui/Logo';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { DevFooter } from '@/components/ui/DevFooter';
 import { useAuthStore } from '@/stores/authStore';
 import { toast } from 'sonner';
 
@@ -37,7 +38,7 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-dvh flex bg-[var(--color-base)] overflow-hidden">
+    <div className="min-h-dvh flex flex-col lg:flex-row bg-[var(--color-base)] overflow-hidden">
       {/* Left panel — visual */}
       <div className="hidden lg:flex flex-1 flex-col items-center justify-center relative bg-[var(--color-surface)] border-r border-[var(--color-border)] p-12 overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
@@ -149,6 +150,7 @@ export default function RegisterPage() {
           </div>
         </motion.div>
       </div>
+      <DevFooter />
     </div>
   );
 }

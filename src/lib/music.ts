@@ -260,11 +260,19 @@ function resumeAndStart(mode: 'landing' | 'lobby' | 'game') {
 
   try {
     const c = getCtx();
-    const sg = rotateSession();
+    const start = () => {
+      if (generation !== gen) return;
+      const sg = rotateSession();
+      if (mode === 'landing') startLandingMusic(gen, sg);
+      else if (mode === 'lobby') startLobbyMusic(gen, sg);
+      else startGameMusic(gen, sg);
+    };
 
-    if (mode === 'landing') startLandingMusic(gen, sg);
-    else if (mode === 'lobby') startLobbyMusic(gen, sg);
-    else startGameMusic(gen, sg);
+    if (c.state === 'suspended') {
+      c.resume().then(start).catch(() => {});
+    } else {
+      start();
+    }
   } catch {
     // AudioContext unavailable
   }
@@ -282,6 +290,7 @@ export function startMusic(mode: 'landing' | 'lobby' | 'game') {
 
   if (!ctx || ctx.state === 'suspended') {
     document.addEventListener('click', unlockAndPlay, { once: true, capture: true });
+    document.addEventListener('touchend', unlockAndPlay, { once: true, capture: true });
     document.addEventListener('keydown', unlockAndPlay, { once: true, capture: true });
     return;
   }

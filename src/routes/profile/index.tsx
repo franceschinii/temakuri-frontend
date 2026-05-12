@@ -1,11 +1,17 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Check, X, Loader2, Pencil } from 'lucide-react';
+import { ArrowLeft, Check, X, Loader2, Pencil, ShoppingBag } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Modal } from '@/components/ui/modal';
-import { AvatarImage, AVATAR_NAMES, avatarCount } from '@/components/ui/Avatar';
+import { AvatarWithBorder, AvatarImage, AVATAR_NAMES, avatarCount } from '@/components/ui/Avatar';
+import { LevelBadge } from '@/components/ui/LevelBadge';
+import { RankBadge } from '@/components/ui/RankBadge';
+import { XpBar } from '@/components/ui/XpBar';
+import { CoinDisplay } from '@/components/ui/CoinDisplay';
+import { ShopModal } from '@/components/shop/ShopModal';
+import { DevFooter } from '@/components/ui/DevFooter';
 import { useAuthStore } from '@/stores/authStore';
 import api from '@/lib/api';
 import { toast } from 'sonner';
@@ -33,6 +39,17 @@ export default function ProfilePage() {
       return data;
     },
   });
+
+  const { data: inventory } = useQuery({
+    queryKey: ['shop', 'inventory'],
+    queryFn: async () => {
+      const { data } = await api.get('/shop/inventory');
+      return data as { unlockedAvatars: number[]; unlockedModes: string[] };
+    },
+    enabled: !user?.isGuest,
+  });
+
+  const unlockedAvatars = inventory?.unlockedAvatars ?? [0, 1, 2, 3];
 
   useEffect(() => {
     if (user) {
@@ -98,6 +115,7 @@ export default function ProfilePage() {
   };
 
   const stats = profile?.stats;
+  const [shopOpen, setShopOpen] = useState(false);
 
   return (
     <div className="min-h-dvh bg-[var(--color-base)] flex flex-col">
@@ -117,7 +135,7 @@ export default function ProfilePage() {
           {/* Avatar atual + nome */}
           <div className="flex flex-col items-center gap-3 pt-2">
             <div className="relative">
-              <AvatarImage index={selectedAvatar} size={88} />
+              <AvatarWithBorder index={selectedAvatar} level={user?.level ?? 1} size={88} />
               <button
                 onClick={() => setEditingAvatar(v => !v)}
                 className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-[var(--color-accent-strong)] flex items-center justify-center hover:opacity-80 transition-opacity"
@@ -125,8 +143,14 @@ export default function ProfilePage() {
                 <Pencil size={11} className="text-white" />
               </button>
             </div>
-            <div className="text-center">
+            <div className="text-center flex flex-col items-center gap-1.5">
               <p className="text-lg font-semibold text-[var(--color-text-primary)]">{user?.username}</p>
+              <div className="flex items-center gap-2 flex-wrap justify-center">
+                <LevelBadge level={user?.level ?? 1} size="sm" />
+                {(user?.level ?? 1) >= 10 && !user?.isGuest && (
+                  <RankBadge pds={user?.pds ?? 0} size="sm" />
+                )}
+              </div>
               <p className="text-xs text-[var(--color-text-muted)]">{AVATAR_NAMES[selectedAvatar % avatarCount()]}</p>
             </div>
             {user?.isGuest && (
@@ -136,25 +160,71 @@ export default function ProfilePage() {
             )}
           </div>
 
+          {/* Progressão — só para registrados */}
+          {!user?.isGuest && (
+            <section className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 flex flex-col gap-4">
+              <p className="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">Progressão</p>
+              <XpBar xp={user?.xp ?? 0} level={user?.level ?? 1} />
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <CoinDisplay amount={user?.coins ?? 0} size="md" />
+                  <span className="text-xs text-[var(--color-text-muted)]">moedas</span>
+                </div>
+                <button
+                  onClick={() => setShopOpen(true)}
+                  className="flex items-center gap-1.5 text-xs text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors px-2 py-1 rounded-lg hover:bg-[var(--color-panel)]"
+                >
+                  <ShoppingBag size={13} /> Loja
+                </button>
+              </div>
+              {(user?.level ?? 1) >= 10 && (
+                <div className="flex flex-col gap-2 pt-1 border-t border-[var(--color-border)]">
+                  <div className="flex items-center justify-between">
+                    <RankBadge pds={user?.pds ?? 0} showPds size="md" />
+                    {(user?.winStreak ?? 0) >= 2 && (
+                      <span className="text-xs text-[var(--color-warning)]">🔥 {user?.winStreak}x vitórias</span>
+                    )}
+                  </div>
+                  {(user?.rankedWarnings ?? 0) > 0 && (
+                    <p className="text-xs text-[var(--color-warning)]">
+                      ⚠ {user?.rankedWarnings} aviso{(user?.rankedWarnings ?? 0) > 1 ? 's' : ''} ranked
+                    </p>
+                  )}
+                  {user?.rankedSuspendedUntil && new Date(user.rankedSuspendedUntil) > new Date() && (
+                    <p className="text-xs text-[var(--color-danger)]">
+                      Suspensão ranked até {new Date(user.rankedSuspendedUntil).toLocaleDateString('pt-BR')}
+                    </p>
+                  )}
+                </div>
+              )}
+            </section>
+          )}
+
           {/* Seletor de avatar — visível só ao clicar no lápis */}
           {editingAvatar && <section className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 flex flex-col gap-4">
             <p className="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">Avatar</p>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              {Array.from({ length: avatarCount() }).map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => setSelectedAvatar(i)}
-                  className={cn(
-                    'flex flex-col items-center gap-1.5 rounded-xl p-2 border-2 transition-all',
-                    selectedAvatar === i
-                      ? 'border-[var(--color-accent-strong)] bg-[var(--color-accent-strong)]/10'
-                      : 'border-[var(--color-border)] hover:border-[var(--color-accent-mid)] bg-[var(--color-panel)]',
-                  )}
-                >
-                  <AvatarImage index={i} size={52} />
-                  <span className="text-[10px] text-[var(--color-text-muted)] font-medium">{AVATAR_NAMES[i]}</span>
-                </button>
-              ))}
+              {Array.from({ length: avatarCount() }).map((_, i) => {
+                const locked = !unlockedAvatars.includes(i);
+                return (
+                  <button
+                    key={i}
+                    onClick={() => !locked && setSelectedAvatar(i)}
+                    disabled={locked}
+                    className={cn(
+                      'flex flex-col items-center gap-1.5 rounded-xl p-2 border-2 transition-all',
+                      locked && 'opacity-40 cursor-not-allowed',
+                      selectedAvatar === i && !locked
+                        ? 'border-[var(--color-accent-strong)] bg-[var(--color-accent-strong)]/10'
+                        : 'border-[var(--color-border)] hover:border-[var(--color-accent-mid)] bg-[var(--color-panel)]',
+                    )}
+                  >
+                    <AvatarImage index={i} size={52} />
+                    <span className="text-[10px] text-[var(--color-text-muted)] font-medium">{AVATAR_NAMES[i]}</span>
+                    {locked && <span className="text-[9px] text-[var(--color-text-muted)]">🔒</span>}
+                  </button>
+                );
+              })}
             </div>
             <Button
               onClick={handleSaveAvatar}
@@ -226,6 +296,7 @@ export default function ProfilePage() {
       </main>
 
       {/* Modal de confirmação de troca de username */}
+      <ShopModal open={shopOpen} onClose={() => setShopOpen(false)} />
       <Modal
         open={confirmOpen}
         onClose={() => setConfirmOpen(false)}
@@ -241,6 +312,7 @@ export default function ProfilePage() {
           </Button>
         </div>
       </Modal>
+      <DevFooter />
     </div>
   );
 }

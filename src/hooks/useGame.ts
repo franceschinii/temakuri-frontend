@@ -12,13 +12,15 @@ export function useGame(roomCode: string) {
 
   const playSelectedCards = useCallback(() => {
     if (selectedIndices.length === 0) return;
+    if (phase !== 'PLAYER_TURN') return;
     emitSocketEvent('game:play_cards', { roomCode, cardIndices: selectedIndices });
     clearSelection();
-  }, [roomCode, selectedIndices, clearSelection]);
+  }, [roomCode, selectedIndices, phase, clearSelection]);
 
   const drawCard = useCallback(() => {
+    if (phase !== 'PLAYER_TURN') return;
     emitSocketEvent('game:draw_card', { roomCode });
-  }, [roomCode]);
+  }, [roomCode, phase]);
 
   const insertDrawnCard = useCallback((insertAtIndex: number, action: 'insert' | 'discard' = 'insert') => {
     emitSocketEvent('game:insert_drawn_card', { roomCode, insertAtIndex, action });

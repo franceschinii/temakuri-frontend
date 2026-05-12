@@ -1,3 +1,5 @@
+import { LevelBorder } from './LevelBorder';
+
 interface AvatarProps {
   index: number;
   size?: number;
@@ -111,9 +113,119 @@ const AVATARS = [
       <path d="M37 49 Q40 52 43 49" stroke="oklch(40% 0.05 260)" strokeWidth="1.5" strokeLinecap="round" fill="none" />
     </svg>
   ),
+  // 4 — Sashimi
+  (size: number) => (
+    <svg width={size} height={size} viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="40" cy="40" r="40" fill="oklch(22% 0.02 260)" />
+      {/* rice base */}
+      <ellipse cx="40" cy="52" rx="20" ry="10" fill="oklch(95% 0.02 90)" />
+      {/* nori strip */}
+      <rect x="20" y="48" width="40" height="7" rx="2" fill="oklch(22% 0.1 160)" />
+      {/* salmon slice */}
+      <ellipse cx="40" cy="44" rx="18" ry="9" fill="oklch(74% 0.2 30)" />
+      <ellipse cx="36" cy="42" rx="8" ry="4" fill="oklch(82% 0.14 35)" opacity="0.6" />
+      {/* eyes */}
+      <circle cx="35" cy="43" r="2.5" fill="white" />
+      <circle cx="45" cy="43" r="2.5" fill="white" />
+      <circle cx="36" cy="43.5" r="1.2" fill="oklch(20% 0.02 260)" />
+      <circle cx="46" cy="43.5" r="1.2" fill="oklch(20% 0.02 260)" />
+      {/* blush */}
+      <ellipse cx="31" cy="47" rx="3" ry="1.5" fill="oklch(75% 0.18 15)" opacity="0.5" />
+      <ellipse cx="49" cy="47" rx="3" ry="1.5" fill="oklch(75% 0.18 15)" opacity="0.5" />
+      {/* mouth */}
+      <path d="M37 48 Q40 51 43 48" stroke="oklch(40% 0.05 260)" strokeWidth="1.5" strokeLinecap="round" fill="none" />
+      {/* wasabi */}
+      <ellipse cx="57" cy="46" rx="4" ry="3" fill="oklch(60% 0.2 145)" />
+    </svg>
+  ),
+  // 5 — Takoyaki
+  (size: number) => (
+    <svg width={size} height={size} viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="40" cy="40" r="40" fill="oklch(22% 0.02 260)" />
+      {/* takoyaki balls */}
+      <circle cx="28" cy="48" r="11" fill="oklch(72% 0.14 55)" />
+      <circle cx="52" cy="48" r="11" fill="oklch(72% 0.14 55)" />
+      <circle cx="40" cy="36" r="11" fill="oklch(68% 0.12 50)" />
+      {/* sauce drizzle */}
+      <path d="M22 44 Q28 42 34 45" stroke="oklch(30% 0.08 25)" strokeWidth="2" strokeLinecap="round" fill="none" opacity="0.7" />
+      <path d="M46 44 Q52 42 58 45" stroke="oklch(30% 0.08 25)" strokeWidth="2" strokeLinecap="round" fill="none" opacity="0.7" />
+      {/* mayo */}
+      <path d="M34 32 Q40 30 46 33" stroke="white" strokeWidth="1.5" strokeLinecap="round" fill="none" opacity="0.8" />
+      {/* aonori flakes */}
+      <circle cx="35" cy="38" r="1" fill="oklch(45% 0.15 145)" />
+      <circle cx="44" cy="34" r="1" fill="oklch(45% 0.15 145)" />
+      <circle cx="41" cy="39" r="0.8" fill="oklch(45% 0.15 145)" />
+      {/* eyes on front ball */}
+      <circle cx="35" cy="35" r="2.5" fill="white" />
+      <circle cx="45" cy="35" r="2.5" fill="white" />
+      <circle cx="36" cy="35.5" r="1.2" fill="oklch(20% 0.02 260)" />
+      <circle cx="46" cy="35.5" r="1.2" fill="oklch(20% 0.02 260)" />
+      <ellipse cx="32" cy="39" rx="2.5" ry="1.2" fill="oklch(75% 0.18 15)" opacity="0.5" />
+      <ellipse cx="48" cy="39" rx="2.5" ry="1.2" fill="oklch(75% 0.18 15)" opacity="0.5" />
+      <path d="M37 41 Q40 44 43 41" stroke="oklch(40% 0.05 260)" strokeWidth="1.5" strokeLinecap="round" fill="none" />
+    </svg>
+  ),
+  // 6 — Miso soup
+  (size: number) => (
+    <svg width={size} height={size} viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="40" cy="40" r="40" fill="oklch(22% 0.02 260)" />
+      {/* bowl body */}
+      <path d="M16 42 Q16 66 40 66 Q64 66 64 42 Z" fill="oklch(72% 0.1 50)" />
+      <path d="M16 42 Q16 66 40 66 Q64 66 64 42 Z" fill="oklch(65% 0.08 50)" opacity="0.3" />
+      {/* rim */}
+      <ellipse cx="40" cy="42" rx="24" ry="6" fill="oklch(78% 0.12 55)" />
+      {/* miso soup surface */}
+      <ellipse cx="40" cy="42" rx="22" ry="5" fill="oklch(65% 0.1 65)" />
+      {/* tofu cube */}
+      <rect x="35" y="38" width="8" height="8" rx="1.5" fill="oklch(95% 0.02 90)" opacity="0.85" />
+      {/* wakame */}
+      <path d="M28 44 Q32 40 36 44 Q38 46 34 47 Q30 47 28 44Z" fill="oklch(38% 0.15 145)" opacity="0.9" />
+      {/* steam */}
+      <path d="M30 28 Q28 22 30 16" stroke="oklch(85% 0.02 260)" strokeWidth="2" strokeLinecap="round" fill="none" opacity="0.4" />
+      <path d="M40 26 Q38 20 40 14" stroke="oklch(85% 0.02 260)" strokeWidth="2" strokeLinecap="round" fill="none" opacity="0.35" />
+      <path d="M50 28 Q48 22 50 16" stroke="oklch(85% 0.02 260)" strokeWidth="2" strokeLinecap="round" fill="none" opacity="0.4" />
+      {/* eyes on bowl */}
+      <circle cx="33" cy="54" r="2.5" fill="white" />
+      <circle cx="47" cy="54" r="2.5" fill="white" />
+      <circle cx="34" cy="54.5" r="1.2" fill="oklch(20% 0.02 260)" />
+      <circle cx="48" cy="54.5" r="1.2" fill="oklch(20% 0.02 260)" />
+      <ellipse cx="30" cy="58" rx="2.5" ry="1.2" fill="oklch(75% 0.18 15)" opacity="0.5" />
+      <ellipse cx="50" cy="58" rx="2.5" ry="1.2" fill="oklch(75% 0.18 15)" opacity="0.5" />
+      <path d="M36 59 Q40 62 44 59" stroke="oklch(40% 0.05 260)" strokeWidth="1.5" strokeLinecap="round" fill="none" />
+    </svg>
+  ),
+  // 7 — Udon
+  (size: number) => (
+    <svg width={size} height={size} viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="40" cy="40" r="40" fill="oklch(22% 0.02 260)" />
+      {/* bowl */}
+      <path d="M15 40 Q15 64 40 64 Q65 64 65 40 Z" fill="oklch(75% 0.1 50)" />
+      <ellipse cx="40" cy="40" rx="25" ry="7" fill="oklch(80% 0.12 55)" />
+      {/* broth */}
+      <ellipse cx="40" cy="40" rx="23" ry="6" fill="oklch(68% 0.12 60)" />
+      {/* udon noodles */}
+      <path d="M22 38 Q28 32 34 38 Q40 44 46 38 Q52 32 58 38" stroke="oklch(95% 0.02 90)" strokeWidth="3.5" strokeLinecap="round" fill="none" />
+      <path d="M20 42 Q26 36 32 42 Q38 48 44 42 Q50 36 60 41" stroke="oklch(92% 0.03 90)" strokeWidth="3" strokeLinecap="round" fill="none" opacity="0.8" />
+      {/* kamaboko */}
+      <ellipse cx="53" cy="37" rx="6" ry="4" fill="oklch(96% 0.01 90)" />
+      <ellipse cx="53" cy="36" rx="4" ry="2" fill="oklch(80% 0.15 355)" />
+      {/* green onion */}
+      <ellipse cx="26" cy="37" rx="4" ry="2" fill="oklch(62% 0.2 145)" />
+      <circle cx="24" cy="36" r="1.2" fill="oklch(55% 0.18 145)" />
+      <circle cx="28" cy="37" r="1.2" fill="oklch(55% 0.18 145)" />
+      {/* eyes */}
+      <circle cx="34" cy="52" r="2.5" fill="white" />
+      <circle cx="46" cy="52" r="2.5" fill="white" />
+      <circle cx="35" cy="52.5" r="1.2" fill="oklch(20% 0.02 260)" />
+      <circle cx="47" cy="52.5" r="1.2" fill="oklch(20% 0.02 260)" />
+      <ellipse cx="31" cy="56" rx="2.5" ry="1.2" fill="oklch(75% 0.18 15)" opacity="0.5" />
+      <ellipse cx="49" cy="56" rx="2.5" ry="1.2" fill="oklch(75% 0.18 15)" opacity="0.5" />
+      <path d="M37 57 Q40 60 43 57" stroke="oklch(40% 0.05 260)" strokeWidth="1.5" strokeLinecap="round" fill="none" />
+    </svg>
+  ),
 ];
 
-export const AVATAR_NAMES = ['Temaki', 'Ramen', 'Onigiri', 'Gyoza'];
+export const AVATAR_NAMES = ['Temaki', 'Ramen', 'Onigiri', 'Gyoza', 'Sashimi', 'Takoyaki', 'Miso', 'Udon'];
 
 export function AvatarImage({ index, size = 80, className }: AvatarProps) {
   const render = AVATARS[index % AVATARS.length];
@@ -122,4 +234,19 @@ export function AvatarImage({ index, size = 80, className }: AvatarProps) {
 
 export function avatarCount() {
   return AVATARS.length;
+}
+
+interface AvatarWithBorderProps {
+  index: number;
+  level: number;
+  size?: number;
+  className?: string;
+}
+
+export function AvatarWithBorder({ index, level, size = 80, className }: AvatarWithBorderProps) {
+  return (
+    <LevelBorder level={level} size={size}>
+      <AvatarImage index={index} size={size} className={className} />
+    </LevelBorder>
+  );
 }

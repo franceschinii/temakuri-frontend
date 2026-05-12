@@ -4,12 +4,16 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Modal } from '@/components/ui/modal';
 import { Button } from '@/components/ui/button';
+import { CoinDisplay } from '@/components/ui/CoinDisplay';
 import { GAME_MODES } from '@/constants/game';
 import type { GameMode } from '@/types/game';
+import { useAuthStore } from '@/stores/authStore';
+import { useQuery } from '@tanstack/react-query';
 import api from '@/lib/api';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { Lock, Swords } from 'lucide-react';
 
 const BIAS_STEPS = [
   { value: 0,    label: 'Aleatória' },
@@ -18,10 +22,17 @@ const BIAS_STEPS = [
   { value: 1,    label: 'Máxima' },
 ];
 
+const MODE_PRICES: Record<string, number> = {
+  MERCADO: 20,
+  RODIZIO: 30,
+  DEGUSTACAO: 50,
+};
+
 const schema = z.object({
   mode: z.string(),
   maxPlayers: z.coerce.number().min(2).max(6),
   isPrivate: z.boolean(),
+  isRanked: z.boolean(),
   initialTokens: z.coerce.number().min(1).max(3),
 });
 type FormValues = z.infer<typeof schema>;
@@ -35,17 +46,31 @@ export function CreateRoomModal({ open, onClose }: CreateRoomModalProps) {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [handBias, setHandBias] = useState(0);
+  const user = useAuthStore(s => s.user);
   const { register, handleSubmit, watch } = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { mode: 'TRADITIONAL', maxPlayers: 4, isPrivate: true, initialTokens: 2 },
+    defaultValues: { mode: 'TRADITIONAL', maxPlayers: 4, isPrivate: true, isRanked: false, initialTokens: 2 },
   });
 
+  const { data: inventory } = useQuery({
+    queryKey: ['shop', 'inventory'],
+    queryFn: async () => {
+      const { data } = await api.get('/shop/inventory');
+      return data as { unlockedAvatars: number[]; unlockedModes: string[] };
+    },
+    enabled: open && !user?.isGuest,
+  });
+
+  const unlockedModes = inventory?.unlockedModes ?? ['TRADITIONAL'];
+
   const selectedMode = watch('mode');
+  const notSuspended = !user?.rankedSuspendedUntil || new Date(user.rankedSuspendedUntil) <= new Date();
+  const canRanked = (user?.level ?? 1) >= 10 && !user?.isGuest && notSuspended;
 
   const onSubmit = async (values: FormValues) => {
     setLoading(true);
     try {
-      const { data } = await api.post('/rooms', { ...values, handBias, initialTokens: values.initialTokens });
+      const { data } = await api.post('/rooms', { ...values, handBias, initialTokens: values.initialTokens, isRanked: values.isRanked && values.mode === 'TRADITIONAL' });
       onClose();
       navigate(`/lobby/${data.code}`);
     } catch (e: any) {
@@ -66,23 +91,51 @@ export function CreateRoomModal({ open, onClose }: CreateRoomModalProps) {
         <div>
           <p className="text-sm text-[var(--color-text-muted)] mb-2">Modo de jogo</p>
           <div className="grid grid-cols-2 gap-2">
-            {GAME_MODES.map(m => (
-              <label
-                key={m.value}
-                className={cn(
-                  'flex flex-col gap-0.5 p-3 rounded-lg border cursor-pointer transition-all',
-                  selectedMode === m.value
-                    ? 'border-[var(--color-accent-strong)] bg-[var(--color-accent-strong)]/10'
-                    : 'border-[var(--color-border)] hover:border-[var(--color-accent-mid)]',
-                )}
-              >
-                <input type="radio" value={m.value} {...register('mode')} className="sr-only" />
-                <span className="text-sm font-medium text-[var(--color-text-primary)]">{m.label}</span>
-                <span className="text-xs text-[var(--color-text-muted)]">{m.description}</span>
-              </label>
-            ))}
+            {GAME_MODES.map(m => {
+              const locked = !unlockedModes.includes(m.value);
+              const price = MODE_PRICES[m.value];
+              return (
+                <label
+                  key={m.value}
+                  className={cn(
+                    'flex flex-col gap-0.5 p-3 rounded-lg border transition-all',
+                    locked ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer',
+                    selectedMode === m.value && !locked
+                      ? 'border-[var(--color-accent-strong)] bg-[var(--color-accent-strong)]/10'
+                      : locked
+                        ? 'border-[var(--color-border)]'
+                        : 'border-[var(--color-border)] hover:border-[var(--color-accent-mid)]',
+                  )}
+                >
+                  <input type="radio" value={m.value} {...register('mode')} className="sr-only" disabled={locked} />
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-[var(--color-text-primary)]">{m.label}</span>
+                    {locked && price && (
+                      <span className="flex items-center gap-0.5 text-[10px]" style={{ color: 'oklch(78% 0.2 75)' }}>
+                        <Lock size={8} /> <CoinDisplay amount={price} size="sm" />
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-xs text-[var(--color-text-muted)]">{m.description}</span>
+                </label>
+              );
+            })}
           </div>
         </div>
+
+        {/* Ranked checkbox */}
+        {selectedMode === 'TRADITIONAL' && canRanked && (
+          <label className="flex items-center gap-2 text-sm cursor-pointer px-1">
+            <input
+              type="checkbox"
+              {...register('isRanked')}
+              className="accent-[oklch(72%_0.2_240)]"
+            />
+            <Swords size={13} className="text-[oklch(72%_0.2_240)]" />
+            <span className="text-[var(--color-text-primary)]">Ranqueada</span>
+            <span className="text-xs text-[var(--color-text-muted)]">Afeta PDS</span>
+          </label>
+        )}
 
         <div className="flex gap-3 items-center flex-wrap">
           <label className="text-sm text-[var(--color-text-muted)]">Jogadores:</label>

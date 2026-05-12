@@ -57,15 +57,19 @@ api.interceptors.response.use(
       const { data } = await axios.post(`${BASE}/auth/refresh`, { refreshToken });
       localStorage.setItem('accessToken', data.accessToken);
       localStorage.setItem('refreshToken', data.refreshToken);
+      // Sync new token into Zustand store (non-blocking import to avoid circular dep)
+      import('../stores/authStore').then(({ useAuthStore }) => {
+        useAuthStore.getState().setAccessToken(data.accessToken);
+      });
       processQueue(data.accessToken);
       original.headers.Authorization = `Bearer ${data.accessToken}`;
       return api(original);
     } catch (refreshError: any) {
       processQueue(null);
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('refreshToken');
-      localStorage.removeItem('temakuri-auth');
-      // Propagate ban/suspension message to the UI
+      // Trigger full logout on refresh failure
+      import('../stores/authStore').then(({ useAuthStore }) => {
+        useAuthStore.getState().logout();
+      });
       const msg = refreshError?.response?.data?.message ?? '';
       if (msg) {
         import('sonner').then(({ toast }) => toast.error(msg));

@@ -15,8 +15,50 @@ const AdminPage           = lazy(() => import('@/routes/admin/index'));
 
 function PageLoader() {
   return (
-    <div className="h-dvh flex items-center justify-center bg-[var(--color-base)]">
-      <div className="w-7 h-7 rounded-full border-2 border-[var(--color-accent-strong)] border-t-transparent animate-spin" />
+    <div className="h-dvh flex flex-col items-center justify-center gap-5 bg-[var(--color-base)]">
+      <div className="relative flex items-center justify-center">
+        <div className="absolute w-16 h-16 rounded-full border border-[var(--color-accent-strong)]/20 animate-ping" style={{ animationDuration: '2s' }} />
+        <svg viewBox="0 0 116 172" width={38} height={55} fill="none" aria-hidden="true" className="animate-pulse" style={{ animationDuration: '1.8s' }}>
+          <g transform="rotate(-8 58 86)" opacity=".3">
+            <rect x="4" y="4" width="108" height="164" rx="10" fill="#1a0808" />
+            <rect x="4" y="4" width="108" height="164" rx="10" fill="none" stroke="#c09018" strokeWidth="1.5" />
+          </g>
+          <g transform="rotate(5 58 86)">
+            <rect x="4" y="4" width="108" height="164" rx="10" fill="url(#pl-card)" />
+            <rect x="4" y="4" width="108" height="164" rx="10" fill="none" stroke="url(#pl-gold)" strokeWidth="2" />
+            <rect x="10" y="10" width="96" height="152" rx="7" fill="none" stroke="#c8980e" strokeWidth=".8" opacity=".5" />
+            <polygon points="18,16 22,22 18,28 14,22" fill="#b01212" />
+            <polygon points="98,16 102,22 98,28 94,22" fill="#b01212" />
+            <polygon points="18,144 22,150 18,156 14,150" fill="#b01212" />
+            <polygon points="98,144 102,150 98,156 94,150" fill="#b01212" />
+            <g transform="translate(58 86)">
+              <circle r="36" fill="none" stroke="#b01212" strokeWidth="1.4" />
+              <rect x="-5" y="-29" width="10" height="16" rx="2" fill="#b01212" />
+              <g transform="rotate(90)"><rect x="-5" y="-29" width="10" height="16" rx="2" fill="#b01212" /></g>
+              <g transform="rotate(180)"><rect x="-5" y="-29" width="10" height="16" rx="2" fill="#b01212" /></g>
+              <g transform="rotate(270)"><rect x="-5" y="-29" width="10" height="16" rx="2" fill="#b01212" /></g>
+              <polygon points="0,-10 10,0 0,10 -10,0" fill="#b01212" />
+              <polygon points="0,-6 6,0 0,6 -6,0" fill="#fef9ee" />
+            </g>
+          </g>
+          <defs>
+            <linearGradient id="pl-card" x1="0" y1="0" x2=".15" y2="1">
+              <stop offset="0%" stopColor="#fef9ee" />
+              <stop offset="100%" stopColor="#e9d6a3" />
+            </linearGradient>
+            <linearGradient id="pl-gold" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#f0cb58" />
+              <stop offset="100%" stopColor="#a4760c" />
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+      <span
+        className="text-[11px] tracking-[0.3em] text-[var(--color-text-muted)] opacity-50"
+        style={{ fontFamily: 'var(--font-display)' }}
+      >
+        寿司 · 拉麺 · 餃子
+      </span>
     </div>
   );
 }

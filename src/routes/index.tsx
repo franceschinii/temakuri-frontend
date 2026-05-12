@@ -87,13 +87,14 @@ export default function LandingPage() {
           className="relative flex flex-col items-center gap-2"
         >
           <div className="absolute inset-0 scale-150 rounded-full bg-[var(--color-accent-strong)]/10 blur-3xl pointer-events-none" />
-          <Logo
-            variant="full"
-            size={110}
-            className="relative drop-shadow-[0_0_48px_oklch(68%_0.15_145_/_0.5)]"
+          <img
+            src="/logo.svg"
+            alt="Temakuri"
+            draggable={false}
+            className="relative drop-shadow-[0_0_48px_oklch(68%_0.15_145_/_0.5)] w-[280px] sm:w-[380px] md:w-[480px] h-auto"
           />
           <p
-            className="text-[var(--color-text-muted)] text-sm tracking-widest"
+            className="text-[var(--color-text-muted)] text-xs sm:text-sm tracking-widest"
             style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic' }}
           >
             Roll your hand. Clear the table.

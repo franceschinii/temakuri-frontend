@@ -49,6 +49,8 @@ export interface PublicPlayerState {
   isBot?: boolean;
   isSpectator?: boolean;
   sessionWins?: number;
+  level?: number;
+  pds?: number;
 }
 
 export interface ClientGameState {
@@ -75,6 +77,7 @@ export interface GameRanking {
   username: string;
   placement: number;
   tokensLeft: number;
+  reward?: import('./api').MatchReward;
 }
 
 export interface GameStats {
@@ -97,6 +100,7 @@ export interface RoomPublicState {
   mode: GameMode;
   maxPlayers: number;
   isPrivate: boolean;
+  isRanked: boolean;
   handBias: number;
   initialTokens: number;
   players: RoomPlayer[];

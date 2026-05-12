@@ -28,6 +28,7 @@ import { CardComponent } from './CardComponent';
 import { TrickPickModal } from './TrickPickModal';
 import { DuelPassPickModal } from './DuelPassPickModal';
 import { MedalBadge } from '@/components/ui/MedalBadge';
+import { AvatarImage } from '@/components/ui/Avatar';
 import type { Card, ClientGameState, GameRanking, GameStats, RoomPublicState } from '@/types/game';
 import { validatePlayIndicesClient } from '@/lib/gameRules';
 import { playSound } from '@/lib/sounds';
@@ -306,7 +307,10 @@ export function GameBoard() {
     addLog({ type: 'chat', userId: user?.id, username: user?.username ?? 'Você', text });
   }, [sendMessage, addLog, user]);
 
-  const canPlay = isMyTurn && selectedIndices.length > 0 && validatePlayIndicesClient(
+  const actionLog = useGameStore(s => s.gameLog).filter(e => e.type !== 'chat');
+  const recentActions = actionLog.slice(-2);
+
+  const canPlay = isMyTurn && phase === 'PLAYER_TURN' && selectedIndices.length > 0 && validatePlayIndicesClient(
     myHand, selectedIndices, pile, saborActive, saborMinRequired,
   );
 
@@ -327,6 +331,7 @@ export function GameBoard() {
   };
 
   const handlePass = () => {
+    if (!isMyTurn || phase !== 'PLAYER_TURN') return;
     if (drawPileCount === 0) {
       toast.info('Monte esgotado — passando sem comprar');
     }
@@ -508,9 +513,22 @@ export function GameBoard() {
 
       {/* My area */}
       <div className="border-t border-[var(--color-border)] bg-[var(--color-surface)] px-2 pt-2 pb-3 sm:px-4 sm:pt-3 sm:pb-4 flex flex-col">
+        {/* Mini-histórico — mobile only, acima da info bar */}
+        {recentActions.length > 0 && (
+          <div className="sm:hidden flex flex-col gap-0.5 mb-1.5 pb-1.5 border-b border-[var(--color-border)]/40">
+            {recentActions.map(entry => (
+              <span key={entry.id} className="text-[10px] text-[var(--color-text-muted)] truncate leading-tight">
+                {entry.text}
+              </span>
+            ))}
+          </div>
+        )}
         {/* Info bar */}
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
+            <div className="w-6 h-6 rounded-full overflow-hidden shrink-0 ring-1 ring-[var(--color-border)]">
+              <AvatarImage index={me?.avatarIndex ?? 0} size={24} />
+            </div>
             <span className="text-sm font-semibold text-[var(--color-text-primary)]">
               {me?.username ?? 'Você'}
             </span>

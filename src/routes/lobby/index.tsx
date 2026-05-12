@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Search, HelpCircle, CreditCard, Hand, ArrowUpRight, RefreshCw, Flame } from 'lucide-react';
+import { Plus, Search, HelpCircle, CreditCard, ArrowUpRight, RefreshCw, Flame, User, ShoppingBag } from 'lucide-react';
 import { DevFooter } from '@/components/ui/DevFooter';
 import { motion } from 'framer-motion';
 import { Logo } from '@/components/ui/Logo';
@@ -9,8 +9,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Modal } from '@/components/ui/modal';
 import { AccessBar } from '@/components/ui/AccessBar';
+import { CoinDisplay } from '@/components/ui/CoinDisplay';
 import { RoomCard } from '@/components/lobby/RoomCard';
 import { CreateRoomModal } from '@/components/lobby/CreateRoomModal';
+import { ShopModal } from '@/components/shop/ShopModal';
 import { useAuthStore } from '@/stores/authStore';
 import { useSocketEvent } from '@/hooks/useSocket';
 import api from '@/lib/api';
@@ -30,12 +32,13 @@ export default function LobbyPage() {
   const queryClient = useQueryClient();
   const [createOpen, setCreateOpen] = useState(false);
   const [rulesOpen, setRulesOpen] = useState(false);
+  const [shopOpen, setShopOpen] = useState(false);
   const [joinCode, setJoinCode] = useState('');
 
   const { data: rooms = [], isLoading } = useQuery<RoomPublicState[]>({
     queryKey: ['rooms'],
     queryFn: async () => {
-      const { data } = await api.get('/rooms?status=WAITING');
+      const { data } = await api.get('/rooms');
       return data;
     },
     refetchInterval: 8000,       // poll every 8s to catch rooms that closed without event
@@ -47,14 +50,18 @@ export default function LobbyPage() {
     queryClient.invalidateQueries({ queryKey: ['rooms'] });
   }, [queryClient]));
 
+  const [joining, setJoining] = useState(false);
+
   const handleJoin = async () => {
     const code = joinCode.trim().toUpperCase();
     if (!code) return;
+    setJoining(true);
     try {
       await api.get(`/rooms/${code}`);
       navigate(`/lobby/${code}`);
     } catch {
       toast.error('Sala não encontrada');
+      setJoining(false);
     }
   };
 
@@ -73,6 +80,18 @@ export default function LobbyPage() {
         </div>
         <div className="flex items-center gap-1">
           <AccessBar />
+          {!user?.isGuest && (
+            <>
+              <CoinDisplay amount={user?.coins ?? 0} size="sm" />
+              <button
+                onClick={() => setShopOpen(true)}
+                className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors p-1.5 rounded-lg hover:bg-[var(--color-panel)]"
+                title="Loja"
+              >
+                <ShoppingBag size={16} />
+              </button>
+            </>
+          )}
           <button
             onClick={() => setRulesOpen(true)}
             className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors p-1.5 rounded-lg hover:bg-[var(--color-panel)]"
@@ -90,11 +109,12 @@ export default function LobbyPage() {
           )}
           <button
             onClick={() => navigate('/profile')}
-            className="text-sm text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors px-2 py-1 rounded-lg hover:bg-[var(--color-panel)]"
+            className="flex items-center gap-1.5 text-sm text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors px-2 py-1 rounded-lg hover:bg-[var(--color-panel)]"
           >
+            <User size={14} />
             {user?.username}
           </button>
-          <Button variant="ghost" size="sm" onClick={logout}>Sair</Button>
+          <Button variant="ghost" size="sm" onClick={() => logout().then(() => navigate('/'))}>Sair</Button>
         </div>
       </header>
 
@@ -115,8 +135,8 @@ export default function LobbyPage() {
             maxLength={6}
             className="font-mono tracking-widest"
           />
-          <Button variant="outline" onClick={handleJoin} className="shrink-0">
-            <Search size={15} /> Entrar
+          <Button variant="outline" onClick={handleJoin} disabled={joining} className="shrink-0">
+            {joining ? '...' : <><Search size={15} /> Entrar</>}
           </Button>
           <Button onClick={() => setCreateOpen(true)} className="shrink-0">
             <Plus size={15} /> Criar
@@ -176,6 +196,7 @@ export default function LobbyPage() {
       <DevFooter />
 
       <CreateRoomModal open={createOpen} onClose={() => setCreateOpen(false)} />
+      <ShopModal open={shopOpen} onClose={() => setShopOpen(false)} />
 
       <Modal open={rulesOpen} onClose={() => setRulesOpen(false)} title="Como jogar">
         <div className="flex flex-col gap-5 text-sm">
