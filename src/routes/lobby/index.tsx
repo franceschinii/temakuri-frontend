@@ -61,7 +61,7 @@ export default function LobbyPage() {
     setJoining(true);
     try {
       await api.get(`/rooms/${code}`);
-      navigate(`/lobby/${code}`);
+      navigate(`/lobby/${code}`, { state: { isMatchmaking: false } });
     } catch {
       toast.error('Sala não encontrada');
       setJoining(false);

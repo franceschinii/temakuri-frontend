@@ -93,7 +93,7 @@ export function RoomCard({ room }: RoomCardProps) {
           size="sm"
           variant={isInProgress ? 'secondary' : 'primary'}
           disabled={entering}
-          onClick={() => { setEntering(true); navigate(`/lobby/${room.code}`); }}
+          onClick={() => { setEntering(true); navigate(`/lobby/${room.code}`, { state: { isMatchmaking: false } }); }}
         >
           {entering ? '...' : isInProgress ? 'Espectador' : 'Entrar'}
         </Button>

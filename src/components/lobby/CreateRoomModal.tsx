@@ -72,7 +72,7 @@ export function CreateRoomModal({ open, onClose }: CreateRoomModalProps) {
     try {
       const { data } = await api.post('/rooms', { ...values, handBias, initialTokens: values.initialTokens, isRanked: values.isRanked && values.mode === 'TRADITIONAL' });
       onClose();
-      navigate(`/lobby/${data.code}`);
+      navigate(`/lobby/${data.code}`, { state: { isMatchmaking: false } });
     } catch (e: any) {
       const detail = e?.response?.data?.message;
       const msg = Array.isArray(detail) ? detail.join(', ') : detail ?? e?.message ?? 'Erro ao criar sala';

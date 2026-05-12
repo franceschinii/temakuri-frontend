@@ -716,7 +716,7 @@ export function GameBoard() {
           myUserId={user?.id ?? ''}
           onPlayAgain={roomHostId === user?.id ? () => {
             emitSocketEvent('lobby:reset_room', { roomCode });
-            navigate(`/lobby/${roomCode}`);
+            navigate(`/lobby/${roomCode}`, { state: { isMatchmaking: false } });
           } : undefined}
         />
       )}
