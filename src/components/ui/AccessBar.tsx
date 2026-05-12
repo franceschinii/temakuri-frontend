@@ -1,41 +1,29 @@
-import { useState } from 'react';
 import { Volume2, VolumeX, Music, Music2 } from 'lucide-react';
-import { setMuted, isMuted } from '@/lib/sounds';
-import { setMusicMuted, isMusicMuted } from '@/lib/music';
+import { useGameStore } from '@/stores/gameStore';
 
 export function AccessBar() {
-  const [soundMuted, setSoundMuted] = useState(() => isMuted());
-  const [musicMuted, setMusicMuted2] = useState(() => isMusicMuted());
-
-  const toggleSound = () => {
-    const next = !soundMuted;
-    setSoundMuted(next);
-    setMuted(next);
-  };
-
-  const toggleMusic = () => {
-    const next = !musicMuted;
-    setMusicMuted2(next);
-    setMusicMuted(next);
-  };
+  const soundEnabled = useGameStore(s => s.soundEnabled);
+  const toggleSound = useGameStore(s => s.toggleSound);
+  const musicEnabled = useGameStore(s => s.musicEnabled);
+  const toggleMusic = useGameStore(s => s.toggleMusic);
 
   return (
     <div className="flex items-center gap-0.5">
       <button
         onClick={toggleSound}
-        aria-label={soundMuted ? 'Ativar sons' : 'Silenciar sons'}
-        title={soundMuted ? 'Ativar sons' : 'Silenciar sons'}
+        aria-label={soundEnabled ? 'Silenciar sons' : 'Ativar sons'}
+        title={soundEnabled ? 'Silenciar sons' : 'Ativar sons'}
         className="p-1.5 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-panel)] transition-all"
       >
-        {soundMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
+        {soundEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
       </button>
       <button
         onClick={toggleMusic}
-        aria-label={musicMuted ? 'Ativar música' : 'Silenciar música'}
-        title={musicMuted ? 'Ativar música' : 'Silenciar música'}
+        aria-label={musicEnabled ? 'Silenciar música' : 'Ativar música'}
+        title={musicEnabled ? 'Silenciar música' : 'Ativar música'}
         className="p-1.5 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-panel)] transition-all"
       >
-        {musicMuted ? <Music2 size={16} /> : <Music size={16} />}
+        {musicEnabled ? <Music size={16} /> : <Music2 size={16} />}
       </button>
     </div>
   );

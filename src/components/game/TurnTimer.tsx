@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { cn } from '@/lib/utils';
+import { playSound } from '@/lib/sounds';
 
 interface TurnTimerProps {
   timeoutMs: number;
@@ -8,14 +9,26 @@ interface TurnTimerProps {
 
 export function TurnTimer({ timeoutMs, isMyTurn }: TurnTimerProps) {
   const [remaining, setRemaining] = useState(timeoutMs);
+  const lastTickSecRef = useRef(-1);
 
   useEffect(() => {
     setRemaining(timeoutMs);
+    lastTickSecRef.current = -1;
     const interval = setInterval(() => {
       setRemaining(r => Math.max(0, r - 100));
     }, 100);
     return () => clearInterval(interval);
   }, [timeoutMs]);
+
+  // Countdown sounds for own turn only
+  useEffect(() => {
+    if (!isMyTurn) return;
+    const sec = Math.ceil(remaining / 1000);
+    if (sec <= 5 && sec > 0 && sec !== lastTickSecRef.current) {
+      lastTickSecRef.current = sec;
+      playSound('countdown_tick');
+    }
+  }, [remaining, isMyTurn]);
 
   const pct = (remaining / timeoutMs) * 100;
   const seconds = Math.ceil(remaining / 1000);

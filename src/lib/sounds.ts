@@ -1,6 +1,7 @@
 export type SoundName = 'play' | 'pass' | 'wipe' | 'sabor' | 'round_end' | 'game_over' | 'your_turn' | 'countdown_tick' | 'countdown_go';
 
-let muted = false;
+// Initialize muted state from localStorage on module load
+let muted = localStorage.getItem('soundEnabled') === 'false';
 export function setMuted(v: boolean) { muted = v; }
 export function isMuted() { return muted; }
 
@@ -53,7 +54,11 @@ const sounds: Record<SoundName, () => void> = {
     setTimeout(() => beep(659, 0.12, 0.15), 130);
     setTimeout(() => beep(784, 0.2, 0.15), 260);
   },
-  your_turn: () => beep(660, 0.07, 0.08),
+  // Noticeably louder double-beep for "your turn"
+  your_turn: () => {
+    beep(660, 0.1, 0.2);
+    setTimeout(() => beep(880, 0.15, 0.2), 100);
+  },
 
   countdown_tick: () => {
     try {
@@ -78,7 +83,6 @@ const sounds: Record<SoundName, () => void> = {
   },
 
   countdown_go: () => {
-    // Ascending pentatonic fanfare (oriental intervals)
     [329.63, 415.30, 493.88, 659.25].forEach((freq, i) => {
       setTimeout(() => beep(freq, 0.22, 0.2, 'triangle'), i * 85);
     });
@@ -87,6 +91,5 @@ const sounds: Record<SoundName, () => void> = {
 
 export function playSound(name: SoundName) {
   if (muted) return;
-  if (localStorage.getItem('soundEnabled') === 'false') return;
   sounds[name]?.();
 }

@@ -11,7 +11,7 @@
 let ctx: AudioContext | null = null;
 let masterGain: GainNode | null = null;
 let sessionGain: GainNode | null = null;
-let muted = false;
+let muted = localStorage.getItem('musicEnabled') === 'false';
 let currentMode: 'landing' | 'lobby' | 'game' | null = null;
 let generation = 0;
 
