@@ -16,7 +16,7 @@ export function RoundSummary({ loserIds, playerTokens, players, onClose }: Round
       <div className="flex flex-col gap-4">
         {loserIds.length > 0 ? (
           <p className="text-sm text-[var(--color-text-muted)] text-center">
-            {loserIds.map(id => players.find(p => p.userId === id)?.username).filter(Boolean).join(', ')} perdeu{loserIds.length > 1 ? 'ram' : ''} 1 Prato
+            {loserIds.map(id => players.find(p => p.userId === id)?.username).filter(Boolean).join(', ')} esvaziou a mão e perdeu 1 Prato de Vida
           </p>
         ) : (
           <p className="text-sm text-[var(--color-text-muted)] text-center">Rodada encerrada!</p>

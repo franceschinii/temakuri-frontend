@@ -191,7 +191,7 @@ export function GameBoard() {
     playSound('round_end');
     const allPlayers = useGameStore.getState().players;
     const loserNames = loserIds.map(id => allPlayers.find(p => p.userId === id)?.username ?? id);
-    addLog({ type: 'round_end', text: `🏁 Rodada encerrada — ${loserNames.join(', ')} perde${loserIds.length === 1 ? '' : 'm'} 1 Prato` });
+    addLog({ type: 'round_end', text: `🏁 Rodada encerrada — ${loserNames.join(', ')} esvaziou a mão e perdeu 1 Prato` });
   }, [applyRoundEnd, addLog]));
 
   useSocketEvent<{ rankings: GameRanking[]; stats: GameStats }>('game:game_over', useCallback(({ rankings, stats }) => {
