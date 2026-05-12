@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { CoinDisplay } from '@/components/ui/CoinDisplay';
+import { AdBanner } from '@/components/ui/AdBanner';
 import { useNavigate } from 'react-router-dom';
 import { Share2 } from 'lucide-react';
 import type { GameRanking } from '@/types/game';
@@ -106,6 +107,8 @@ export function GameOverModal({ rankings, myUserId, onPlayAgain }: GameOverModal
             </div>
           )}
         </div>
+
+        <AdBanner className="w-full rounded-xl overflow-hidden" slot="9876543210" />
 
         <div className="flex gap-2 flex-wrap">
           <Button variant="secondary" className="flex-1" onClick={() => navigate('/lobby')}>

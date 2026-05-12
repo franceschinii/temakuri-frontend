@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Check, X, Loader2, Pencil, LogOut, ShoppingBag } from 'lucide-react';
+import { ArrowLeft, Check, X, Loader2, Pencil, LogOut, ShoppingBag, Wine } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,6 +14,7 @@ import { ShopModal } from '@/components/shop/ShopModal';
 import { AccessBar } from '@/components/ui/AccessBar';
 import { RulesDialog } from '@/components/game/RulesDialog';
 import { DevFooter } from '@/components/ui/DevFooter';
+import { AdBanner } from '@/components/ui/AdBanner';
 import { useAuthStore } from '@/stores/authStore';
 import api from '@/lib/api';
 import { toast } from 'sonner';
@@ -138,6 +139,12 @@ export default function ProfilePage() {
               <CoinDisplay amount={user?.coins ?? 0} size="sm" />
             </span>
           )}
+          {/* Premium badge */}
+          {user?.isPremium && (
+            <span title="Premium" className="p-1.5 text-[oklch(75%_0.2_310)]">
+              <Wine size={16} />
+            </span>
+          )}
           {/* Loja */}
           {!user?.isGuest && (
             <button
@@ -178,7 +185,14 @@ export default function ProfilePage() {
               </button>
             </div>
             <div className="text-center flex flex-col items-center gap-1.5">
-              <p className="text-lg font-semibold text-[var(--color-text-primary)]">{user?.username}</p>
+              <div className="flex items-center gap-2">
+                <p className="text-lg font-semibold text-[var(--color-text-primary)]">{user?.username}</p>
+                {user?.isPremium && (
+                  <span title="Premium" className="text-[oklch(75%_0.2_310)]">
+                    <Wine size={16} />
+                  </span>
+                )}
+              </div>
               <div className="flex items-center gap-2 flex-wrap justify-center">
                 <LevelBadge level={user?.level ?? 1} size="sm" />
                 {(user?.level ?? 1) >= 10 && !user?.isGuest && (
@@ -326,6 +340,7 @@ export default function ProfilePage() {
             </section>
           )}
 
+          <AdBanner className="w-full" />
         </div>
       </main>
 

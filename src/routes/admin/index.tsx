@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Pencil, KeyRound, Trash2, BarChart2, Search, X, Ban, Clock, ShieldCheck, Users, DoorOpen, UserX, RefreshCw, TrendingUp } from 'lucide-react';
+import { ArrowLeft, Pencil, KeyRound, Trash2, BarChart2, Search, X, Ban, Clock, ShieldCheck, Users, DoorOpen, UserX, RefreshCw, TrendingUp, Wine } from 'lucide-react';
 import { Logo } from '@/components/ui/Logo';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -28,6 +28,7 @@ interface AdminUser {
   pds: number;
   rankedWarnings: number;
   rankedSuspendedUntil: string | null;
+  isPremium: boolean;
   stats: {
     gamesPlayed: number;
     gamesWon: number;
@@ -346,11 +347,20 @@ export default function AdminPage() {
                       )}
                     >
                       <td className="px-4 py-3 font-medium text-[var(--color-text-primary)]">{user.username}</td>
-                      <td className="px-4 py-3 text-[var(--color-text-muted)] hidden sm:table-cell">{user.email ?? '—'}</td>
+                      <td className="px-4 py-3 text-[var(--color-text-muted)] hidden sm:table-cell max-w-[160px]">
+                        <span className="block truncate" title={user.email ?? ''}>{user.email ?? '—'}</span>
+                      </td>
                       <td className="px-4 py-3 hidden md:table-cell">
-                        <span className={cn('text-xs px-2 py-0.5 rounded-full border', userTypeColor(user))}>
-                          {userTypeLabel(user)}
-                        </span>
+                        <div className="flex items-center gap-1.5">
+                          <span className={cn('text-xs px-2 py-0.5 rounded-full border', userTypeColor(user))}>
+                            {userTypeLabel(user)}
+                          </span>
+                          {user.isPremium && (
+                            <span title="Premium" className="text-[oklch(75%_0.2_310)]">
+                              <Wine size={12} />
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="px-4 py-3 text-right text-[var(--color-text-muted)] font-mono hidden lg:table-cell">{user.level ?? 1}</td>
                       <td className="px-4 py-3 text-right text-[var(--color-text-muted)] font-mono hidden lg:table-cell">{user.coins ?? 0}</td>
@@ -539,6 +549,7 @@ function EditProgressionModal({ open, user, onClose, onSuccess }: { open: boolea
   const [pds, setPds] = useState('');
   const [rankedWarnings, setRankedWarnings] = useState('');
   const [clearSuspension, setClearSuspension] = useState(false);
+  const [isPremium, setIsPremium] = useState(false);
   const [grantAvatars, setGrantAvatars] = useState('');
   const [revokeAvatars, setRevokeAvatars] = useState('');
   const [grantModes, setGrantModes] = useState<string[]>([]);
@@ -552,6 +563,7 @@ function EditProgressionModal({ open, user, onClose, onSuccess }: { open: boolea
       setPds(String(user.pds ?? 0));
       setRankedWarnings(String(user.rankedWarnings ?? 0));
       setClearSuspension(false);
+      setIsPremium(user.isPremium ?? false);
       setGrantAvatars('');
       setRevokeAvatars('');
       setGrantModes([]);
@@ -568,6 +580,7 @@ function EditProgressionModal({ open, user, onClose, onSuccess }: { open: boolea
         pds: Number(pds),
         rankedWarnings: Number(rankedWarnings),
         clearRankedSuspension: clearSuspension,
+        isPremium,
       };
       if (grantAvatars.trim()) {
         payload.grantAvatars = grantAvatars.split(',').map(s => Number(s.trim())).filter(n => !isNaN(n));
@@ -600,6 +613,13 @@ function EditProgressionModal({ open, user, onClose, onSuccess }: { open: boolea
           <Input label="PDS" type="number" min={0} value={pds} onChange={e => setPds(e.target.value)} />
           <Input label="Avisos ranked" type="number" min={0} max={10} value={rankedWarnings} onChange={e => setRankedWarnings(e.target.value)} />
         </div>
+
+        <label className="flex items-center gap-2 text-sm text-[var(--color-text-muted)] cursor-pointer">
+          <input type="checkbox" checked={isPremium} onChange={e => setIsPremium(e.target.checked)} className="accent-[oklch(75%_0.2_310)]" />
+          <Wine size={14} className="text-[oklch(75%_0.2_310)]" />
+          <span className="text-[oklch(75%_0.2_310)] font-medium">Premium</span>
+          <span className="text-xs text-[var(--color-text-muted)]">(sem anúncios, ícone especial)</span>
+        </label>
 
         <label className="flex items-center gap-2 text-sm text-[var(--color-text-muted)] cursor-pointer">
           <input type="checkbox" checked={clearSuspension} onChange={e => setClearSuspension(e.target.checked)} className="accent-[var(--color-accent-strong)]" />

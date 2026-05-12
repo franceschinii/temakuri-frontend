@@ -2,22 +2,24 @@ import { cn } from '@/lib/utils';
 
 interface CoinDisplayProps {
   amount: number;
-  size?: 'sm' | 'md';
+  size?: 'sm' | 'md' | 'lg';
 }
 
 export function CoinDisplay({ amount, size = 'md' }: CoinDisplayProps) {
+  const iconSize = size === 'sm' ? 13 : size === 'lg' ? 22 : 16;
   return (
     <span
       className={cn(
         'inline-flex items-center gap-1 font-semibold tabular-nums',
         size === 'sm' && 'text-xs',
         size === 'md' && 'text-sm',
+        size === 'lg' && 'text-base',
       )}
       style={{ color: 'oklch(78% 0.2 75)' }}
     >
       <svg
-        width={size === 'sm' ? 13 : 16}
-        height={size === 'sm' ? 13 : 16}
+        width={iconSize}
+        height={iconSize}
         viewBox="0 0 16 16"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"

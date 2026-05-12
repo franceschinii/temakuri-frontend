@@ -1,8 +1,9 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Search, HelpCircle, CreditCard, ArrowUpRight, RefreshCw, Flame, User, ShoppingBag, LogOut } from 'lucide-react';
+import { Plus, Search, HelpCircle, CreditCard, ArrowUpRight, RefreshCw, Flame, User, ShoppingBag, LogOut, Swords, Wine } from 'lucide-react';
 import { DevFooter } from '@/components/ui/DevFooter';
+import { AdBanner } from '@/components/ui/AdBanner';
 import { motion } from 'framer-motion';
 import { Logo } from '@/components/ui/Logo';
 import { Button } from '@/components/ui/button';
@@ -13,6 +14,7 @@ import { CoinDisplay } from '@/components/ui/CoinDisplay';
 import { RoomCard } from '@/components/lobby/RoomCard';
 import { CreateRoomModal } from '@/components/lobby/CreateRoomModal';
 import { ShopModal } from '@/components/shop/ShopModal';
+import { MatchmakingDialog } from '@/components/matchmaking/MatchmakingDialog';
 import { useAuthStore } from '@/stores/authStore';
 import { useSocketEvent } from '@/hooks/useSocket';
 import api from '@/lib/api';
@@ -33,6 +35,7 @@ export default function LobbyPage() {
   const [createOpen, setCreateOpen] = useState(false);
   const [rulesOpen, setRulesOpen] = useState(false);
   const [shopOpen, setShopOpen] = useState(false);
+  const [matchOpen, setMatchOpen] = useState(false);
   const [joinCode, setJoinCode] = useState('');
 
   const { data: rooms = [], isLoading } = useQuery<RoomPublicState[]>({
@@ -83,6 +86,12 @@ export default function LobbyPage() {
           {!user?.isGuest && (
             <span className="px-1.5">
               <CoinDisplay amount={user?.coins ?? 0} size="sm" />
+            </span>
+          )}
+          {/* Premium badge */}
+          {user?.isPremium && (
+            <span title="Premium" className="p-1.5 text-[oklch(75%_0.2_310)]">
+              <Wine size={16} />
             </span>
           )}
           {/* Loja */}
@@ -157,6 +166,11 @@ export default function LobbyPage() {
           <Button onClick={() => setCreateOpen(true)} className="shrink-0">
             <Plus size={15} /> Criar
           </Button>
+          {!user?.isGuest && (
+            <Button variant="secondary" onClick={() => setMatchOpen(true)} className="shrink-0">
+              <Swords size={15} /> Buscar
+            </Button>
+          )}
         </motion.div>
 
         {/* Room list */}
@@ -206,6 +220,7 @@ export default function LobbyPage() {
             </div>
           )}
         </div>
+          <AdBanner className="w-full" />
         </div>
       </main>
 
@@ -213,6 +228,7 @@ export default function LobbyPage() {
 
       <CreateRoomModal open={createOpen} onClose={() => setCreateOpen(false)} />
       <ShopModal open={shopOpen} onClose={() => setShopOpen(false)} />
+      <MatchmakingDialog open={matchOpen} onClose={() => setMatchOpen(false)} />
 
       <Modal open={rulesOpen} onClose={() => setRulesOpen(false)} title="Como jogar">
         <div className="flex flex-col gap-5 text-sm">

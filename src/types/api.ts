@@ -14,6 +14,7 @@ export interface User {
   lossStreak: number;
   rankedWarnings: number;
   rankedSuspendedUntil: string | null;
+  isPremium: boolean;
   createdAt: string;
   updatedAt: string;
 }

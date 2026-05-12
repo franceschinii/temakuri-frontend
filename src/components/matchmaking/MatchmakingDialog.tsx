@@ -1,0 +1,343 @@
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { createPortal } from 'react-dom';
+import { useNavigate } from 'react-router-dom';
+import { X, Swords, Trophy, Zap } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { AvatarImage } from '@/components/ui/Avatar';
+import { useSocketEvent, emitSocketEvent } from '@/hooks/useSocket';
+import { useAuthStore } from '@/stores/authStore';
+
+interface QueuePlayer {
+  userId: string;
+  username: string;
+  avatarIndex: number;
+  level: number;
+  pds: number;
+}
+
+type MatchStatus = 'idle' | 'queued' | 'found';
+
+interface Props {
+  open: boolean;
+  onClose: () => void;
+}
+
+function formatTime(seconds: number): string {
+  const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+  const s = (seconds % 60).toString().padStart(2, '0');
+  return `${m}:${s}`;
+}
+
+export function MatchmakingDialog({ open, onClose }: Props) {
+  const user = useAuthStore(s => s.user);
+  const navigate = useNavigate();
+
+  const [status, setStatus] = useState<MatchStatus>('idle');
+  const [type, setType] = useState<'RANKED' | 'QUICK'>('QUICK');
+  const [queueTime, setQueueTime] = useState(0);
+  const [position, setPosition] = useState(0);
+  const [queueSize, setQueueSize] = useState(0);
+  const [matchData, setMatchData] = useState<{ roomCode: string; players: QueuePlayer[] } | null>(null);
+  const [confirmTimer, setConfirmTimer] = useState(120);
+  const [myConfirmed, setMyConfirmed] = useState(false);
+  const [confirmedCount, setConfirmedCount] = useState(0);
+
+  const queueTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const confirmTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const roomCodeRef = useRef<string | null>(null);
+
+  const resetState = useCallback(() => {
+    setStatus('idle');
+    setQueueTime(0);
+    setPosition(0);
+    setQueueSize(0);
+    setMatchData(null);
+    setConfirmTimer(120);
+    setMyConfirmed(false);
+    setConfirmedCount(0);
+    roomCodeRef.current = null;
+    if (queueTimerRef.current) clearInterval(queueTimerRef.current);
+    if (confirmTimerRef.current) clearInterval(confirmTimerRef.current);
+  }, []);
+
+  // Reset when dialog closes
+  useEffect(() => {
+    if (!open) {
+      if (status === 'queued') {
+        emitSocketEvent('matchmaking:leave', {});
+      }
+      resetState();
+    }
+  }, [open, status, resetState]);
+
+  // Queue elapsed timer
+  useEffect(() => {
+    if (status === 'queued') {
+      queueTimerRef.current = setInterval(() => {
+        setQueueTime(t => t + 1);
+      }, 1000);
+    } else {
+      if (queueTimerRef.current) clearInterval(queueTimerRef.current);
+    }
+    return () => {
+      if (queueTimerRef.current) clearInterval(queueTimerRef.current);
+    };
+  }, [status]);
+
+  // Confirm countdown timer
+  useEffect(() => {
+    if (status === 'found') {
+      confirmTimerRef.current = setInterval(() => {
+        setConfirmTimer(t => {
+          if (t <= 1) {
+            if (confirmTimerRef.current) clearInterval(confirmTimerRef.current);
+            if (roomCodeRef.current) {
+              navigate(`/lobby/${roomCodeRef.current}`);
+            }
+            return 0;
+          }
+          return t - 1;
+        });
+      }, 1000);
+    } else {
+      if (confirmTimerRef.current) clearInterval(confirmTimerRef.current);
+    }
+    return () => {
+      if (confirmTimerRef.current) clearInterval(confirmTimerRef.current);
+    };
+  }, [status, navigate]);
+
+  useSocketEvent<{ type: string; position: number; queueSize: number }>('matchmaking:queued', useCallback((data) => {
+    setPosition(data.position);
+    setQueueSize(data.queueSize);
+    setStatus('queued');
+  }, []));
+
+  useSocketEvent<{ roomCode: string; players: QueuePlayer[] }>('matchmaking:match_found', useCallback((data) => {
+    if (queueTimerRef.current) clearInterval(queueTimerRef.current);
+    roomCodeRef.current = data.roomCode;
+    setMatchData(data);
+    setConfirmTimer(120);
+    setMyConfirmed(false);
+    setConfirmedCount(0);
+    setStatus('found');
+  }, []));
+
+  useSocketEvent<{ userId: string; ready: boolean }>('lobby:player_ready', useCallback((data) => {
+    if (status !== 'found') return;
+    if (data.ready) {
+      setConfirmedCount(c => c + 1);
+    }
+  }, [status]));
+
+  const handleSearch = () => {
+    if (!user) return;
+    emitSocketEvent('matchmaking:join', {
+      type,
+      avatarIndex: user.avatarIndex ?? 0,
+      level: user.level ?? 1,
+      pds: user.pds ?? 0,
+    });
+  };
+
+  const handleCancel = () => {
+    emitSocketEvent('matchmaking:leave', {});
+    resetState();
+  };
+
+  const handleConfirm = () => {
+    if (!matchData || myConfirmed) return;
+    emitSocketEvent('lobby:set_ready', { roomCode: matchData.roomCode, ready: true });
+    setMyConfirmed(true);
+    setConfirmedCount(c => c + 1);
+  };
+
+  if (!open) return null;
+
+  const confirmProgress = (confirmTimer / 120) * 100;
+  const circumference = 2 * Math.PI * 26;
+  const strokeDashoffset = circumference * (1 - confirmProgress / 100);
+
+  return createPortal(
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+      <div className="relative w-full max-w-sm mx-4 rounded-2xl border border-[var(--color-border)] bg-[var(--color-panel)] shadow-2xl">
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-[var(--color-border)]">
+          <div className="flex items-center gap-2">
+            <Swords size={16} className="text-[var(--color-accent-soft)]" />
+            <span className="text-sm font-semibold text-[var(--color-text-primary)]">Buscar Partida</span>
+          </div>
+          {status !== 'found' && (
+            <button
+              onClick={onClose}
+              className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors"
+            >
+              <X size={16} />
+            </button>
+          )}
+        </div>
+
+        <div className="p-5 flex flex-col gap-5">
+          {/* IDLE: type selection */}
+          {status === 'idle' && (
+            <>
+              <div className="flex flex-col gap-2">
+                <span className="text-xs uppercase tracking-widest font-medium text-[var(--color-text-muted)]">Modo</span>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    onClick={() => setType('QUICK')}
+                    className={[
+                      'flex flex-col items-center gap-1.5 rounded-xl border p-3 transition-all',
+                      type === 'QUICK'
+                        ? 'border-[var(--color-accent-strong)] bg-[var(--color-accent-strong)]/10 text-[var(--color-accent-soft)]'
+                        : 'border-[var(--color-border)] text-[var(--color-text-muted)] hover:border-[var(--color-accent-strong)]/50',
+                    ].join(' ')}
+                  >
+                    <Zap size={18} />
+                    <span className="text-xs font-medium">Casual</span>
+                  </button>
+                  <button
+                    onClick={() => setType('RANKED')}
+                    className={[
+                      'flex flex-col items-center gap-1.5 rounded-xl border p-3 transition-all',
+                      type === 'RANKED'
+                        ? 'border-[var(--color-accent-strong)] bg-[var(--color-accent-strong)]/10 text-[var(--color-accent-soft)]'
+                        : 'border-[var(--color-border)] text-[var(--color-text-muted)] hover:border-[var(--color-accent-strong)]/50',
+                    ].join(' ')}
+                  >
+                    <Trophy size={18} />
+                    <span className="text-xs font-medium">Ranqueada</span>
+                  </button>
+                </div>
+              </div>
+
+              <Button onClick={handleSearch} className="w-full">
+                <Swords size={15} /> Buscar
+              </Button>
+            </>
+          )}
+
+          {/* QUEUED */}
+          {status === 'queued' && (
+            <div className="flex flex-col items-center gap-4 py-2">
+              {/* Spinner */}
+              <div className="relative w-14 h-14">
+                <svg className="w-14 h-14 -rotate-90" viewBox="0 0 56 56">
+                  <circle
+                    cx="28" cy="28" r="24"
+                    fill="none"
+                    stroke="var(--color-border)"
+                    strokeWidth="3"
+                  />
+                  <circle
+                    cx="28" cy="28" r="24"
+                    fill="none"
+                    stroke="var(--color-accent-strong)"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    strokeDasharray={`${2 * Math.PI * 24}`}
+                    className="origin-center animate-spin"
+                    style={{ animationDuration: '1.4s' }}
+                  />
+                </svg>
+                <Swords
+                  size={18}
+                  className="absolute inset-0 m-auto text-[var(--color-accent-soft)]"
+                />
+              </div>
+
+              <div className="flex flex-col items-center gap-1">
+                <span className="text-sm font-medium text-[var(--color-text-primary)]">Procurando partida...</span>
+                <span className="text-xs text-[var(--color-text-muted)] font-mono">{formatTime(queueTime)}</span>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <span className={[
+                  'text-xs font-medium px-2 py-0.5 rounded-full border',
+                  type === 'RANKED'
+                    ? 'border-amber-500/40 text-amber-400 bg-amber-500/10'
+                    : 'border-[var(--color-accent-strong)]/40 text-[var(--color-accent-soft)] bg-[var(--color-accent-strong)]/10',
+                ].join(' ')}>
+                  {type === 'RANKED' ? 'Ranqueada' : 'Casual'}
+                </span>
+                {position > 0 && (
+                  <span className="text-xs text-[var(--color-text-muted)]">
+                    {position}/{queueSize} na fila
+                  </span>
+                )}
+              </div>
+
+              <Button variant="ghost" size="sm" onClick={handleCancel} className="text-[var(--color-danger)]">
+                Cancelar
+              </Button>
+            </div>
+          )}
+
+          {/* FOUND */}
+          {status === 'found' && matchData && (
+            <div className="flex flex-col items-center gap-4">
+              {/* Countdown circle */}
+              <div className="relative w-16 h-16">
+                <svg className="w-16 h-16 -rotate-90" viewBox="0 0 60 60">
+                  <circle cx="30" cy="30" r="26" fill="none" stroke="var(--color-border)" strokeWidth="3" />
+                  <circle
+                    cx="30" cy="30" r="26"
+                    fill="none"
+                    stroke={confirmTimer <= 10 ? 'var(--color-danger)' : 'oklch(70% 0.2 145)'}
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    strokeDasharray={circumference}
+                    strokeDashoffset={strokeDashoffset}
+                    style={{ transition: 'stroke-dashoffset 1s linear, stroke 0.3s' }}
+                  />
+                </svg>
+                <span className={[
+                  'absolute inset-0 flex items-center justify-center text-sm font-mono font-bold',
+                  confirmTimer <= 10 ? 'text-[var(--color-danger)]' : 'text-[var(--color-text-primary)]',
+                ].join(' ')}>
+                  {confirmTimer}
+                </span>
+              </div>
+
+              <div className="flex flex-col items-center gap-1">
+                <span className="text-sm font-semibold text-[var(--color-text-primary)]">Partida encontrada!</span>
+                <span className="text-xs text-[var(--color-text-muted)]">
+                  {confirmedCount}/4 confirmados
+                </span>
+              </div>
+
+              {/* Players */}
+              <div className="grid grid-cols-4 gap-2 w-full">
+                {matchData.players.map(p => (
+                  <div key={p.userId} className="flex flex-col items-center gap-1">
+                    <div className={[
+                      'rounded-full overflow-hidden border-2 transition-colors',
+                      p.userId === user?.id && myConfirmed
+                        ? 'border-emerald-500'
+                        : 'border-[var(--color-border)]',
+                    ].join(' ')}>
+                      <AvatarImage index={p.avatarIndex} size={40} />
+                    </div>
+                    <span className="text-[10px] text-[var(--color-text-muted)] truncate max-w-full text-center leading-tight">
+                      {p.username}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              <Button
+                onClick={handleConfirm}
+                disabled={myConfirmed}
+                className="w-full"
+                style={myConfirmed ? { opacity: 0.6 } : {}}
+              >
+                {myConfirmed ? 'Confirmado' : 'Confirmar'}
+              </Button>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>,
+    document.body,
+  );
+}
