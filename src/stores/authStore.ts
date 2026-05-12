@@ -15,6 +15,7 @@ interface AuthState {
   logout: () => Promise<void>;
   setUser: (user: User) => void;
   initSocket: () => void;
+  refreshUser: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -65,6 +66,21 @@ export const useAuthStore = create<AuthState>()(
       initSocket: () => {
         const token = get().accessToken;
         if (token) connectSocket(token);
+      },
+
+      refreshUser: async () => {
+        const token = get().accessToken;
+        if (!token) return;
+        try {
+          const { data } = await api.get('/auth/me');
+          set({ user: data });
+        } catch {
+          // token inválido — limpa sessão
+          localStorage.removeItem('accessToken');
+          localStorage.removeItem('refreshToken');
+          localStorage.removeItem('temakuri-auth');
+          set({ user: null, accessToken: null, isGuest: false });
+        }
       },
     }),
     {

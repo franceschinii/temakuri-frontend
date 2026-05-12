@@ -10,7 +10,11 @@ import './styles/globals.css';
 
 function Root() {
   const initSocket = useAuthStore(s => s.initSocket);
-  useEffect(() => { initSocket(); }, []);
+  const refreshUser = useAuthStore(s => s.refreshUser);
+  useEffect(() => {
+    initSocket();
+    refreshUser();
+  }, []);
   return (
     <>
       <App />
