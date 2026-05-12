@@ -27,7 +27,8 @@ import { RulesDialog } from './RulesDialog';
 import { CardComponent } from './CardComponent';
 import { TrickPickModal } from './TrickPickModal';
 import { DuelPassPickModal } from './DuelPassPickModal';
-import type { Card, ClientGameState, GameRanking, GameStats } from '@/types/game';
+import { MedalBadge } from '@/components/ui/MedalBadge';
+import type { Card, ClientGameState, GameRanking, GameStats, RoomPublicState } from '@/types/game';
 import { validatePlayIndicesClient } from '@/lib/gameRules';
 import { playSound } from '@/lib/sounds';
 import { toast } from 'sonner';
@@ -62,6 +63,8 @@ export function GameBoard() {
   const [trickPile, setTrickPile] = useState<Card[]>([]);
   const [duelPickOpen, setDuelPickOpen] = useState(false);
   const prevTurnRef = useRef<string>('');
+  const [isSpectator, setIsSpectator] = useState(false);
+  const [roomHostId, setRoomHostId] = useState<string | null>(null);
 
   const isMyTurn = user?.id === currentTurnUserId;
   const me = players.find(p => p.userId === user?.id);
@@ -194,6 +197,23 @@ export function GameBoard() {
     addLog({ type: 'round_end', text: `🏁 Rodada encerrada — ${loserNames.join(', ')} esvaziou a mão e perdeu 1 Prato` });
   }, [applyRoundEnd, addLog]));
 
+  useSocketEvent<{ round: number; drawPileCount: number; cardCounts: Record<string, number>; market: Card[] | null }>('game:round_started', useCallback(({ round, drawPileCount, cardCounts, market }) => {
+    useGameStore.setState(s => ({
+      round,
+      drawPileCount,
+      pile: [],
+      saborActive: false,
+      saborMinRequired: 0,
+      saborTriggeredBy: null,
+      consecutivePasses: 0,
+      market: market ?? s.market,
+      players: s.players.map(p => ({
+        ...p,
+        cardCount: cardCounts[p.userId] ?? p.cardCount,
+      })),
+    }));
+  }, []));
+
   useSocketEvent<{ rankings: GameRanking[]; stats: GameStats }>('game:game_over', useCallback(({ rankings, stats }) => {
     applyGameOver(rankings, stats);
     playSound('game_over');
@@ -215,18 +235,20 @@ export function GameBoard() {
   }, []));
 
   useSocketEvent<{ userId: string; action: 'take' | 'discard'; discardedCards: Card[]; takenCount?: number }>('game:trick_pick_result', useCallback(({ userId, action, discardedCards, takenCount }) => {
-    if (action === 'discard' && discardedCards.length > 0) {
-      addToDiscardPile(discardedCards);
-    }
-    if (action === 'take' && takenCount != null) {
-      useGameStore.setState(s => ({
-        players: s.players.map(p =>
+    useGameStore.setState(s => {
+      const updates: Partial<typeof s> = { pile: [] };
+      if (action === 'discard' && discardedCards.length > 0) {
+        updates.discardPile = [...s.discardPile, ...discardedCards];
+      }
+      if (action === 'take' && takenCount != null) {
+        updates.players = s.players.map(p =>
           p.userId === userId ? { ...p, cardCount: p.cardCount + takenCount } : p,
-        ),
-      }));
-    }
+        );
+      }
+      return updates;
+    });
     setTrickPickOpen(false);
-  }, [addToDiscardPile]));
+  }, []));
 
   useSocketEvent<{ plates: Card[] }>('game:duel_pass_offer', useCallback(({ plates }) => {
     useGameStore.setState(s => ({ myDuelPlates: plates }));
@@ -262,6 +284,21 @@ export function GameBoard() {
   useSocketEvent<{ userId: string; username: string; text: string }>('game:message', useCallback(({ userId, username, text }) => {
     addLog({ type: 'chat', userId, username, text });
   }, [addLog]));
+
+  useSocketEvent<{ roomCode: string }>('game:spectator_mode', useCallback(() => {
+    setIsSpectator(true);
+  }, []));
+
+  useSocketEvent<{ rankings: GameRanking[]; room: RoomPublicState }>('lobby:game_over_summary', useCallback(({ room }) => {
+    // Atualiza sessionWins dos jogadores a partir do estado atualizado da sala
+    setRoomHostId(room.hostId);
+    useGameStore.setState(s => ({
+      players: s.players.map(p => {
+        const roomPlayer = room.players.find(rp => rp.userId === p.userId);
+        return roomPlayer ? { ...p, sessionWins: roomPlayer.sessionWins ?? 0 } : p;
+      }),
+    }));
+  }, []));
 
   const handleSendMessage = useCallback((text: string) => {
     sendMessage(text);
@@ -350,7 +387,7 @@ export function GameBoard() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 16, scale: 0.9 }}
             transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-            className="fixed top-16 left-1/2 -translate-x-1/2 z-40 pointer-events-none"
+            className="fixed top-14 left-1/2 -translate-x-1/2 z-40 pointer-events-none"
           >
             <div className={`px-4 py-1.5 rounded-full text-sm font-semibold shadow-lg border ${
               turnBanner.isMe
@@ -477,6 +514,7 @@ export function GameBoard() {
             <span className="text-sm font-semibold text-[var(--color-text-primary)]">
               {me?.username ?? 'Você'}
             </span>
+            <MedalBadge count={me?.sessionWins ?? 0} />
             {isMyTurn && (
               <span className="text-xs px-1.5 py-0.5 rounded bg-[var(--color-accent-strong)] text-[var(--color-text-primary)] font-medium">
                 Seu turno
@@ -526,22 +564,24 @@ export function GameBoard() {
           )}
         </AnimatePresence>
 
-        {/* Hand */}
-        <div className="pb-1 pt-4 overflow-hidden">
-          {pickMode ? (
-            <PlayerHand
-              hand={myHand}
-              isMyTurn={isMyTurn}
-              pickMode={true}
-              onPickInsert={handleInsertAtIndex}
-            />
-          ) : (
-            <PlayerHand hand={myHand} isMyTurn={isMyTurn} />
-          )}
-        </div>
+        {/* Hand — oculta para espectadores */}
+        {!isSpectator && (
+          <div className="pb-1 pt-4 overflow-hidden">
+            {pickMode ? (
+              <PlayerHand
+                hand={myHand}
+                isMyTurn={isMyTurn}
+                pickMode={true}
+                onPickInsert={handleInsertAtIndex}
+              />
+            ) : (
+              <PlayerHand hand={myHand} isMyTurn={isMyTurn} />
+            )}
+          </div>
+        )}
 
-        {/* Actions */}
-        {!pickMode && !marketSwapMode && (
+        {/* Actions — ocultas para espectadores */}
+        {!isSpectator && !pickMode && !marketSwapMode && (
           <div className="mt-2 flex flex-col gap-2">
             <ActionBar
               isMyTurn={isMyTurn}
@@ -591,7 +631,7 @@ export function GameBoard() {
       <ChatPanel onSendMessage={handleSendMessage} myUserId={user?.id ?? ''} />
 
       {/* Reactions overlay — dedicated zone above reaction bar */}
-      <div className="fixed bottom-28 right-16 flex flex-col-reverse gap-1.5 z-40 pointer-events-none items-end min-w-[96px]">
+      <div className="fixed bottom-24 right-3 sm:right-16 flex flex-col-reverse gap-1.5 z-40 pointer-events-none items-end min-w-[96px]">
         <AnimatePresence>
           {reactions.map((r) => {
             const p = players.find(pl => pl.userId === r.userId);
@@ -626,10 +666,26 @@ export function GameBoard() {
         />
       )}
 
+      {/* Spectator overlay */}
+      {isSpectator && (
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[var(--color-base)]/85 backdrop-blur-sm pointer-events-none">
+          <div className="flex flex-col items-center gap-3 px-6 py-5 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)]/90">
+            <span className="text-lg font-semibold text-[var(--color-text-primary)]">Modo espectador</span>
+            <span className="text-sm text-[var(--color-text-muted)] text-center max-w-xs">
+              Aguardando a próxima rodada para entrar na partida...
+            </span>
+          </div>
+        </div>
+      )}
+
       {gameOverData && (
         <GameOverModal
           rankings={gameOverData.rankings}
           myUserId={user?.id ?? ''}
+          onPlayAgain={roomHostId === user?.id ? () => {
+            emitSocketEvent('lobby:reset_room', { roomCode });
+            navigate(`/lobby/${roomCode}`);
+          } : undefined}
         />
       )}
 

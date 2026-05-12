@@ -139,7 +139,7 @@ export default function ProfilePage() {
           {/* Seletor de avatar — visível só ao clicar no lápis */}
           {editingAvatar && <section className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 flex flex-col gap-4">
             <p className="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">Avatar</p>
-            <div className="grid grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {Array.from({ length: avatarCount() }).map((_, i) => (
                 <button
                   key={i}

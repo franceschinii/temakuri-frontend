@@ -92,7 +92,7 @@ export default function LoginPage() {
             </p>
           </div>
 
-          <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)]/90 backdrop-blur-md p-6 shadow-[0_8px_40px_oklch(0%_0_0_/_0.35)]">
+          <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)]/90 backdrop-blur-md p-4 sm:p-6 shadow-[0_8px_40px_oklch(0%_0_0_/_0.35)]">
             <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
               <Input
                 label="Email"

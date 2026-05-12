@@ -177,7 +177,7 @@ export default function AdminPage() {
               <p className="text-sm text-[var(--color-text-muted)]">Nenhum resultado</p>
             </div>
           ) : (
-            <div className="rounded-xl border border-[var(--color-border)] overflow-hidden">
+            <div className="rounded-xl border border-[var(--color-border)] overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-[var(--color-border)] bg-[var(--color-surface)]">
@@ -344,7 +344,7 @@ function EditStatsModal({ open, user, onClose, onSuccess }: { open: boolean; use
   return (
     <Modal open={open} onClose={onClose} title="Editar estatísticas" description={user?.username}>
       <form onSubmit={e => { e.preventDefault(); mutation.mutate(); }} className="flex flex-col gap-4">
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <Input label="Partidas" type="number" min={0} value={gamesPlayed} onChange={e => setGamesPlayed(e.target.value)} />
           <Input label="Vitórias" type="number" min={0} value={gamesWon} onChange={e => setGamesWon(e.target.value)} />
           <Input label="Sabores" type="number" min={0} value={saborTriggers} onChange={e => setSaborTriggers(e.target.value)} />

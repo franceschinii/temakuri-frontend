@@ -10,6 +10,7 @@ import { TokenDisplay } from '@/components/game/TokenDisplay';
 import { useAuthStore } from '@/stores/authStore';
 import { useLobbyStore } from '@/stores/lobbyStore';
 import { useSocketEvent, emitSocketEvent } from '@/hooks/useSocket';
+import { MedalBadge } from '@/components/ui/MedalBadge';
 import { GAME_MODES, INITIAL_TOKENS } from '@/constants/game';
 import api from '@/lib/api';
 import type { RoomPublicState } from '@/types/game';
@@ -71,6 +72,8 @@ export default function RoomPage() {
   }, [setPlayerReady]));
 
   const [countdown, setCountdown] = useState<number | null>(null);
+  const [isSpectator, setIsSpectator] = useState(false);
+  const room = currentRoom ?? initialRoom;
 
   useSocketEvent<{ countdown: number }>('lobby:game_starting', useCallback(({ countdown: ms }) => {
     const totalSeconds = Math.round(ms / 1000);
@@ -95,8 +98,36 @@ export default function RoomPage() {
     toast.error(message);
   }, []));
 
-  const room = currentRoom ?? initialRoom;
+  // Detecta entrada como espectador quando sala está em andamento
+  useEffect(() => {
+    const currentUser = user;
+    if (!currentUser || !room) return;
+    const me = room.players.find(p => p.userId === currentUser.id);
+    if (me?.isSpectator) setIsSpectator(true);
+  }, [room, user]);
+
+  // Quando sala volta ao estado WAITING (após reset), sai do modo espectador
+  useSocketEvent<{ room: RoomPublicState }>('lobby:room_updated', useCallback(({ room: updatedRoom }) => {
+    if (updatedRoom.status === 'WAITING') setIsSpectator(false);
+  }, []));
+
   if (isError) return null;
+
+  // Tela de espera para espectadores que entraram com partida em andamento
+  if (room && isSpectator && room.status === 'IN_PROGRESS') {
+    return (
+      <div className="h-dvh bg-[var(--color-base)] flex flex-col items-center justify-center gap-4 px-6">
+        <div className="flex flex-col items-center gap-3 text-center max-w-xs">
+          <div className="w-8 h-8 rounded-full border-2 border-[var(--color-accent-strong)] border-t-transparent animate-spin" />
+          <span className="text-lg font-semibold text-[var(--color-text-primary)]">Partida em andamento</span>
+          <span className="text-sm text-[var(--color-text-muted)]">
+            Aguardando a próxima rodada para entrar...
+          </span>
+        </div>
+      </div>
+    );
+  }
+
   if (!room || isLoading) return (
     <div className="h-dvh flex items-center justify-center bg-[var(--color-base)] overflow-hidden">
       <div className="flex flex-col items-center gap-3">
@@ -265,6 +296,7 @@ export default function RoomPage() {
                             {p.userId === room.hostId && (
                               <Crown size={11} className="text-[var(--color-token-gold)] shrink-0" />
                             )}
+                            <MedalBadge count={p.sessionWins ?? 0} />
                           </div>
                           {p.isBot && (
                             <span className="text-[9px] text-[var(--color-text-muted)] uppercase tracking-wider">bot</span>
@@ -320,7 +352,7 @@ export default function RoomPage() {
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="flex gap-2"
+          className="flex flex-wrap gap-2"
         >
           {!isHost && (
             <Button
@@ -385,14 +417,14 @@ export default function RoomPage() {
               >
                 {countdown === 0 ? (
                   <span
-                    className="text-7xl font-bold text-[var(--color-accent-soft)]"
+                    className="text-[15vw] sm:text-7xl font-bold text-[var(--color-accent-soft)]"
                     style={{ fontFamily: 'var(--font-display)' }}
                   >
                     GO!
                   </span>
                 ) : (
                   <span
-                    className="text-9xl font-bold text-[var(--color-text-primary)]"
+                    className="text-[20vw] sm:text-9xl font-bold text-[var(--color-text-primary)]"
                     style={{ fontFamily: 'var(--font-display)' }}
                   >
                     {countdown}

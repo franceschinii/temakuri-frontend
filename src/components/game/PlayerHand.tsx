@@ -44,17 +44,17 @@ export function PlayerHand({
   // Pick mode — inserir carta do monte; escolha a posição na mão
   if (pickMode) {
     return (
-      <div className="flex gap-1 items-center flex-wrap justify-center py-2">
+      <div className={cn('flex gap-1 items-center justify-center py-2', hand.length > 7 && 'overflow-x-auto')}>
         {[...Array(hand.length + 1)].map((_, insertIdx) => (
-          <div key={insertIdx} className="flex items-center">
+          <div key={insertIdx} className="flex items-center shrink-0">
             <button
               onClick={() => onPickInsert?.(insertIdx)}
               onMouseEnter={() => setHoveredInsert(insertIdx)}
               onMouseLeave={() => setHoveredInsert(null)}
               className={cn(
-                'w-1.5 h-16 rounded-full transition-all mx-0.5',
+                'w-3 sm:w-1.5 min-h-[44px] h-16 rounded-full transition-all mx-0.5',
                 hoveredInsert === insertIdx
-                  ? 'bg-[var(--color-warning)] w-2.5 scale-110'
+                  ? 'bg-[var(--color-warning)] sm:w-2.5 scale-110'
                   : 'bg-[var(--color-border)]',
               )}
             />

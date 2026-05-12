@@ -71,7 +71,7 @@ export default function LandingPage() {
     <div className="h-dvh bg-[var(--color-base)] flex flex-col relative overflow-hidden">
       {/* Atmospheric glows */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-[40%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[600px] rounded-full bg-[var(--color-accent-strong)]/8 blur-[160px]" />
+        <div className="absolute top-[40%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-3xl h-[600px] rounded-full bg-[var(--color-accent-strong)]/8 blur-[160px]" />
         <div className="absolute bottom-[-10%] left-[-5%] w-96 h-96 rounded-full bg-[var(--color-accent-strong)]/5 blur-[100px]" />
         <div className="absolute top-[-5%] right-[-5%] w-72 h-72 rounded-full bg-[var(--color-token-gold)]/5 blur-[80px]" />
       </div>
@@ -112,7 +112,7 @@ export default function LandingPage() {
             className="w-full md:max-w-sm rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)]/90 backdrop-blur-md p-6 flex flex-col gap-5 shadow-[0_8px_48px_oklch(0%_0_0_/_0.45)]"
           >
             <div>
-              <p className="text-[9px] uppercase tracking-[0.2em] text-[var(--color-text-muted)] mb-3 font-medium">
+              <p className="text-[10px] uppercase tracking-[0.2em] text-[var(--color-text-muted)] mb-3 font-medium">
                 Jogar como convidado
               </p>
               <div className="flex gap-2">

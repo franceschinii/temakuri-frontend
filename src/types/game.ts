@@ -47,6 +47,8 @@ export interface PublicPlayerState {
   isEliminated: boolean;
   isReady: boolean;
   isBot?: boolean;
+  isSpectator?: boolean;
+  sessionWins?: number;
 }
 
 export interface ClientGameState {
@@ -81,6 +83,12 @@ export interface GameStats {
   tricksWon: Record<string, number>;
 }
 
+export interface RoomPlayer extends PublicPlayerState {
+  isBot: boolean;
+  isSpectator: boolean;
+  sessionWins: number;
+}
+
 export interface RoomPublicState {
   id: string;
   code: string;
@@ -91,5 +99,5 @@ export interface RoomPublicState {
   isPrivate: boolean;
   handBias: number;
   initialTokens: number;
-  players: PublicPlayerState[];
+  players: RoomPlayer[];
 }

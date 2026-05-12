@@ -15,7 +15,7 @@ interface PlayAreaProps {
 
 function PileStack({ count, topCard, label }: { count: number; topCard?: Card; label: string }) {
   return (
-    <div className="flex flex-col items-center gap-1 min-w-[52px]">
+    <div className="flex flex-col items-center gap-1 min-w-[40px] sm:min-w-[52px]">
       <span className="text-[10px] uppercase tracking-widest text-[var(--color-text-muted)] font-medium">{label}</span>
       <div className="relative h-[68px] w-[48px]">
         {count > 1 && (
@@ -62,7 +62,7 @@ export function PlayArea({ pile, drawPileCount, discardPile, saborActive, saborM
 
       {/* Active play area (center) */}
       <div className={cn(
-        'flex-1 min-h-28 sm:min-h-32 min-w-[280px] rounded-xl border-2 flex flex-col items-center justify-center gap-2 p-2 sm:p-3 transition-all',
+        'flex-1 min-h-28 sm:min-h-32 rounded-xl border-2 flex flex-col items-center justify-center gap-2 p-2 sm:p-3 transition-all',
         pile.length === 0
           ? 'border-dashed border-[var(--color-border)]'
           : saborActive

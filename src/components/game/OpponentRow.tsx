@@ -1,5 +1,6 @@
 import { Square } from 'lucide-react';
 import { TokenDisplay } from './TokenDisplay';
+import { MedalBadge } from '@/components/ui/MedalBadge';
 import type { PublicPlayerState } from '@/types/game';
 import { cn } from '@/lib/utils';
 
@@ -27,12 +28,16 @@ export function OpponentRow({ player, isCurrentTurn }: OpponentRowProps) {
         )}>
           {player.username[0].toUpperCase()}
         </div>
-        <span className={cn(
-          'text-xs font-medium truncate max-w-16 sm:max-w-20',
-          isCurrentTurn ? 'text-[var(--color-accent-soft)]' : 'text-[var(--color-text-muted)]',
-        )}>
+        <span
+          className={cn(
+            'text-xs font-medium truncate max-w-[4.5rem] sm:max-w-24',
+            isCurrentTurn ? 'text-[var(--color-accent-soft)]' : 'text-[var(--color-text-muted)]',
+          )}
+          title={player.username}
+        >
           {player.username}
         </span>
+        <MedalBadge count={player.sessionWins ?? 0} />
         {!player.isConnected && (
           <span className="text-[9px] text-[var(--color-danger)] shrink-0">●</span>
         )}

@@ -172,6 +172,11 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   applyRoundEnd: (loserIds, playerTokens) =>
     set((s) => ({
       roundSummaryData: { loserIds, playerTokens },
+      pile: [],
+      saborActive: false,
+      saborMinRequired: 0,
+      saborTriggeredBy: null,
+      consecutivePasses: 0,
       players: s.players.map(p => ({
         ...p,
         tokensLeft: playerTokens[p.userId] ?? p.tokensLeft,
