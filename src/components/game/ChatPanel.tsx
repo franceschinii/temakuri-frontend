@@ -71,8 +71,7 @@ export function ChatPanel({ onSendMessage, myUserId }: ChatPanelProps) {
             animate={{ opacity: 1, x: 0, scale: 1 }}
             exit={{ opacity: 0, x: 20, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="fixed right-12 z-40 pointer-events-none"
-            style={{ top: 'calc(58% - 32px)' }}
+            className="fixed right-20 bottom-[5.5rem] z-40 pointer-events-none sm:right-12 sm:bottom-auto sm:top-[calc(58%-32px)]"
           >
             <div className="bg-[var(--color-panel)] border border-[var(--color-border)] rounded-xl px-3 py-2 shadow-xl max-w-[180px]">
               <span className="text-[9px] font-semibold text-[var(--color-accent-mid)] uppercase tracking-wider block">
@@ -100,18 +99,18 @@ export function ChatPanel({ onSendMessage, myUserId }: ChatPanelProps) {
         <MessageSquare size={13} className={unread > 0 ? 'text-[var(--color-accent-mid)]' : 'text-[var(--color-text-muted)]'} />
       </button>
 
-      {/* Mobile: botão fixo no canto inferior direito */}
+      {/* Mobile: bolinha flutuante no canto inferior direito */}
       <button
         onClick={() => setOpen(v => !v)}
-        className="sm:hidden fixed right-2 bottom-2 z-40 relative flex items-center justify-center bg-[var(--color-surface)]/90 backdrop-blur-sm border border-[var(--color-border)] rounded-xl p-2.5 shadow-lg hover:bg-[var(--color-panel)] transition-colors"
+        className="sm:hidden fixed right-4 bottom-20 z-40 w-12 h-12 flex items-center justify-center bg-[var(--color-accent-strong)] rounded-full shadow-xl active:scale-95 transition-transform"
         title="Chat"
       >
         {unread > 0 && (
-          <span className="absolute -top-1 -right-1 text-[9px] bg-[var(--color-accent-strong)] text-white rounded-full w-4 h-4 flex items-center justify-center font-mono leading-none">
+          <span className="absolute -top-1 -right-1 text-[9px] bg-[var(--color-danger)] text-white rounded-full w-4 h-4 flex items-center justify-center font-mono leading-none">
             {unread > 9 ? '9+' : unread}
           </span>
         )}
-        <MessageSquare size={14} className={unread > 0 ? 'text-[var(--color-accent-mid)]' : 'text-[var(--color-text-muted)]'} />
+        <MessageSquare size={18} className="text-white" />
       </button>
 
       {/* Backdrop */}
