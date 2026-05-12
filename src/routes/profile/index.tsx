@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Check, X, Loader2, Pencil, ShoppingBag } from 'lucide-react';
+import { ArrowLeft, Check, X, Loader2, Pencil, LogOut, ShoppingBag } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,6 +11,8 @@ import { RankBadge } from '@/components/ui/RankBadge';
 import { XpBar } from '@/components/ui/XpBar';
 import { CoinDisplay } from '@/components/ui/CoinDisplay';
 import { ShopModal } from '@/components/shop/ShopModal';
+import { AccessBar } from '@/components/ui/AccessBar';
+import { RulesDialog } from '@/components/game/RulesDialog';
 import { DevFooter } from '@/components/ui/DevFooter';
 import { useAuthStore } from '@/stores/authStore';
 import api from '@/lib/api';
@@ -116,17 +118,49 @@ export default function ProfilePage() {
 
   const stats = profile?.stats;
   const [shopOpen, setShopOpen] = useState(false);
+  const logout = useAuthStore(s => s.logout);
 
   return (
     <div className="min-h-dvh bg-[var(--color-base)] flex flex-col">
-      <header className="border-b border-[var(--color-border)] bg-[var(--color-surface)]/95 backdrop-blur-sm px-6 py-3 flex items-center gap-3 shrink-0">
+      <header className="sticky top-0 z-20 border-b border-[var(--color-border)] bg-[var(--color-surface)]/95 backdrop-blur-sm px-4 py-3 flex items-center justify-between shrink-0">
         <button
           onClick={() => navigate('/lobby')}
-          className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors"
+          className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors p-1.5 rounded-lg hover:bg-[var(--color-panel)]"
+          title="Voltar ao lobby"
         >
           <ArrowLeft size={18} />
         </button>
-        <h1 className="text-lg font-semibold text-[var(--color-text-primary)]">Perfil</h1>
+        <h1 className="text-base font-semibold text-[var(--color-text-primary)]">Perfil</h1>
+        <div className="flex items-center gap-0.5">
+          {/* Moedas */}
+          {!user?.isGuest && (
+            <span className="px-1">
+              <CoinDisplay amount={user?.coins ?? 0} size="sm" />
+            </span>
+          )}
+          {/* Loja */}
+          {!user?.isGuest && (
+            <button
+              onClick={() => setShopOpen(true)}
+              className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors p-1.5 rounded-lg hover:bg-[var(--color-panel)]"
+              title="Loja"
+            >
+              <ShoppingBag size={16} />
+            </button>
+          )}
+          {/* Ajuda */}
+          <RulesDialog />
+          {/* Som + Música */}
+          <AccessBar />
+          {/* Sair */}
+          <button
+            onClick={() => logout().then(() => navigate('/'))}
+            className="text-[var(--color-text-muted)] hover:text-[var(--color-danger)] transition-colors p-1.5 rounded-lg hover:bg-[var(--color-panel)]"
+            title="Sair"
+          >
+            <LogOut size={16} />
+          </button>
+        </div>
       </header>
 
       <main className="flex-1 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">

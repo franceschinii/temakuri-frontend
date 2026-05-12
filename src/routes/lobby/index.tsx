@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Search, HelpCircle, CreditCard, ArrowUpRight, RefreshCw, Flame, User, ShoppingBag } from 'lucide-react';
+import { Plus, Search, HelpCircle, CreditCard, ArrowUpRight, RefreshCw, Flame, User, ShoppingBag, LogOut } from 'lucide-react';
 import { DevFooter } from '@/components/ui/DevFooter';
 import { motion } from 'framer-motion';
 import { Logo } from '@/components/ui/Logo';
@@ -78,20 +78,24 @@ export default function LobbyPage() {
             Temakuri
           </span>
         </div>
-        <div className="flex items-center gap-1">
-          <AccessBar />
+        <div className="flex items-center gap-0.5">
+          {/* Moedas — só para registrados */}
           {!user?.isGuest && (
-            <>
+            <span className="px-1.5">
               <CoinDisplay amount={user?.coins ?? 0} size="sm" />
-              <button
-                onClick={() => setShopOpen(true)}
-                className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors p-1.5 rounded-lg hover:bg-[var(--color-panel)]"
-                title="Loja"
-              >
-                <ShoppingBag size={16} />
-              </button>
-            </>
+            </span>
           )}
+          {/* Loja */}
+          {!user?.isGuest && (
+            <button
+              onClick={() => setShopOpen(true)}
+              className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors p-1.5 rounded-lg hover:bg-[var(--color-panel)]"
+              title="Loja"
+            >
+              <ShoppingBag size={16} />
+            </button>
+          )}
+          {/* Ajuda */}
           <button
             onClick={() => setRulesOpen(true)}
             className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors p-1.5 rounded-lg hover:bg-[var(--color-panel)]"
@@ -99,22 +103,34 @@ export default function LobbyPage() {
           >
             <HelpCircle size={17} />
           </button>
+          {/* Som + Música */}
+          <AccessBar />
+          {/* Admin */}
           {user?.isAdmin && (
             <button
               onClick={() => navigate('/admin')}
-              className="text-xs text-[var(--color-warning)] hover:text-[var(--color-text-primary)] transition-colors px-2 py-1 rounded-lg hover:bg-[var(--color-panel)]"
+              className="text-xs text-[var(--color-warning)] hover:text-[var(--color-text-primary)] transition-colors px-2 py-1 rounded-lg hover:bg-[var(--color-panel)] hidden sm:block"
             >
               Admin
             </button>
           )}
+          {/* Perfil */}
           <button
             onClick={() => navigate('/profile')}
-            className="flex items-center gap-1.5 text-sm text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors px-2 py-1 rounded-lg hover:bg-[var(--color-panel)]"
+            className="flex items-center gap-1.5 text-sm text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors px-1.5 py-1.5 rounded-lg hover:bg-[var(--color-panel)]"
+            title={user?.username ?? 'Perfil'}
           >
-            <User size={14} />
-            {user?.username}
+            <User size={16} />
+            <span className="hidden sm:inline">{user?.username}</span>
           </button>
-          <Button variant="ghost" size="sm" onClick={() => logout().then(() => navigate('/'))}>Sair</Button>
+          {/* Sair */}
+          <button
+            onClick={() => logout().then(() => navigate('/'))}
+            className="text-[var(--color-text-muted)] hover:text-[var(--color-danger)] transition-colors p-1.5 rounded-lg hover:bg-[var(--color-panel)]"
+            title="Sair"
+          >
+            <LogOut size={16} />
+          </button>
         </div>
       </header>
 

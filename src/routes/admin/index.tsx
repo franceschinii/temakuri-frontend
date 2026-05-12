@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Pencil, KeyRound, Trash2, BarChart2, Search, X, Ban, Clock, ShieldCheck, Users, DoorOpen, UserX, RefreshCw } from 'lucide-react';
+import { ArrowLeft, Pencil, KeyRound, Trash2, BarChart2, Search, X, Ban, Clock, ShieldCheck, Users, DoorOpen, UserX, RefreshCw, TrendingUp } from 'lucide-react';
 import { Logo } from '@/components/ui/Logo';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,15 +22,25 @@ interface AdminUser {
   suspendedUntil: string | null;
   avatarIndex: number;
   createdAt: string;
+  xp: number;
+  level: number;
+  coins: number;
+  pds: number;
+  rankedWarnings: number;
+  rankedSuspendedUntil: string | null;
   stats: {
     gamesPlayed: number;
     gamesWon: number;
     saborTriggers: number;
     tricksWon: number;
   } | null;
+  inventory: {
+    unlockedAvatars: number[];
+    unlockedModes: string[];
+  } | null;
 }
 
-type ModalType = 'edit' | 'password' | 'stats' | 'delete' | 'moderation' | null;
+type ModalType = 'edit' | 'password' | 'stats' | 'delete' | 'moderation' | 'progression' | null;
 type FilterType = 'all' | 'registered' | 'guest' | 'admin' | 'banned' | 'suspended';
 type AdminTab = 'users' | 'rooms';
 
@@ -212,7 +222,7 @@ export default function AdminPage() {
                   <div key={room.id} className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4 flex flex-col gap-3">
                     <div className="flex items-center justify-between flex-wrap gap-2">
                       <div className="flex items-center gap-3">
-                        <span className="font-mono text-base font-bold text-[var(--color-accent-soft)] tracking-widest">{room.code}</span>
+                        <span className="font-mono text-base font-bold text-[var(--color-text-primary)] tracking-widest">{room.code ?? '—'}</span>
                         <span className={cn(
                           'text-[10px] px-2 py-0.5 rounded-full border font-medium',
                           room.status === 'WAITING' && 'text-[var(--color-accent-mid)] border-[var(--color-accent-mid)]/30 bg-[var(--color-accent-mid)]/10',
@@ -318,8 +328,9 @@ export default function AdminPage() {
                     <th className="text-left px-4 py-3 text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">Usuário</th>
                     <th className="text-left px-4 py-3 text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider hidden sm:table-cell">Email</th>
                     <th className="text-left px-4 py-3 text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider hidden md:table-cell">Tipo</th>
-                    <th className="text-right px-4 py-3 text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider hidden lg:table-cell">Partidas</th>
-                    <th className="text-right px-4 py-3 text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider hidden lg:table-cell">Vitórias</th>
+                    <th className="text-right px-4 py-3 text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider hidden lg:table-cell">Nível</th>
+                    <th className="text-right px-4 py-3 text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider hidden lg:table-cell">Moedas</th>
+                    <th className="text-right px-4 py-3 text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider hidden xl:table-cell">Partidas</th>
                     <th className="text-left px-4 py-3 text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider hidden xl:table-cell">Criado em</th>
                     <th className="px-4 py-3" />
                   </tr>
@@ -341,8 +352,9 @@ export default function AdminPage() {
                           {userTypeLabel(user)}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-right text-[var(--color-text-muted)] font-mono hidden lg:table-cell">{user.stats?.gamesPlayed ?? 0}</td>
-                      <td className="px-4 py-3 text-right text-[var(--color-text-muted)] font-mono hidden lg:table-cell">{user.stats?.gamesWon ?? 0}</td>
+                      <td className="px-4 py-3 text-right text-[var(--color-text-muted)] font-mono hidden lg:table-cell">{user.level ?? 1}</td>
+                      <td className="px-4 py-3 text-right text-[var(--color-text-muted)] font-mono hidden lg:table-cell">{user.coins ?? 0}</td>
+                      <td className="px-4 py-3 text-right text-[var(--color-text-muted)] font-mono hidden xl:table-cell">{user.stats?.gamesPlayed ?? 0}</td>
                       <td className="px-4 py-3 text-[var(--color-text-muted)] text-xs hidden xl:table-cell">{formatDate(user.createdAt)}</td>
                       <td className="px-4 py-3">
                         <div className="flex items-center justify-end gap-1">
@@ -352,6 +364,11 @@ export default function AdminPage() {
                           <button onClick={() => openModal('edit', user)} title="Editar" className="p-1.5 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-panel)] transition-colors">
                             <Pencil size={14} />
                           </button>
+                          {!user.isGuest && !user.isBot && (
+                            <button onClick={() => openModal('progression', user)} title="Progressão" className="p-1.5 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-accent-mid)] hover:bg-[var(--color-panel)] transition-colors">
+                              <TrendingUp size={14} />
+                            </button>
+                          )}
                           <button onClick={() => openModal('stats', user)} title="Stats" className="p-1.5 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-panel)] transition-colors">
                             <BarChart2 size={14} />
                           </button>
@@ -378,6 +395,7 @@ export default function AdminPage() {
       <EditUserModal open={modal.type === 'edit'} user={modal.user} onClose={closeModal} onSuccess={invalidate} />
       <ResetPasswordModal open={modal.type === 'password'} user={modal.user} onClose={closeModal} />
       <EditStatsModal open={modal.type === 'stats'} user={modal.user} onClose={closeModal} onSuccess={invalidate} />
+      <EditProgressionModal open={modal.type === 'progression'} user={modal.user} onClose={closeModal} onSuccess={invalidate} />
       <DeleteUserModal open={modal.type === 'delete'} user={modal.user} onClose={closeModal} onSuccess={invalidate} />
       <ModerationModal open={modal.type === 'moderation'} user={modal.user} onClose={closeModal} onSuccess={invalidate} />
       <DevFooter />
@@ -508,6 +526,125 @@ function DeleteUserModal({ open, user, onClose, onSuccess }: { open: boolean; us
         <Button variant="secondary" onClick={onClose} disabled={mutation.isPending}>Cancelar</Button>
         <Button variant="danger" onClick={() => mutation.mutate()} disabled={mutation.isPending}>Excluir</Button>
       </div>
+    </Modal>
+  );
+}
+
+const ALL_MODES = ['TRADITIONAL', 'MERCADO', 'RODIZIO', 'DEGUSTACAO'];
+
+function EditProgressionModal({ open, user, onClose, onSuccess }: { open: boolean; user: AdminUser | null; onClose: () => void; onSuccess: () => void }) {
+  const [xp, setXp] = useState('');
+  const [level, setLevel] = useState('');
+  const [coins, setCoins] = useState('');
+  const [pds, setPds] = useState('');
+  const [rankedWarnings, setRankedWarnings] = useState('');
+  const [clearSuspension, setClearSuspension] = useState(false);
+  const [grantAvatars, setGrantAvatars] = useState('');
+  const [revokeAvatars, setRevokeAvatars] = useState('');
+  const [grantModes, setGrantModes] = useState<string[]>([]);
+  const [revokeModes, setRevokeModes] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (open && user) {
+      setXp(String(user.xp ?? 0));
+      setLevel(String(user.level ?? 1));
+      setCoins(String(user.coins ?? 0));
+      setPds(String(user.pds ?? 0));
+      setRankedWarnings(String(user.rankedWarnings ?? 0));
+      setClearSuspension(false);
+      setGrantAvatars('');
+      setRevokeAvatars('');
+      setGrantModes([]);
+      setRevokeModes([]);
+    }
+  }, [open, user]);
+
+  const mutation = useMutation({
+    mutationFn: async () => {
+      const payload: Record<string, unknown> = {
+        xp: Number(xp),
+        level: Number(level),
+        coins: Number(coins),
+        pds: Number(pds),
+        rankedWarnings: Number(rankedWarnings),
+        clearRankedSuspension: clearSuspension,
+      };
+      if (grantAvatars.trim()) {
+        payload.grantAvatars = grantAvatars.split(',').map(s => Number(s.trim())).filter(n => !isNaN(n));
+      }
+      if (revokeAvatars.trim()) {
+        payload.revokeAvatars = revokeAvatars.split(',').map(s => Number(s.trim())).filter(n => !isNaN(n));
+      }
+      if (grantModes.length) payload.grantModes = grantModes;
+      if (revokeModes.length) payload.revokeModes = revokeModes;
+      await api.patch(`/admin/users/${user!.id}/progression`, payload);
+    },
+    onSuccess: () => { toast.success('Progressão atualizada'); onSuccess(); onClose(); },
+    onError: (e: any) => toast.error(e.response?.data?.message ?? 'Erro ao atualizar progressão'),
+  });
+
+  const unlockedModes = user?.inventory?.unlockedModes ?? ['TRADITIONAL'];
+  const unlockedAvatars = user?.inventory?.unlockedAvatars ?? [0, 1, 2, 3];
+
+  const toggleGrantMode = (m: string) => setGrantModes(prev => prev.includes(m) ? prev.filter(x => x !== m) : [...prev, m]);
+  const toggleRevokeMode = (m: string) => setRevokeModes(prev => prev.includes(m) ? prev.filter(x => x !== m) : [...prev, m]);
+
+  return (
+    <Modal open={open} onClose={onClose} title="Editar progressão" description={user?.username}>
+      <form onSubmit={e => { e.preventDefault(); mutation.mutate(); }} className="flex flex-col gap-4">
+
+        <div className="grid grid-cols-2 gap-3">
+          <Input label="XP total" type="number" min={0} value={xp} onChange={e => setXp(e.target.value)} />
+          <Input label="Nível" type="number" min={1} max={100} value={level} onChange={e => setLevel(e.target.value)} />
+          <Input label="Moedas" type="number" min={0} value={coins} onChange={e => setCoins(e.target.value)} />
+          <Input label="PDS" type="number" min={0} value={pds} onChange={e => setPds(e.target.value)} />
+          <Input label="Avisos ranked" type="number" min={0} max={10} value={rankedWarnings} onChange={e => setRankedWarnings(e.target.value)} />
+        </div>
+
+        <label className="flex items-center gap-2 text-sm text-[var(--color-text-muted)] cursor-pointer">
+          <input type="checkbox" checked={clearSuspension} onChange={e => setClearSuspension(e.target.checked)} className="accent-[var(--color-accent-strong)]" />
+          Limpar suspensão ranked
+          {user?.rankedSuspendedUntil && new Date(user.rankedSuspendedUntil) > new Date() && (
+            <span className="text-xs text-[var(--color-danger)]">(até {formatDate(user.rankedSuspendedUntil)})</span>
+          )}
+        </label>
+
+        <div className="flex flex-col gap-2">
+          <p className="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">Modos desbloqueados</p>
+          <div className="flex flex-wrap gap-1.5">
+            {ALL_MODES.map(m => (
+              <span key={m} className={cn('text-xs px-2 py-1 rounded-lg border', unlockedModes.includes(m) ? 'text-[var(--color-accent-mid)] border-[var(--color-accent-mid)]/30 bg-[var(--color-accent-mid)]/10' : 'text-[var(--color-text-muted)] border-[var(--color-border)]')}>
+                {m}
+              </span>
+            ))}
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {ALL_MODES.filter(m => !unlockedModes.includes(m)).map(m => (
+              <button key={m} type="button" onClick={() => toggleGrantMode(m)} className={cn('text-xs px-2 py-1 rounded-lg border transition-all', grantModes.includes(m) ? 'text-[var(--color-accent-mid)] border-[var(--color-accent-mid)] bg-[var(--color-accent-mid)]/15' : 'text-[var(--color-text-muted)] border-[var(--color-border)] hover:border-[var(--color-accent-mid)]')}>
+                + {m}
+              </button>
+            ))}
+            {ALL_MODES.filter(m => unlockedModes.includes(m) && m !== 'TRADITIONAL').map(m => (
+              <button key={m} type="button" onClick={() => toggleRevokeMode(m)} className={cn('text-xs px-2 py-1 rounded-lg border transition-all', revokeModes.includes(m) ? 'text-[var(--color-danger)] border-[var(--color-danger)] bg-[var(--color-danger)]/10' : 'text-[var(--color-text-muted)] border-[var(--color-border)] hover:border-[var(--color-danger)]')}>
+                − {m}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <p className="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">Avatares desbloqueados: {unlockedAvatars.join(', ')}</p>
+          <div className="grid grid-cols-2 gap-3">
+            <Input label="Conceder avatares (índices, ex: 4,5)" value={grantAvatars} onChange={e => setGrantAvatars(e.target.value)} placeholder="ex: 4,5" />
+            <Input label="Revogar avatares (índices, ex: 6)" value={revokeAvatars} onChange={e => setRevokeAvatars(e.target.value)} placeholder="ex: 6" />
+          </div>
+        </div>
+
+        <div className="flex gap-2 justify-end pt-2">
+          <Button variant="secondary" type="button" onClick={onClose}>Cancelar</Button>
+          <Button type="submit" disabled={mutation.isPending}>Salvar</Button>
+        </div>
+      </form>
     </Modal>
   );
 }

@@ -99,13 +99,17 @@ export default function RoomPage() {
     toast.error(message);
   }, []));
 
-  // Detecta entrada como espectador quando sala está em andamento
+  // Detecta entrada como espectador quando sala está em andamento e redireciona direto para o jogo
   useEffect(() => {
-    const currentUser = user;
-    if (!currentUser || !room) return;
-    const me = room.players.find(p => p.userId === currentUser.id);
-    if (me?.isSpectator) setIsSpectator(true);
-  }, [room, user]);
+    if (!user || !room) return;
+    const me = room.players.find(p => p.userId === user.id);
+    if (me?.isSpectator) {
+      setIsSpectator(true);
+      if (room.status === 'IN_PROGRESS') {
+        navigate(`/game/${roomCode}`, { replace: true });
+      }
+    }
+  }, [room, user, roomCode, navigate]);
 
   // Quando sala volta ao estado WAITING (após reset), sai do modo espectador
   useSocketEvent<{ room: RoomPublicState }>('lobby:room_updated', useCallback(({ room: updatedRoom }) => {
@@ -113,21 +117,6 @@ export default function RoomPage() {
   }, []));
 
   if (isError) return null;
-
-  // Tela de espera para espectadores que entraram com partida em andamento
-  if (room && isSpectator && room.status === 'IN_PROGRESS') {
-    return (
-      <div className="h-dvh bg-[var(--color-base)] flex flex-col items-center justify-center gap-4 px-6">
-        <div className="flex flex-col items-center gap-3 text-center max-w-xs">
-          <div className="w-8 h-8 rounded-full border-2 border-[var(--color-accent-strong)] border-t-transparent animate-spin" />
-          <span className="text-lg font-semibold text-[var(--color-text-primary)]">Partida em andamento</span>
-          <span className="text-sm text-[var(--color-text-muted)]">
-            Aguardando a próxima rodada para entrar...
-          </span>
-        </div>
-      </div>
-    );
-  }
 
   if (!room || isLoading) return (
     <div className="h-dvh flex items-center justify-center bg-[var(--color-base)] overflow-hidden">
@@ -198,12 +187,17 @@ export default function RoomPage() {
             Temakuri
           </span>
         </div>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-0.5">
           <RulesDialog />
           <AccessBar />
-          <Button variant="ghost" size="sm" onClick={handleLeave}>
-            <LogOut size={14} /> Sair da sala
-          </Button>
+          <button
+            onClick={handleLeave}
+            className="flex items-center gap-1.5 text-sm text-[var(--color-text-muted)] hover:text-[var(--color-danger)] transition-colors p-1.5 rounded-lg hover:bg-[var(--color-panel)]"
+            title="Sair da sala"
+          >
+            <LogOut size={16} />
+            <span className="hidden sm:inline">Sair</span>
+          </button>
         </div>
       </header>
 
