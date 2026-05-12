@@ -222,15 +222,17 @@ export default function LandingPage() {
 
         </div>
 
-        <p className="text-[9px] text-[var(--color-text-muted)] opacity-50 tracking-wide">
-          desenvolvido por{' '}
-          <a
-            href="mailto:contato@andrefranceschini.com.br"
-            className="hover:text-[var(--color-text-primary)] transition-colors"
-          >
-            contato@andrefranceschini.com.br
-          </a>
-        </p>
+        <div className="flex items-center justify-between w-full max-w-6xl">
+          <span className="text-[10px] text-[var(--color-text-muted)] opacity-40 tracking-widest" style={{ fontFamily: 'var(--font-display)' }}>
+            寿司 · 拉麺 · 餃子
+          </span>
+          <div className="flex items-center gap-3">
+            <span className="text-[10px] text-[var(--color-text-muted)] opacity-40">Desenvolvido por André Franceschini</span>
+            <a href="mailto:contato@andrefranceschini.com.br" className="text-[10px] text-[var(--color-text-muted)] opacity-40 hover:opacity-80 hover:text-[var(--color-accent-mid)] transition-all">
+              contato@andrefranceschini.com.br
+            </a>
+          </div>
+        </div>
 
       </div>
       </div>

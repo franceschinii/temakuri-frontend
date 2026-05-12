@@ -18,6 +18,7 @@ import { cn } from '@/lib/utils';
 import { startMusic, stopMusic } from '@/lib/music';
 import { playSound } from '@/lib/sounds';
 import { RulesDialog } from '@/components/game/RulesDialog';
+import { DevFooter } from '@/components/ui/DevFooter';
 
 export default function RoomPage() {
   useEffect(() => {
@@ -361,6 +362,8 @@ export default function RoomPage() {
         </motion.div>
         </div>
       </main>
+
+      <DevFooter />
 
       {/* Game starting countdown overlay */}
       <AnimatePresence>

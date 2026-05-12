@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Search, HelpCircle, CreditCard, Hand, ArrowUpRight, RefreshCw, Flame } from 'lucide-react';
+import { DevFooter } from '@/components/ui/DevFooter';
 import { motion } from 'framer-motion';
 import { Logo } from '@/components/ui/Logo';
 import { Button } from '@/components/ui/button';
@@ -171,6 +172,8 @@ export default function LobbyPage() {
         </div>
         </div>
       </main>
+
+      <DevFooter />
 
       <CreateRoomModal open={createOpen} onClose={() => setCreateOpen(false)} />
 
