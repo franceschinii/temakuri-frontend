@@ -283,7 +283,7 @@ export default function RoomPage() {
                     </div>
 
                     <div className="flex items-center justify-between">
-                      <TokenDisplay tokens={INITIAL_TOKENS} size="sm" />
+                      <TokenDisplay tokens={room.initialTokens ?? 2} size="sm" />
                       {isReady && !p.isBot && (
                         <span className="text-[10px] text-[var(--color-accent-mid)] font-medium uppercase tracking-wide">
                           pronto

@@ -53,7 +53,7 @@ export function PlayArea({ pile, drawPileCount, discardPile, saborActive, saborM
   const topDiscard = discardPile[discardPile.length - 1];
 
   return (
-    <div className="flex items-start justify-center gap-3 w-full max-w-md px-2">
+    <div className="flex items-start justify-center gap-3 w-full px-2">
       {/* Draw pile (left) */}
       <PileStack count={drawPileCount} label="Monte" />
 
@@ -62,7 +62,7 @@ export function PlayArea({ pile, drawPileCount, discardPile, saborActive, saborM
 
       {/* Active play area (center) */}
       <div className={cn(
-        'flex-1 min-h-28 sm:min-h-32 rounded-xl border-2 flex flex-col items-center justify-center gap-2 p-2 sm:p-3 transition-all',
+        'flex-1 min-h-28 sm:min-h-32 min-w-[280px] rounded-xl border-2 flex flex-col items-start justify-center gap-2 p-2 sm:p-3 transition-all',
         pile.length === 0
           ? 'border-dashed border-[var(--color-border)]'
           : saborActive
@@ -70,14 +70,14 @@ export function PlayArea({ pile, drawPileCount, discardPile, saborActive, saborM
             : 'border-[var(--color-border)] bg-[var(--color-surface)]',
       )}>
         {pile.length === 0 ? (
-          <p className="text-[var(--color-text-muted)] text-xs text-center">Mesa vazia</p>
+          <p className="text-[var(--color-text-muted)] text-xs w-full text-center">Mesa vazia</p>
         ) : (
           <>
-            <p className="text-[10px] text-[var(--color-text-muted)] text-center">
+            <p className="text-[10px] text-[var(--color-text-muted)]">
               {pile.length} carta{pile.length > 1 ? 's' : ''} • valor {pile[0]?.value}
               {consecutivePasses > 0 && ` • ${consecutivePasses} pas${consecutivePasses > 1 ? 'ses' : 'se'}`}
             </p>
-            <div className="flex gap-1.5 flex-wrap justify-center">
+            <div className="flex gap-1.5 flex-wrap justify-start">
               <AnimatePresence>
                 {pile.map((card) => (
                   <motion.div

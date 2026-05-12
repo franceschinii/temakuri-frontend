@@ -125,7 +125,8 @@ export function GameBoard() {
     setTimerKey(k => k + 1);
     setPickMode(false);
     setDrawnCard(null);
-    setTrickPickOpen(false);
+    // Não fechar o TrickPickModal aqui — ele fecha quando o jogador confirma a ação
+    // para evitar que o modal desapareça antes de o jogador escolher a posição
     hasSubmittedPickRef.current = false;
     // Resyncs if hand appears empty mid-game (lost game:your_hand event)
     const { myHand, phase } = useGameStore.getState();
@@ -214,10 +215,18 @@ export function GameBoard() {
     setTrickPickOpen(true);
   }, []));
 
-  useSocketEvent<{ userId: string; action: 'take' | 'discard'; discardedCards: Card[] }>('game:trick_pick_result', useCallback(({ action, discardedCards }) => {
+  useSocketEvent<{ userId: string; action: 'take' | 'discard'; discardedCards: Card[]; takenCount?: number }>('game:trick_pick_result', useCallback(({ userId, action, discardedCards, takenCount }) => {
     if (action === 'discard' && discardedCards.length > 0) {
       addToDiscardPile(discardedCards);
     }
+    if (action === 'take' && takenCount != null) {
+      useGameStore.setState(s => ({
+        players: s.players.map(p =>
+          p.userId === userId ? { ...p, cardCount: p.cardCount + takenCount } : p,
+        ),
+      }));
+    }
+    setTrickPickOpen(false);
   }, [addToDiscardPile]));
 
   useSocketEvent<{ plates: Card[] }>('game:duel_pass_offer', useCallback(({ plates }) => {

@@ -22,6 +22,7 @@ const schema = z.object({
   mode: z.string(),
   maxPlayers: z.coerce.number().min(2).max(6),
   isPrivate: z.boolean(),
+  initialTokens: z.coerce.number().min(1).max(3),
 });
 type FormValues = z.infer<typeof schema>;
 
@@ -36,7 +37,7 @@ export function CreateRoomModal({ open, onClose }: CreateRoomModalProps) {
   const [handBias, setHandBias] = useState(0);
   const { register, handleSubmit, watch } = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { mode: 'TRADITIONAL', maxPlayers: 4, isPrivate: true },
+    defaultValues: { mode: 'TRADITIONAL', maxPlayers: 4, isPrivate: true, initialTokens: 2 },
   });
 
   const selectedMode = watch('mode');
@@ -44,7 +45,7 @@ export function CreateRoomModal({ open, onClose }: CreateRoomModalProps) {
   const onSubmit = async (values: FormValues) => {
     setLoading(true);
     try {
-      const { data } = await api.post('/rooms', { ...values, handBias });
+      const { data } = await api.post('/rooms', { ...values, handBias, initialTokens: values.initialTokens });
       onClose();
       navigate(`/lobby/${data.code}`);
     } catch (e: any) {
@@ -83,13 +84,23 @@ export function CreateRoomModal({ open, onClose }: CreateRoomModalProps) {
           </div>
         </div>
 
-        <div className="flex gap-3 items-center">
+        <div className="flex gap-3 items-center flex-wrap">
           <label className="text-sm text-[var(--color-text-muted)]">Jogadores:</label>
           <select
             {...register('maxPlayers')}
             className="bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text-primary)] rounded-lg px-3 py-1.5 text-sm"
           >
             {[2, 3, 4, 5, 6].map(n => <option key={n} value={n}>{n}</option>)}
+          </select>
+
+          <label className="text-sm text-[var(--color-text-muted)]">Vidas:</label>
+          <select
+            {...register('initialTokens')}
+            className="bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text-primary)] rounded-lg px-3 py-1.5 text-sm"
+          >
+            <option value={1}>1 prato</option>
+            <option value={2}>2 pratos</option>
+            <option value={3}>3 pratos</option>
           </select>
 
           <label className="flex items-center gap-2 text-sm text-[var(--color-text-muted)] cursor-pointer ml-auto">

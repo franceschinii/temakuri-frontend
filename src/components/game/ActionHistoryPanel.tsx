@@ -12,6 +12,7 @@ const TYPE_COLOR: Record<LogEntry['type'], string> = {
   round_end: 'text-[var(--color-danger)]',
   chat: 'text-[var(--color-text-primary)]',
   system: 'text-[var(--color-text-muted)]',
+  info: 'text-[var(--color-text-muted)]',
 };
 
 const TYPE_ICON: Record<LogEntry['type'], string> = {
@@ -22,6 +23,7 @@ const TYPE_ICON: Record<LogEntry['type'], string> = {
   round_end: '🏁',
   chat: '💬',
   system: '📢',
+  info: 'ℹ️',
 };
 
 const IDLE_OPACITY = 0.22;

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -18,15 +18,11 @@ export function TrickPickModal({ open, pile, myHand, onTake, onDiscard }: TrickP
   const [step, setStep] = useState<'choose' | 'insert'>('choose');
   const [hoveredInsert, setHoveredInsert] = useState<number | null>(null);
 
-  // Resetar step quando o modal abre/fecha
-  const handleOpen = (isOpen: boolean) => {
-    if (isOpen) setStep('choose');
-  };
+  useEffect(() => {
+    if (open) setStep('choose');
+  }, [open]);
 
   if (!open) return null;
-
-  // Garantir que handleOpen seja chamado quando open muda
-  // (controlado pelo pai via prop)
 
   return createPortal(
     <AnimatePresence onExitComplete={() => setStep('choose')}>
