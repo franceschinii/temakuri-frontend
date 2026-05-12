@@ -12,6 +12,7 @@ const RoomPage            = lazy(() => import('@/routes/lobby/room'));
 const GamePage            = lazy(() => import('@/routes/game/index'));
 const ProfilePage         = lazy(() => import('@/routes/profile/index'));
 const AdminPage           = lazy(() => import('@/routes/admin/index'));
+const RankedPage          = lazy(() => import('@/routes/ranked/index'));
 
 function PageLoader() {
   return (
@@ -91,6 +92,7 @@ export default function App() {
           <Route path="/lobby/:roomCode" element={<RoomPage />} />
           <Route path="/game/:roomCode" element={<GamePage />} />
           <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/ranked" element={<RankedPage />} />
         </Route>
 
         <Route element={<AdminGuard />}>

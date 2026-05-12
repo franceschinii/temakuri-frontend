@@ -28,7 +28,8 @@ import { CardComponent } from './CardComponent';
 import { TrickPickModal } from './TrickPickModal';
 import { DuelPassPickModal } from './DuelPassPickModal';
 import { MedalBadge } from '@/components/ui/MedalBadge';
-import { AvatarImage } from '@/components/ui/Avatar';
+import { AvatarWithBorder } from '@/components/ui/Avatar';
+import { LevelBadge } from '@/components/ui/LevelBadge';
 import type { Card, ClientGameState, GameRanking, GameStats, RoomPublicState } from '@/types/game';
 import { validatePlayIndicesClient } from '@/lib/gameRules';
 import { playSound } from '@/lib/sounds';
@@ -110,6 +111,9 @@ export function GameBoard() {
     if (state.phase !== 'PASS_PICK' || hasSubmittedPickRef.current) {
       setPickMode(false);
       setDrawnCard(null);
+    }
+    if (state.phase !== 'DUEL_PASS_PICK') {
+      setDuelPickOpen(false);
     }
     setMarketSwapMode(false);
     setSelectedHandIndexForSwap(null);
@@ -261,6 +265,17 @@ export function GameBoard() {
       players: s.players.map(p => p.userId === userId ? { ...p, cardCount: 0 } : p),
     }));
   }, []));
+
+  useSocketEvent<{ userId: string; plateIndex: number; action: 'insert' | 'discard'; remainingPlates: Card[]; drawnCard: Card | null }>('game:duel_plate_used', useCallback(({ userId, remainingPlates }) => {
+    useGameStore.setState(s => {
+      const newDuelPlates = s.duelPlates ? { ...s.duelPlates, [userId]: remainingPlates } : null;
+      const isMe = userId === user?.id;
+      return {
+        duelPlates: newDuelPlates,
+        myDuelPlates: isMe ? remainingPlates : s.myDuelPlates,
+      };
+    });
+  }, [user?.id]));
 
   useSocketEvent<{ code: string; message: string }>('game:error', useCallback(({ message }) => {
     toast.error(message);
@@ -526,12 +541,11 @@ export function GameBoard() {
         {/* Info bar */}
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-full overflow-hidden shrink-0 ring-1 ring-[var(--color-border)]">
-              <AvatarImage index={me?.avatarIndex ?? 0} size={24} />
-            </div>
+            <AvatarWithBorder index={me?.avatarIndex ?? 0} level={me?.level ?? 1} size={24} />
             <span className="text-sm font-semibold text-[var(--color-text-primary)]">
               {me?.username ?? 'Você'}
             </span>
+            <LevelBadge level={me?.level ?? 1} size="xs" />
             <MedalBadge count={me?.sessionWins ?? 0} />
             {isMyTurn && (
               <span className="text-xs px-1.5 py-0.5 rounded bg-[var(--color-accent-strong)] text-[var(--color-text-primary)] font-medium">

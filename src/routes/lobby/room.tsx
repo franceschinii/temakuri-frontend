@@ -7,7 +7,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/ui/Logo';
 import { TokenDisplay } from '@/components/game/TokenDisplay';
-import { AvatarImage } from '@/components/ui/Avatar';
+import { AvatarWithBorder } from '@/components/ui/Avatar';
+import { LevelBadge } from '@/components/ui/LevelBadge';
+import { RankBadge } from '@/components/ui/RankBadge';
 import { useAuthStore } from '@/stores/authStore';
 import { useLobbyStore } from '@/stores/lobbyStore';
 import { useSocketEvent, emitSocketEvent } from '@/hooks/useSocket';
@@ -275,15 +277,10 @@ export default function RoomPage() {
 
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2 min-w-0">
-                        <div className={cn(
-                          'w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 overflow-hidden',
-                          isReady
-                            ? 'ring-2 ring-[var(--color-accent-strong)]'
-                            : 'ring-1 ring-[var(--color-border)]',
-                        )}>
+                        <div className="shrink-0">
                           {p.isBot
-                            ? <div className="w-full h-full bg-[var(--color-panel)] flex items-center justify-center"><Bot size={13} className="text-[var(--color-accent-soft)]" /></div>
-                            : <AvatarImage index={p.avatarIndex ?? 0} size={32} />
+                            ? <div className="w-8 h-8 rounded-full bg-[var(--color-panel)] flex items-center justify-center ring-1 ring-[var(--color-border)]"><Bot size={13} className="text-[var(--color-accent-soft)]" /></div>
+                            : <AvatarWithBorder index={p.avatarIndex ?? 0} level={p.level ?? 1} size={32} />
                           }
                         </div>
                         <div className="min-w-0">
@@ -294,11 +291,13 @@ export default function RoomPage() {
                             {p.userId === room.hostId && (
                               <Crown size={11} className="text-[var(--color-token-gold)] shrink-0" />
                             )}
+                            {!p.isBot && <LevelBadge level={p.level ?? 1} size="xs" />}
                             <MedalBadge count={p.sessionWins ?? 0} />
                           </div>
-                          {p.isBot && (
-                            <span className="text-[9px] text-[var(--color-text-muted)] uppercase tracking-wider">bot</span>
-                          )}
+                          {p.isBot
+                            ? <span className="text-[9px] text-[var(--color-text-muted)] uppercase tracking-wider">bot</span>
+                            : <RankBadge pds={p.pds ?? 0} size="sm" showPds={false} />
+                          }
                         </div>
                       </div>
 

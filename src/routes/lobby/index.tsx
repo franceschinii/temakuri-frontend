@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Search, HelpCircle, CreditCard, ArrowUpRight, RefreshCw, Flame, User, ShoppingBag, LogOut, Swords, Wine } from 'lucide-react';
+import { Plus, Search, HelpCircle, CreditCard, ArrowUpRight, RefreshCw, Flame, User, ShoppingBag, LogOut, Swords, Wine, Trophy } from 'lucide-react';
 import { DevFooter } from '@/components/ui/DevFooter';
 import { AdBanner } from '@/components/ui/AdBanner';
 import { motion } from 'framer-motion';
@@ -171,6 +171,9 @@ export default function LobbyPage() {
               <Swords size={15} /> Buscar
             </Button>
           )}
+          <Button variant="outline" onClick={() => navigate('/ranked')} className="shrink-0">
+            <Trophy size={15} /> Ranking
+          </Button>
         </motion.div>
 
         {/* Room list */}

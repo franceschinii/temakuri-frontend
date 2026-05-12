@@ -7,7 +7,7 @@ export function DevFooter() {
           <span className="text-[10px] text-[var(--color-text-muted)] opacity-40 tracking-widest" style={{ fontFamily: 'var(--font-display)' }}>
             寿司 · 拉麺 · 餃子
           </span>
-          <span className="text-[10px] text-[var(--color-text-muted)] opacity-25 font-mono">v0.1.0 beta</span>
+          <span className="text-[10px] text-[var(--color-text-muted)] opacity-25 font-mono">v0.2.0-beta</span>
         </div>
         <div className="flex items-center justify-between">
           <span className="text-[10px] text-[var(--color-text-muted)] opacity-40">André Franceschini</span>
@@ -21,15 +21,19 @@ export function DevFooter() {
       </div>
       {/* Desktop: uma linha */}
       <div className="hidden sm:flex items-center justify-between">
-        <span className="text-[10px] text-[var(--color-text-muted)] opacity-40 tracking-widest" style={{ fontFamily: 'var(--font-display)' }}>
-          寿司 · 拉麺 · 餃子
-        </span>
-        <div className="flex items-center gap-3">
-          <span className="text-[10px] text-[var(--color-text-muted)] opacity-25 font-mono">v0.1.0 beta</span>
-          <span className="text-[10px] text-[var(--color-text-muted)] opacity-40">Desenvolvido por André Franceschini</span>
+        <div className="flex items-center gap-1.5 opacity-40">
+          <span className="text-[10px] text-[var(--color-text-muted)] tracking-widest" style={{ fontFamily: 'var(--font-display)' }}>
+            寿司 · 拉麺 · 餃子
+          </span>
+          <span className="text-[10px] text-[var(--color-text-muted)]">·</span>
+          <span className="text-[10px] text-[var(--color-text-muted)] font-mono opacity-70">v0.2.0-beta</span>
+        </div>
+        <div className="flex items-center gap-2 opacity-40">
+          <span className="text-[10px] text-[var(--color-text-muted)]">Desenvolvido por André Franceschini</span>
+          <span className="text-[10px] text-[var(--color-text-muted)]">·</span>
           <a
             href="mailto:contato@andrefranceschini.com.br"
-            className="text-[10px] text-[var(--color-text-muted)] opacity-40 hover:opacity-80 hover:text-[var(--color-accent-mid)] transition-all"
+            className="text-[10px] text-[var(--color-text-muted)] hover:opacity-100 hover:text-[var(--color-accent-mid)] transition-all"
           >
             contato@andrefranceschini.com.br
           </a>
