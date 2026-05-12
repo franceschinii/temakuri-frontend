@@ -3,6 +3,7 @@ import { TokenDisplay } from './TokenDisplay';
 import { MedalBadge } from '@/components/ui/MedalBadge';
 import { AvatarWithBorder } from '@/components/ui/Avatar';
 import { LevelBadge } from '@/components/ui/LevelBadge';
+import { RankBadge } from '@/components/ui/RankBadge';
 import type { PublicPlayerState } from '@/types/game';
 import { cn } from '@/lib/utils';
 
@@ -29,33 +30,40 @@ export function OpponentRow({ player, isCurrentTurn }: OpponentRowProps) {
         )}>
           <AvatarWithBorder index={player.avatarIndex ?? 0} level={player.level ?? 1} size={28} />
         </div>
-        <span
-          className={cn(
-            'text-xs font-medium truncate max-w-[4.5rem] sm:max-w-24',
-            (player.pds ?? 0) >= 4000 ? 'text-[var(--color-danger)]' :
-            isCurrentTurn ? 'text-[var(--color-accent-soft)]' : 'text-[var(--color-text-muted)]',
-          )}
-          title={player.username}
-        >
-          {player.username}
-        </span>
-        {(player.level ?? 1) >= 10 && <LevelBadge level={player.level ?? 1} size="xs" />}
-        <MedalBadge count={player.sessionWins ?? 0} />
-        {player.isAdmin && (
-          <span
-            className="text-[8px] font-bold uppercase tracking-wider px-1 py-0.5 rounded-full shrink-0"
-            style={{
-              background: 'var(--color-accent-mid)1a',
-              color: 'var(--color-accent-mid)',
-              border: '1px solid var(--color-accent-mid)33',
-            }}
-          >
-            Admin
-          </span>
-        )}
-        {!player.isConnected && (
-          <span className="text-[9px] text-[var(--color-danger)] shrink-0">●</span>
-        )}
+        <div className="flex flex-col items-start min-w-0">
+          <div className="flex items-center gap-1">
+            <span
+              className={cn(
+                'text-xs font-medium truncate max-w-[4.5rem] sm:max-w-20',
+                (player.pds ?? 0) >= 4000 ? 'text-[var(--color-danger)]' :
+                isCurrentTurn ? 'text-[var(--color-accent-soft)]' : 'text-[var(--color-text-muted)]',
+              )}
+              title={player.username}
+            >
+              {player.username}
+            </span>
+            <MedalBadge count={player.sessionWins ?? 0} />
+            {!player.isConnected && (
+              <span className="text-[9px] text-[var(--color-danger)] shrink-0">●</span>
+            )}
+          </div>
+          <div className="flex items-center gap-1 flex-wrap">
+            <LevelBadge level={player.level ?? 1} size="xs" />
+            <RankBadge pds={player.pds ?? 0} size="sm" showPds={false} />
+            {player.isAdmin && (
+              <span
+                className="text-[8px] font-bold uppercase tracking-wider px-1 py-0.5 rounded-full shrink-0"
+                style={{
+                  background: 'var(--color-accent-mid)1a',
+                  color: 'var(--color-accent-mid)',
+                  border: '1px solid var(--color-accent-mid)33',
+                }}
+              >
+                Admin
+              </span>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Tokens */}

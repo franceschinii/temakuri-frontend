@@ -69,7 +69,8 @@ export default function RegisterPage() {
       </div>
 
       {/* Right panel — form */}
-      <div className="flex flex-1 flex-col items-center justify-center p-6 sm:p-10 relative">
+      <div className="flex flex-1 flex-col relative">
+        <div className="flex flex-1 flex-col items-center justify-center p-6 sm:p-10 relative">
         <div className="fixed inset-0 pointer-events-none lg:hidden">
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] rounded-full bg-[var(--color-accent-strong)]/8 blur-[100px]" />
         </div>
@@ -149,8 +150,9 @@ export default function RegisterPage() {
             </Link>
           </div>
         </motion.div>
+        </div>
+        <DevFooter />
       </div>
-      <DevFooter />
     </div>
   );
 }
