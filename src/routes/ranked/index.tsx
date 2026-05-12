@@ -10,6 +10,7 @@ import { RankBadge } from '@/components/ui/RankBadge';
 import { useAuthStore } from '@/stores/authStore';
 import { RANK_COLORS, RANK_LABELS, type GameRank } from '@/types/api';
 import { rankFromPds } from '@/lib/xpUtils';
+import { RankIcon } from '@/components/ui/RankIcon';
 import api from '@/lib/api';
 
 interface LeaderboardEntry {
@@ -30,17 +31,16 @@ interface LeaderboardMeResponse {
 
 const RANK_TIERS: {
   key: GameRank;
-  icon: string;
   min: number;
   max: number | null;
 }[] = [
-  { key: 'Bronze',     icon: '🥉', min: 0,    max: 199  },
-  { key: 'Prata',      icon: '🥈', min: 200,  max: 499  },
-  { key: 'Ouro',       icon: '🥇', min: 500,  max: 999  },
-  { key: 'Platina',    icon: '💎', min: 1000, max: 1799 },
-  { key: 'Diamante',   icon: '💠', min: 1800, max: 2799 },
-  { key: 'Esmeralda',  icon: '💚', min: 2800, max: 3999 },
-  { key: 'SuperSabor', icon: '🍣', min: 4000, max: null },
+  { key: 'Bronze',     min: 0,    max: 199  },
+  { key: 'Prata',      min: 200,  max: 499  },
+  { key: 'Ouro',       min: 500,  max: 999  },
+  { key: 'Platina',    min: 1000, max: 1799 },
+  { key: 'Diamante',   min: 1800, max: 2799 },
+  { key: 'Esmeralda',  min: 2800, max: 3999 },
+  { key: 'SuperSabor', min: 4000, max: null },
 ];
 
 const TOP3_MEDALS = ['🥇', '🥈', '🥉'];
@@ -121,7 +121,7 @@ export default function RankedPage() {
                       background: isCurrentRank ? `${color}12` : 'var(--color-surface)',
                     }}
                   >
-                    <span className="text-lg leading-none">{tier.icon}</span>
+                    <RankIcon rank={tier.key} size={22} />
                     <div className="flex flex-col min-w-0">
                       <span
                         className="text-xs font-semibold leading-tight truncate"

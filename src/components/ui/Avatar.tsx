@@ -244,9 +244,10 @@ interface AvatarWithBorderProps {
 }
 
 export function AvatarWithBorder({ index, level, size = 80, className }: AvatarWithBorderProps) {
+  const innerSize = size - 4; // 2px padding each side
   return (
     <LevelBorder level={level} size={size}>
-      <AvatarImage index={index} size={size} className={className} />
+      <AvatarImage index={index} size={innerSize} className={className} />
     </LevelBorder>
   );
 }

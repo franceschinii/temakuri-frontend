@@ -41,6 +41,18 @@ export function OpponentRow({ player, isCurrentTurn }: OpponentRowProps) {
         </span>
         {(player.level ?? 1) >= 10 && <LevelBadge level={player.level ?? 1} size="xs" />}
         <MedalBadge count={player.sessionWins ?? 0} />
+        {player.isAdmin && (
+          <span
+            className="text-[8px] font-bold uppercase tracking-wider px-1 py-0.5 rounded-full shrink-0"
+            style={{
+              background: 'var(--color-accent-mid)1a',
+              color: 'var(--color-accent-mid)',
+              border: '1px solid var(--color-accent-mid)33',
+            }}
+          >
+            Admin
+          </span>
+        )}
         {!player.isConnected && (
           <span className="text-[9px] text-[var(--color-danger)] shrink-0">●</span>
         )}

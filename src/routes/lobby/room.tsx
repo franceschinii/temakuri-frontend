@@ -130,6 +130,7 @@ export default function RoomPage() {
   );
 
   const isHost = room.hostId === user?.id;
+  const isMatchmakingRoom = !room.isPrivate;
   const mode = GAME_MODES.find(m => m.value === room.mode);
   const allSlotsReady = room.players.filter(p => !p.isBot).every(p => readyMap[p.userId]);
   const humanPlayers = room.players.filter(p => !p.isBot);
@@ -291,12 +292,28 @@ export default function RoomPage() {
                             {p.userId === room.hostId && (
                               <Crown size={11} className="text-[var(--color-token-gold)] shrink-0" />
                             )}
-                            {!p.isBot && <LevelBadge level={p.level ?? 1} size="xs" />}
                             <MedalBadge count={p.sessionWins ?? 0} />
                           </div>
                           {p.isBot
                             ? <span className="text-[9px] text-[var(--color-text-muted)] uppercase tracking-wider">bot</span>
-                            : <RankBadge pds={p.pds ?? 0} size="sm" showPds={false} />
+                            : <div className="flex flex-col gap-0.5 mt-0.5">
+                                <div className="flex items-center gap-1.5">
+                                  <LevelBadge level={p.level ?? 1} size="xs" />
+                                  <RankBadge pds={p.pds ?? 0} size="sm" showPds={room.isRanked} />
+                                </div>
+                                {p.isAdmin && (
+                                  <span
+                                    className="text-[8px] font-bold uppercase tracking-wider px-1 py-0.5 rounded-full w-fit"
+                                    style={{
+                                      background: 'var(--color-accent-mid)1a',
+                                      color: 'var(--color-accent-mid)',
+                                      border: '1px solid var(--color-accent-mid)33',
+                                    }}
+                                  >
+                                    Admin
+                                  </span>
+                                )}
+                              </div>
                           }
                         </div>
                       </div>
@@ -360,7 +377,7 @@ export default function RoomPage() {
               {readyMap[user?.id ?? ''] ? 'Cancelar' : 'Pronto'}
             </Button>
           )}
-          {isHost && (
+          {isHost && !isMatchmakingRoom && (
             <>
               <Button
                 variant={readyMap[user?.id ?? ''] ? 'secondary' : 'outline'}
@@ -387,6 +404,20 @@ export default function RoomPage() {
                   : `Aguardando (${humanPlayers.filter(p => readyMap[p.userId]).length}/${humanPlayers.length})`}
               </Button>
             </>
+          )}
+          {isHost && isMatchmakingRoom && (
+            <Button
+              variant={readyMap[user?.id ?? ''] ? 'secondary' : 'outline'}
+              onClick={handleToggleReady}
+              className="shrink-0"
+            >
+              {readyMap[user?.id ?? ''] ? 'Cancelar' : 'Pronto'}
+            </Button>
+          )}
+          {isMatchmakingRoom && (
+            <p className="w-full text-center text-xs text-[var(--color-text-muted)] pt-1">
+              Inicia automaticamente quando todos confirmarem
+            </p>
           )}
         </motion.div>
         </div>

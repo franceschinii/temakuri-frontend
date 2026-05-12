@@ -24,7 +24,7 @@ export function LevelBadge({ level, size = 'sm' }: LevelBadgeProps) {
         border: `1px solid ${color}66`,
       }}
     >
-      {level}
+      LVL {level}
     </span>
   );
 }

@@ -131,7 +131,7 @@ export default function ProfilePage() {
         >
           <ArrowLeft size={18} />
         </button>
-        <h1 className="text-base font-semibold text-[var(--color-text-primary)] flex-1">Perfil</h1>
+        <h1 className="text-base font-semibold flex-1" style={{ color: 'var(--color-text-primary)' }}>Perfil</h1>
         <div className="flex items-center gap-0.5 shrink-0">
           {/* Moedas */}
           {!user?.isGuest && (

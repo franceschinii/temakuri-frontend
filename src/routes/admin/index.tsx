@@ -109,6 +109,7 @@ export default function AdminPage() {
   const [modal, setModal] = useState<ModalState>({ type: null, user: null });
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<FilterType>('all');
+  const [confirmDeleteRoom, setConfirmDeleteRoom] = useState<string | null>(null);
 
   const openModal = (type: ModalType, user: AdminUser) => setModal({ type, user });
   const closeModal = () => setModal({ type: null, user: null });
@@ -169,13 +170,13 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-dvh bg-[var(--color-base)] flex flex-col">
-      <header className="border-b border-[var(--color-border)] bg-[var(--color-surface)]/95 backdrop-blur-sm px-6 py-3 flex items-center gap-3 shrink-0">
+      <header className="border-b border-[var(--color-border)] backdrop-blur-sm px-6 py-3 flex items-center gap-3 shrink-0" style={{ background: 'var(--color-surface)' }}>
         <button onClick={() => navigate('/lobby')} className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors">
           <ArrowLeft size={18} />
         </button>
         <div className="flex items-center gap-2.5">
           <Logo variant="mark" size={20} />
-          <h1 className="text-lg font-semibold text-[var(--color-text-primary)]">Painel de Administração</h1>
+          <h1 className="text-lg font-semibold" style={{ color: 'var(--color-text-primary)' }}>Painel de Administração</h1>
         </div>
         <div className="ml-auto flex items-center gap-1">
           {(['users', 'rooms'] as AdminTab[]).map(t => (
@@ -223,7 +224,7 @@ export default function AdminPage() {
                   <div key={room.id} className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4 flex flex-col gap-3">
                     <div className="flex items-center justify-between flex-wrap gap-2">
                       <div className="flex items-center gap-3">
-                        <span className="font-mono text-base font-bold text-[var(--color-text-primary)] tracking-widest">{room.code ?? '—'}</span>
+                        <span className="font-mono text-base font-bold tracking-widest" style={{ color: 'var(--color-text-primary)' }}>{room.code ?? '—'}</span>
                         <span className={cn(
                           'text-[10px] px-2 py-0.5 rounded-full border font-medium',
                           room.status === 'WAITING' && 'text-[var(--color-accent-mid)] border-[var(--color-accent-mid)]/30 bg-[var(--color-accent-mid)]/10',
@@ -234,12 +235,30 @@ export default function AdminPage() {
                         <span className="text-[10px] text-[var(--color-text-muted)]">{room.players.length}/{room.maxPlayers} jogadores</span>
                         {room.isPrivate && <span className="text-[10px] text-[var(--color-text-muted)]">privada</span>}
                       </div>
-                      <button
-                        onClick={() => { if (confirm(`Remover sala ${room.code}?`)) deleteRoomMutation.mutate(room.code); }}
-                        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs text-[var(--color-danger)] hover:bg-[var(--color-danger)]/10 border border-[var(--color-danger)]/30 transition-all"
-                      >
-                        <Trash2 size={12} /> Remover sala
-                      </button>
+                      {confirmDeleteRoom === room.code ? (
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-xs text-[var(--color-text-muted)]">Remover {room.code}?</span>
+                          <button
+                            onClick={() => { deleteRoomMutation.mutate(room.code); setConfirmDeleteRoom(null); }}
+                            className="px-2 py-1 rounded-lg text-xs text-white bg-[var(--color-danger)] hover:opacity-90 transition-all"
+                          >
+                            Confirmar
+                          </button>
+                          <button
+                            onClick={() => setConfirmDeleteRoom(null)}
+                            className="px-2 py-1 rounded-lg text-xs text-[var(--color-text-muted)] hover:bg-[var(--color-panel)] transition-all"
+                          >
+                            Cancelar
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => setConfirmDeleteRoom(room.code)}
+                          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs text-[var(--color-danger)] hover:bg-[var(--color-danger)]/10 border border-[var(--color-danger)]/30 transition-all"
+                        >
+                          <Trash2 size={12} /> Remover sala
+                        </button>
+                      )}
                     </div>
                     {room.players.length > 0 && (
                       <div className="flex flex-wrap gap-2">
