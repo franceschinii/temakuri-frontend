@@ -113,7 +113,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       selectedIndices: [],
     }),
 
-  setMyHand: (hand) => set({ myHand: hand, selectedIndices: [] }),
+  setMyHand: (hand) => set({ myHand: hand, selectedIndices: [], pendingPickFromPile: false }),
 
   toggleCardSelection: (index) =>
     set((s) => {

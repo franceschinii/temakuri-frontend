@@ -127,13 +127,11 @@ export function GameBoard() {
   }, []));
 
   useSocketEvent<{ userId: string; timeoutMs: number }>('game:turn_started', useCallback(({ userId, timeoutMs }) => {
-    useGameStore.setState({ currentTurnUserId: userId });
+    useGameStore.setState({ currentTurnUserId: userId, selectedIndices: [] });
     setTimerMs(timeoutMs);
     setTimerKey(k => k + 1);
     setPickMode(false);
     setDrawnCard(null);
-    // Não fechar o TrickPickModal aqui — ele fecha quando o jogador confirma a ação
-    // para evitar que o modal desapareça antes de o jogador escolher a posição
     hasSubmittedPickRef.current = false;
     // Resyncs if hand appears empty mid-game (lost game:your_hand event)
     const { myHand, phase } = useGameStore.getState();
@@ -397,7 +395,7 @@ export function GameBoard() {
   const handleLeaveGame = () => setLeaveConfirmOpen(true);
 
   return (
-    <div className="flex flex-col h-dvh max-h-dvh bg-[var(--color-base)] overflow-hidden select-none">
+    <div className="flex flex-col h-dvh bg-[var(--color-base)] overflow-hidden select-none">
       {/* Turn banner */}
       <AnimatePresence>
         {turnBanner && (
@@ -457,7 +455,7 @@ export function GameBoard() {
       </div>
 
       {/* Center area */}
-      <div className="flex-1 flex flex-col items-center justify-center gap-2 px-2 py-3 sm:px-4">
+      <div className="flex-1 min-h-0 flex flex-col items-center justify-center gap-2 px-2 py-3 sm:px-4 overflow-y-auto">
         <AnimatePresence>
           {saborActive && (
             <SaborIndicator
@@ -527,7 +525,7 @@ export function GameBoard() {
       </div>
 
       {/* My area */}
-      <div className="border-t border-[var(--color-border)] bg-[var(--color-surface)] px-2 pt-2 pb-3 sm:px-4 sm:pt-3 sm:pb-4 flex flex-col">
+      <div className="shrink-0 border-t border-[var(--color-border)] bg-[var(--color-surface)] px-2 pt-1.5 pb-2 sm:px-4 sm:pt-2 sm:pb-3 flex flex-col">
         {/* Mini-histórico — mobile only, acima da info bar */}
         {recentActions.length > 0 && (
           <div className="sm:hidden flex flex-col gap-0.5 mb-1.5 pb-1.5 border-b border-[var(--color-border)]/40">
@@ -539,7 +537,7 @@ export function GameBoard() {
           </div>
         )}
         {/* Info bar */}
-        <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center justify-between mb-1.5">
           <div className="flex items-center gap-2">
             <AvatarWithBorder index={me?.avatarIndex ?? 0} level={me?.level ?? 1} size={24} />
             <span className="text-sm font-semibold text-[var(--color-text-primary)]">
@@ -598,7 +596,7 @@ export function GameBoard() {
 
         {/* Hand — oculta para espectadores */}
         {!isSpectator && (
-          <div className="pb-1 pt-4 overflow-hidden">
+          <div className="pb-1 pt-2 overflow-hidden">
             {pickMode ? (
               <PlayerHand
                 hand={myHand}
@@ -614,7 +612,7 @@ export function GameBoard() {
 
         {/* Actions — ocultas para espectadores */}
         {!isSpectator && !pickMode && !marketSwapMode && (
-          <div className="mt-2 flex flex-col gap-2">
+          <div className="mt-1.5 flex flex-col gap-1.5">
             <ActionBar
               isMyTurn={isMyTurn}
               pile={pile}
