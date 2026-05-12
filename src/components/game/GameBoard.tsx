@@ -1,6 +1,6 @@
 import { useEffect, useCallback, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { LogOut, X } from 'lucide-react';
+import { LogOut } from 'lucide-react';
 import { AccessBar } from '@/components/ui/AccessBar';
 import { Modal } from '@/components/ui/modal';
 import { Button } from '@/components/ui/button';
@@ -593,12 +593,6 @@ export function GameBoard() {
               ) : (
                 <span className="text-xs text-[var(--color-text-muted)]">Monte vazio — passe sem comprar</span>
               )}
-              <button
-                onClick={handleDiscardDrawn}
-                className="ml-2 text-[var(--color-text-muted)] hover:text-[var(--color-danger)] transition-colors shrink-0"
-              >
-                <X size={13} />
-              </button>
             </motion.div>
           )}
         </AnimatePresence>
