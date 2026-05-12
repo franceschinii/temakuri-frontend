@@ -3,43 +3,28 @@ let currentToken: string | null = null;
 let intentionalClose = false;
 let reconnectAttempts = 0;
 let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
-let heartbeatTimer: ReturnType<typeof setInterval> | null = null;
-let heartbeatPendingPong = false;
 
 const listeners = new Map<string, Set<(data: unknown) => void>>();
+const reconnectCallbacks = new Set<() => void>();
+
+// Outbox limitado: descarta eventos antigos se acumular demais durante queda
+const MAX_OUTBOX = 20;
 const outbox: string[] = [];
 
-const MAX_RECONNECT_ATTEMPTS = 5;
-const HEARTBEAT_INTERVAL_MS = 25_000;
-const HEARTBEAT_TIMEOUT_MS = 5_000;
-
-function clearTimers() {
-  if (reconnectTimer) { clearTimeout(reconnectTimer); reconnectTimer = null; }
-  if (heartbeatTimer) { clearInterval(heartbeatTimer); heartbeatTimer = null; }
-}
-
-function startHeartbeat() {
-  clearTimers();
-  heartbeatTimer = setInterval(() => {
-    if (!socket || socket.readyState !== WebSocket.OPEN) return;
-    heartbeatPendingPong = true;
-    emitSocketEvent('ping', {});
-    setTimeout(() => {
-      if (heartbeatPendingPong && !intentionalClose) {
-        socket?.close();
-        scheduleReconnect();
-      }
-    }, HEARTBEAT_TIMEOUT_MS);
-  }, HEARTBEAT_INTERVAL_MS);
-}
-
+// Sem limite de tentativas — reconecta indefinidamente com backoff máximo de 30s
 function scheduleReconnect() {
-  if (intentionalClose || reconnectAttempts >= MAX_RECONNECT_ATTEMPTS || !currentToken) return;
-  const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), 16_000);
+  if (intentionalClose || !currentToken) return;
+  if (reconnectTimer) return; // já agendado
+  const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), 30_000);
   reconnectAttempts++;
   reconnectTimer = setTimeout(() => {
+    reconnectTimer = null;
     if (!intentionalClose && currentToken) connectSocket(currentToken);
   }, delay);
+}
+
+function clearReconnectTimer() {
+  if (reconnectTimer) { clearTimeout(reconnectTimer); reconnectTimer = null; }
 }
 
 export function isSocketConnected(): boolean {
@@ -50,19 +35,19 @@ export function getSocket(): WebSocket | null {
   return socket;
 }
 
+// Callback chamado toda vez que o socket reconecta com sucesso
+export function onReconnect(cb: () => void): () => void {
+  reconnectCallbacks.add(cb);
+  return () => reconnectCallbacks.delete(cb);
+}
+
 export function reconnectSocket(token: string) {
   currentToken = token;
   reconnectAttempts = 0;
-  // Marcar como intencional ANTES de fechar para o close handler não
-  // disparar scheduleReconnect em paralelo com a reconexão manual.
   intentionalClose = true;
-  clearTimers();
-  if (socket) {
-    socket.close();
-    socket = null;
-  }
+  clearReconnectTimer();
+  if (socket) { socket.close(); socket = null; }
   outbox.length = 0;
-  // Resetar flag antes de conectar para que reconexões automáticas funcionem
   intentionalClose = false;
   connectSocket(token);
 }
@@ -80,32 +65,34 @@ export function connectSocket(token: string): WebSocket {
 
   socket.addEventListener('open', () => {
     reconnectAttempts = 0;
-    startHeartbeat();
+    clearReconnectTimer();
+
+    // Drena o outbox na reconexão
     const ws = socket;
     if (!ws) return;
     while (outbox.length > 0) {
-      const payload = outbox.shift()!;
-      ws.send(payload);
+      ws.send(outbox.shift()!);
     }
+
+    // Notifica listeners de reconexão (ex: game:request_state)
+    reconnectCallbacks.forEach(cb => cb());
   });
 
   socket.addEventListener('message', (event) => {
     try {
       const { event: eventName, data } = JSON.parse(event.data as string);
-      if (eventName === 'pong') { heartbeatPendingPong = false; return; }
       const handlers = listeners.get(eventName);
       if (handlers) handlers.forEach(fn => fn(data));
     } catch {
-      // ignore malformed messages
+      // ignora mensagens malformadas
     }
   });
 
   socket.addEventListener('error', () => {
-    // silent — close event will handle reconnect
+    // close event cuida da reconexão
   });
 
   socket.addEventListener('close', () => {
-    clearTimers();
     socket = null;
     if (!intentionalClose) scheduleReconnect();
   });
@@ -115,7 +102,7 @@ export function connectSocket(token: string): WebSocket {
 
 export function disconnectSocket(intentional = true) {
   intentionalClose = intentional;
-  clearTimers();
+  clearReconnectTimer();
   socket?.close();
   socket = null;
   outbox.length = 0;
@@ -133,6 +120,8 @@ export function emitSocketEvent(event: string, data: unknown) {
   if (socket?.readyState === WebSocket.OPEN) {
     socket.send(payload);
   } else {
+    // Descarta os mais antigos se o outbox estiver cheio
+    if (outbox.length >= MAX_OUTBOX) outbox.shift();
     outbox.push(payload);
   }
 }

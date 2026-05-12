@@ -9,6 +9,7 @@ import { startMusic, stopMusic } from '@/lib/music';
 import { useGameStore } from '@/stores/gameStore';
 import { useAuthStore } from '@/stores/authStore';
 import { useSocketEvent, emitSocketEvent } from '@/hooks/useSocket';
+import { onReconnect } from '@/lib/socket';
 import { useGame } from '@/hooks/useGame';
 import { PlayerHand } from './PlayerHand';
 import { PlayArea } from './PlayArea';
@@ -88,6 +89,14 @@ export function GameBoard() {
 
   useEffect(() => {
     if (roomCode) requestState();
+  }, [roomCode]);
+
+  // Ao reconectar após queda de rede, resincroniza o estado do jogo automaticamente
+  useEffect(() => {
+    if (!roomCode) return;
+    return onReconnect(() => {
+      emitSocketEvent('game:request_state', { roomCode });
+    });
   }, [roomCode]);
 
   // Turn banner + sound for own turn
