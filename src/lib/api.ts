@@ -60,10 +60,16 @@ api.interceptors.response.use(
       processQueue(data.accessToken);
       original.headers.Authorization = `Bearer ${data.accessToken}`;
       return api(original);
-    } catch {
+    } catch (refreshError: any) {
       processQueue(null);
       localStorage.removeItem('accessToken');
       localStorage.removeItem('refreshToken');
+      localStorage.removeItem('temakuri-auth');
+      // Propagate ban/suspension message to the UI
+      const msg = refreshError?.response?.data?.message ?? '';
+      if (msg) {
+        import('sonner').then(({ toast }) => toast.error(msg));
+      }
       return Promise.reject(error);
     } finally {
       isRefreshing = false;

@@ -1,13 +1,14 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Pencil, KeyRound, Trash2, BarChart2 } from 'lucide-react';
+import { ArrowLeft, Pencil, KeyRound, Trash2, BarChart2, Search, X, Ban, Clock, ShieldCheck } from 'lucide-react';
 import { Logo } from '@/components/ui/Logo';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Modal } from '@/components/ui/modal';
 import api from '@/lib/api';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 
 interface AdminUser {
   id: string;
@@ -16,6 +17,8 @@ interface AdminUser {
   isGuest: boolean;
   isBot: boolean;
   isAdmin: boolean;
+  isBanned: boolean;
+  suspendedUntil: string | null;
   avatarIndex: number;
   createdAt: string;
   stats: {
@@ -26,7 +29,8 @@ interface AdminUser {
   } | null;
 }
 
-type ModalType = 'edit' | 'password' | 'stats' | 'delete' | null;
+type ModalType = 'edit' | 'password' | 'stats' | 'delete' | 'moderation' | null;
+type FilterType = 'all' | 'registered' | 'guest' | 'admin' | 'banned' | 'suspended';
 
 interface ModalState {
   type: ModalType;
@@ -34,24 +38,40 @@ interface ModalState {
 }
 
 function userTypeLabel(user: AdminUser): string {
+  if (user.isBanned) return 'Banido';
+  if (user.suspendedUntil && new Date(user.suspendedUntil) > new Date()) return 'Suspenso';
   if (user.isAdmin) return 'Admin';
   if (user.isBot) return 'Bot';
   if (user.isGuest) return 'Convidado';
   return 'Registrado';
 }
 
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString('pt-BR', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-  });
+function userTypeColor(user: AdminUser): string {
+  if (user.isBanned) return 'text-[var(--color-danger)] border-[var(--color-danger)]/30 bg-[var(--color-danger)]/10';
+  if (user.suspendedUntil && new Date(user.suspendedUntil) > new Date()) return 'text-[var(--color-warning)] border-[var(--color-warning)]/30 bg-[var(--color-warning)]/10';
+  if (user.isAdmin) return 'text-[var(--color-accent-mid)] border-[var(--color-accent-mid)]/30 bg-[var(--color-accent-mid)]/10';
+  return 'text-[var(--color-text-muted)] border-[var(--color-border)] bg-[var(--color-panel)]';
 }
+
+function formatDate(iso: string): string {
+  return new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+
+const FILTER_LABELS: Record<FilterType, string> = {
+  all: 'Todos',
+  registered: 'Registrado',
+  guest: 'Convidado',
+  admin: 'Admin',
+  banned: 'Banido',
+  suspended: 'Suspenso',
+};
 
 export default function AdminPage() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const [modal, setModal] = useState<ModalState>({ type: null, user: null });
+  const [search, setSearch] = useState('');
+  const [filter, setFilter] = useState<FilterType>('all');
 
   const openModal = (type: ModalType, user: AdminUser) => setModal({ type, user });
   const closeModal = () => setModal({ type: null, user: null });
@@ -64,130 +84,149 @@ export default function AdminPage() {
     },
   });
 
+  const filtered = useMemo(() => {
+    let list = users;
+    if (filter !== 'all') {
+      list = list.filter(u => {
+        if (filter === 'registered') return !u.isGuest && !u.isBot && !u.isAdmin;
+        if (filter === 'guest') return u.isGuest;
+        if (filter === 'admin') return u.isAdmin;
+        if (filter === 'banned') return u.isBanned;
+        if (filter === 'suspended') return !!u.suspendedUntil && new Date(u.suspendedUntil) > new Date();
+        return true;
+      });
+    }
+    if (search.trim()) {
+      const q = search.trim().toLowerCase();
+      list = list.filter(u =>
+        u.username.toLowerCase().includes(q) ||
+        (u.email ?? '').toLowerCase().includes(q)
+      );
+    }
+    return list;
+  }, [users, filter, search]);
+
   const invalidate = () => qc.invalidateQueries({ queryKey: ['admin', 'users'] });
 
   return (
     <div className="min-h-dvh bg-[var(--color-base)] flex flex-col">
       <header className="border-b border-[var(--color-border)] bg-[var(--color-surface)]/95 backdrop-blur-sm px-6 py-3 flex items-center gap-3 shrink-0">
-        <button
-          onClick={() => navigate('/lobby')}
-          className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors"
-        >
+        <button onClick={() => navigate('/lobby')} className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors">
           <ArrowLeft size={18} />
         </button>
         <div className="flex items-center gap-2.5">
           <Logo variant="mark" size={20} />
-          <h1 className="text-lg font-semibold text-[var(--color-text-primary)]">
-            Painel de Administração
-          </h1>
+          <h1 className="text-lg font-semibold text-[var(--color-text-primary)]">Painel de Administração</h1>
         </div>
       </header>
 
       <main className="flex-1 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        <div className="max-w-5xl mx-auto w-full p-4 sm:p-6 flex flex-col gap-5">
+        <div className="max-w-5xl mx-auto w-full p-4 sm:p-6 flex flex-col gap-4">
+
+          {/* Search + filters */}
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="relative flex-1">
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)] pointer-events-none" />
+              <input
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder="Buscar por nome ou email..."
+                className="w-full h-9 pl-8 pr-8 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] text-sm text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-strong)] transition-all"
+              />
+              {search && (
+                <button onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]">
+                  <X size={13} />
+                </button>
+              )}
+            </div>
+            <div className="flex gap-1 flex-wrap">
+              {(Object.keys(FILTER_LABELS) as FilterType[]).map(f => (
+                <button
+                  key={f}
+                  onClick={() => setFilter(f)}
+                  className={cn(
+                    'px-3 py-1.5 rounded-lg text-xs font-medium border transition-all',
+                    filter === f
+                      ? 'bg-[var(--color-accent-strong)] border-[var(--color-accent-strong)] text-white'
+                      : 'bg-[var(--color-panel)] border-[var(--color-border)] text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]'
+                  )}
+                >
+                  {FILTER_LABELS[f]}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Count */}
           <div className="flex items-center gap-3">
-            <span className="text-xs uppercase tracking-[0.15em] font-medium text-[var(--color-text-muted)]">
-              Usuários
+            <span className="text-xs uppercase tracking-[0.15em] font-medium text-[var(--color-text-muted)]">Usuários</span>
+            <span className="text-xs bg-[var(--color-panel)] border border-[var(--color-border)] text-[var(--color-accent-mid)] rounded-full px-2 py-0.5 font-mono">
+              {filtered.length}
             </span>
-            {users.length > 0 && (
-              <span className="text-xs bg-[var(--color-panel)] border border-[var(--color-border)] text-[var(--color-accent-mid)] rounded-full px-2 py-0.5 font-mono">
-                {users.length}
-              </span>
-            )}
             <div className="flex-1 h-px bg-[var(--color-border)]" />
           </div>
 
           {isLoading ? (
             <div className="flex flex-col gap-2">
               {[0, 1, 2, 3].map(i => (
-                <div
-                  key={i}
-                  className="h-14 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)] animate-pulse"
-                />
+                <div key={i} className="h-14 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)] animate-pulse" />
               ))}
+            </div>
+          ) : filtered.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 border border-dashed border-[var(--color-border)] rounded-2xl text-center gap-2">
+              <p className="text-sm text-[var(--color-text-muted)]">Nenhum resultado</p>
             </div>
           ) : (
             <div className="rounded-xl border border-[var(--color-border)] overflow-hidden">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-[var(--color-border)] bg-[var(--color-surface)]">
-                    <th className="text-left px-4 py-3 text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">
-                      Usuário
-                    </th>
-                    <th className="text-left px-4 py-3 text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider hidden sm:table-cell">
-                      Email
-                    </th>
-                    <th className="text-left px-4 py-3 text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider hidden md:table-cell">
-                      Tipo
-                    </th>
-                    <th className="text-right px-4 py-3 text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider hidden lg:table-cell">
-                      Partidas
-                    </th>
-                    <th className="text-right px-4 py-3 text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider hidden lg:table-cell">
-                      Vitórias
-                    </th>
-                    <th className="text-left px-4 py-3 text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider hidden xl:table-cell">
-                      Criado em
-                    </th>
+                    <th className="text-left px-4 py-3 text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">Usuário</th>
+                    <th className="text-left px-4 py-3 text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider hidden sm:table-cell">Email</th>
+                    <th className="text-left px-4 py-3 text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider hidden md:table-cell">Tipo</th>
+                    <th className="text-right px-4 py-3 text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider hidden lg:table-cell">Partidas</th>
+                    <th className="text-right px-4 py-3 text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider hidden lg:table-cell">Vitórias</th>
+                    <th className="text-left px-4 py-3 text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider hidden xl:table-cell">Criado em</th>
                     <th className="px-4 py-3" />
                   </tr>
                 </thead>
                 <tbody>
-                  {users.map((user, idx) => (
+                  {filtered.map((user, idx) => (
                     <tr
                       key={user.id}
-                      className={`border-b border-[var(--color-border)] last:border-0 ${
-                        idx % 2 === 0 ? 'bg-[var(--color-base)]' : 'bg-[var(--color-surface)]'
-                      }`}
+                      className={cn(
+                        'border-b border-[var(--color-border)] last:border-0',
+                        idx % 2 === 0 ? 'bg-[var(--color-base)]' : 'bg-[var(--color-surface)]',
+                        user.isBanned && 'opacity-60',
+                      )}
                     >
-                      <td className="px-4 py-3 font-medium text-[var(--color-text-primary)]">
-                        {user.username}
-                      </td>
-                      <td className="px-4 py-3 text-[var(--color-text-muted)] hidden sm:table-cell">
-                        {user.email ?? '—'}
-                      </td>
+                      <td className="px-4 py-3 font-medium text-[var(--color-text-primary)]">{user.username}</td>
+                      <td className="px-4 py-3 text-[var(--color-text-muted)] hidden sm:table-cell">{user.email ?? '—'}</td>
                       <td className="px-4 py-3 hidden md:table-cell">
-                        <span className="text-xs px-2 py-0.5 rounded-full bg-[var(--color-panel)] border border-[var(--color-border)] text-[var(--color-text-muted)]">
+                        <span className={cn('text-xs px-2 py-0.5 rounded-full border', userTypeColor(user))}>
                           {userTypeLabel(user)}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-right text-[var(--color-text-muted)] font-mono hidden lg:table-cell">
-                        {user.stats?.gamesPlayed ?? 0}
-                      </td>
-                      <td className="px-4 py-3 text-right text-[var(--color-text-muted)] font-mono hidden lg:table-cell">
-                        {user.stats?.gamesWon ?? 0}
-                      </td>
-                      <td className="px-4 py-3 text-[var(--color-text-muted)] text-xs hidden xl:table-cell">
-                        {formatDate(user.createdAt)}
-                      </td>
+                      <td className="px-4 py-3 text-right text-[var(--color-text-muted)] font-mono hidden lg:table-cell">{user.stats?.gamesPlayed ?? 0}</td>
+                      <td className="px-4 py-3 text-right text-[var(--color-text-muted)] font-mono hidden lg:table-cell">{user.stats?.gamesWon ?? 0}</td>
+                      <td className="px-4 py-3 text-[var(--color-text-muted)] text-xs hidden xl:table-cell">{formatDate(user.createdAt)}</td>
                       <td className="px-4 py-3">
                         <div className="flex items-center justify-end gap-1">
-                          <button
-                            onClick={() => openModal('edit', user)}
-                            title="Editar usuário"
-                            className="p-1.5 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-panel)] transition-colors"
-                          >
+                          <button onClick={() => openModal('moderation', user)} title="Moderação" className={cn('p-1.5 rounded-lg transition-colors hover:bg-[var(--color-panel)]', user.isBanned ? 'text-[var(--color-danger)]' : 'text-[var(--color-text-muted)] hover:text-[var(--color-warning)]')}>
+                            <Ban size={14} />
+                          </button>
+                          <button onClick={() => openModal('edit', user)} title="Editar" className="p-1.5 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-panel)] transition-colors">
                             <Pencil size={14} />
                           </button>
-                          <button
-                            onClick={() => openModal('stats', user)}
-                            title="Editar estatísticas"
-                            className="p-1.5 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-panel)] transition-colors"
-                          >
+                          <button onClick={() => openModal('stats', user)} title="Stats" className="p-1.5 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-panel)] transition-colors">
                             <BarChart2 size={14} />
                           </button>
-                          <button
-                            onClick={() => openModal('password', user)}
-                            title="Resetar senha"
-                            className="p-1.5 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-panel)] transition-colors"
-                          >
-                            <KeyRound size={14} />
-                          </button>
-                          <button
-                            onClick={() => openModal('delete', user)}
-                            title="Excluir usuário"
-                            className="p-1.5 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-danger)] hover:bg-[var(--color-panel)] transition-colors"
-                          >
+                          {!user.isGuest && (
+                            <button onClick={() => openModal('password', user)} title="Resetar senha" className="p-1.5 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-panel)] transition-colors">
+                              <KeyRound size={14} />
+                            </button>
+                          )}
+                          <button onClick={() => openModal('delete', user)} title="Excluir" className="p-1.5 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-danger)] hover:bg-[var(--color-panel)] transition-colors">
                             <Trash2 size={14} />
                           </button>
                         </div>
@@ -201,41 +240,18 @@ export default function AdminPage() {
         </div>
       </main>
 
-      <EditUserModal
-        open={modal.type === 'edit'}
-        user={modal.user}
-        onClose={closeModal}
-        onSuccess={invalidate}
-      />
-      <ResetPasswordModal
-        open={modal.type === 'password'}
-        user={modal.user}
-        onClose={closeModal}
-      />
-      <EditStatsModal
-        open={modal.type === 'stats'}
-        user={modal.user}
-        onClose={closeModal}
-        onSuccess={invalidate}
-      />
-      <DeleteUserModal
-        open={modal.type === 'delete'}
-        user={modal.user}
-        onClose={closeModal}
-        onSuccess={invalidate}
-      />
+      <EditUserModal open={modal.type === 'edit'} user={modal.user} onClose={closeModal} onSuccess={invalidate} />
+      <ResetPasswordModal open={modal.type === 'password'} user={modal.user} onClose={closeModal} />
+      <EditStatsModal open={modal.type === 'stats'} user={modal.user} onClose={closeModal} onSuccess={invalidate} />
+      <DeleteUserModal open={modal.type === 'delete'} user={modal.user} onClose={closeModal} onSuccess={invalidate} />
+      <ModerationModal open={modal.type === 'moderation'} user={modal.user} onClose={closeModal} onSuccess={invalidate} />
     </div>
   );
 }
 
-interface EditUserModalProps {
-  open: boolean;
-  user: AdminUser | null;
-  onClose: () => void;
-  onSuccess: () => void;
-}
+// ─── Modals ───────────────────────────────────────────────────────────────────
 
-function EditUserModal({ open, user, onClose, onSuccess }: EditUserModalProps) {
+function EditUserModal({ open, user, onClose, onSuccess }: { open: boolean; user: AdminUser | null; onClose: () => void; onSuccess: () => void }) {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [avatarIndex, setAvatarIndex] = useState('');
@@ -256,116 +272,48 @@ function EditUserModal({ open, user, onClose, onSuccess }: EditUserModalProps) {
       if (Number(avatarIndex) !== user?.avatarIndex) payload.avatarIndex = Number(avatarIndex);
       await api.patch(`/admin/users/${user!.id}`, payload);
     },
-    onSuccess: () => {
-      toast.success('Usuário atualizado');
-      onSuccess();
-      onClose();
-    },
+    onSuccess: () => { toast.success('Usuário atualizado'); onSuccess(); onClose(); },
     onError: (e: any) => toast.error(e.response?.data?.message ?? 'Erro ao atualizar'),
   });
 
   return (
     <Modal open={open} onClose={onClose} title="Editar usuário">
-      <form
-        onSubmit={e => { e.preventDefault(); mutation.mutate(); }}
-        className="flex flex-col gap-4"
-      >
-        <Input
-          label="Nome de usuário"
-          value={username}
-          onChange={e => setUsername(e.target.value)}
-        />
-        <Input
-          label="Email"
-          type="email"
-          value={email}
-          onChange={e => setEmail(e.target.value)}
-        />
-        <Input
-          label="Avatar Index"
-          type="number"
-          min={0}
-          value={avatarIndex}
-          onChange={e => setAvatarIndex(e.target.value)}
-        />
+      <form onSubmit={e => { e.preventDefault(); mutation.mutate(); }} className="flex flex-col gap-4">
+        <Input label="Nome de usuário" value={username} onChange={e => setUsername(e.target.value)} />
+        <Input label="Email" type="email" value={email} onChange={e => setEmail(e.target.value)} />
+        <Input label="Avatar Index" type="number" min={0} value={avatarIndex} onChange={e => setAvatarIndex(e.target.value)} />
         <div className="flex gap-2 justify-end pt-2">
-          <Button variant="secondary" type="button" onClick={onClose}>
-            Cancelar
-          </Button>
-          <Button type="submit" disabled={mutation.isPending}>
-            Salvar
-          </Button>
+          <Button variant="secondary" type="button" onClick={onClose}>Cancelar</Button>
+          <Button type="submit" disabled={mutation.isPending}>Salvar</Button>
         </div>
       </form>
     </Modal>
   );
 }
 
-interface ResetPasswordModalProps {
-  open: boolean;
-  user: AdminUser | null;
-  onClose: () => void;
-}
-
-function ResetPasswordModal({ open, user, onClose }: ResetPasswordModalProps) {
+function ResetPasswordModal({ open, user, onClose }: { open: boolean; user: AdminUser | null; onClose: () => void }) {
   const [newPassword, setNewPassword] = useState('');
 
   const mutation = useMutation({
-    mutationFn: async () => {
-      await api.post(`/admin/users/${user!.id}/reset-password`, { newPassword });
-    },
-    onSuccess: () => {
-      toast.success('Senha redefinida com sucesso');
-      setNewPassword('');
-      onClose();
-    },
+    mutationFn: async () => { await api.post(`/admin/users/${user!.id}/reset-password`, { newPassword }); },
+    onSuccess: () => { toast.success('Senha redefinida'); setNewPassword(''); onClose(); },
     onError: (e: any) => toast.error(e.response?.data?.message ?? 'Erro ao redefinir senha'),
   });
 
-  const handleClose = () => {
-    setNewPassword('');
-    onClose();
-  };
-
   return (
-    <Modal
-      open={open}
-      onClose={handleClose}
-      title="Redefinir senha"
-      description={user ? `Definir nova senha para ${user.username}` : undefined}
-    >
-      <form
-        onSubmit={e => { e.preventDefault(); mutation.mutate(); }}
-        className="flex flex-col gap-4"
-      >
-        <Input
-          label="Nova senha"
-          type="password"
-          value={newPassword}
-          onChange={e => setNewPassword(e.target.value)}
-          autoComplete="new-password"
-        />
+    <Modal open={open} onClose={() => { setNewPassword(''); onClose(); }} title="Redefinir senha" description={user ? `Nova senha para ${user.username}` : undefined}>
+      <form onSubmit={e => { e.preventDefault(); mutation.mutate(); }} className="flex flex-col gap-4">
+        <Input label="Nova senha" type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} autoComplete="new-password" />
         <div className="flex gap-2 justify-end pt-2">
-          <Button variant="secondary" type="button" onClick={handleClose}>
-            Cancelar
-          </Button>
-          <Button type="submit" disabled={mutation.isPending || newPassword.length < 6}>
-            Redefinir
-          </Button>
+          <Button variant="secondary" type="button" onClick={() => { setNewPassword(''); onClose(); }}>Cancelar</Button>
+          <Button type="submit" disabled={mutation.isPending || newPassword.length < 6}>Redefinir</Button>
         </div>
       </form>
     </Modal>
   );
 }
 
-interface EditStatsModalProps {
-  open: boolean;
-  user: AdminUser | null;
-  onClose: () => void;
-  onSuccess: () => void;
-}
-
-function EditStatsModal({ open, user, onClose, onSuccess }: EditStatsModalProps) {
+function EditStatsModal({ open, user, onClose, onSuccess }: { open: boolean; user: AdminUser | null; onClose: () => void; onSuccess: () => void }) {
   const [gamesPlayed, setGamesPlayed] = useState('');
   const [gamesWon, setGamesWon] = useState('');
   const [saborTriggers, setSaborTriggers] = useState('');
@@ -389,102 +337,120 @@ function EditStatsModal({ open, user, onClose, onSuccess }: EditStatsModalProps)
         tricksWon: Number(tricksWon),
       });
     },
-    onSuccess: () => {
-      toast.success('Estatísticas atualizadas');
-      onSuccess();
-      onClose();
-    },
+    onSuccess: () => { toast.success('Estatísticas atualizadas'); onSuccess(); onClose(); },
     onError: (e: any) => toast.error(e.response?.data?.message ?? 'Erro ao atualizar stats'),
   });
 
   return (
-    <Modal
-      open={open}
-      onClose={onClose}
-      title="Editar estatísticas"
-      description={user ? user.username : undefined}
-    >
-      <form
-        onSubmit={e => { e.preventDefault(); mutation.mutate(); }}
-        className="flex flex-col gap-4"
-      >
+    <Modal open={open} onClose={onClose} title="Editar estatísticas" description={user?.username}>
+      <form onSubmit={e => { e.preventDefault(); mutation.mutate(); }} className="flex flex-col gap-4">
         <div className="grid grid-cols-2 gap-3">
-          <Input
-            label="Partidas"
-            type="number"
-            min={0}
-            value={gamesPlayed}
-            onChange={e => setGamesPlayed(e.target.value)}
-          />
-          <Input
-            label="Vitórias"
-            type="number"
-            min={0}
-            value={gamesWon}
-            onChange={e => setGamesWon(e.target.value)}
-          />
-          <Input
-            label="Sabores"
-            type="number"
-            min={0}
-            value={saborTriggers}
-            onChange={e => setSaborTriggers(e.target.value)}
-          />
-          <Input
-            label="Vazas"
-            type="number"
-            min={0}
-            value={tricksWon}
-            onChange={e => setTricksWon(e.target.value)}
-          />
+          <Input label="Partidas" type="number" min={0} value={gamesPlayed} onChange={e => setGamesPlayed(e.target.value)} />
+          <Input label="Vitórias" type="number" min={0} value={gamesWon} onChange={e => setGamesWon(e.target.value)} />
+          <Input label="Sabores" type="number" min={0} value={saborTriggers} onChange={e => setSaborTriggers(e.target.value)} />
+          <Input label="Vazas" type="number" min={0} value={tricksWon} onChange={e => setTricksWon(e.target.value)} />
         </div>
         <div className="flex gap-2 justify-end pt-2">
-          <Button variant="secondary" type="button" onClick={onClose}>
-            Cancelar
-          </Button>
-          <Button type="submit" disabled={mutation.isPending}>
-            Salvar
-          </Button>
+          <Button variant="secondary" type="button" onClick={onClose}>Cancelar</Button>
+          <Button type="submit" disabled={mutation.isPending}>Salvar</Button>
         </div>
       </form>
     </Modal>
   );
 }
 
-interface DeleteUserModalProps {
-  open: boolean;
-  user: AdminUser | null;
-  onClose: () => void;
-  onSuccess: () => void;
-}
-
-function DeleteUserModal({ open, user, onClose, onSuccess }: DeleteUserModalProps) {
+function DeleteUserModal({ open, user, onClose, onSuccess }: { open: boolean; user: AdminUser | null; onClose: () => void; onSuccess: () => void }) {
   const mutation = useMutation({
-    mutationFn: async () => {
-      await api.delete(`/admin/users/${user!.id}`);
-    },
-    onSuccess: () => {
-      toast.success('Usuário excluído');
-      onSuccess();
-      onClose();
-    },
-    onError: (e: any) => toast.error(e.response?.data?.message ?? 'Erro ao excluir usuário'),
+    mutationFn: async () => { await api.delete(`/admin/users/${user!.id}`); },
+    onSuccess: () => { toast.success('Usuário excluído'); onSuccess(); onClose(); },
+    onError: (e: any) => toast.error(e.response?.data?.message ?? 'Erro ao excluir'),
   });
 
   return (
-    <Modal
-      open={open}
-      onClose={onClose}
-      title="Excluir usuário"
-      description={user ? `Esta ação é irreversível. O usuário "${user.username}" e todos os seus dados serão permanentemente removidos.` : undefined}
-    >
+    <Modal open={open} onClose={onClose} title="Excluir usuário" description={user ? `Esta ação é irreversível. "${user.username}" e todos os seus dados serão removidos.` : undefined}>
       <div className="flex gap-2 justify-end pt-2">
-        <Button variant="secondary" onClick={onClose} disabled={mutation.isPending}>
-          Cancelar
-        </Button>
-        <Button variant="danger" onClick={() => mutation.mutate()} disabled={mutation.isPending}>
-          Excluir
-        </Button>
+        <Button variant="secondary" onClick={onClose} disabled={mutation.isPending}>Cancelar</Button>
+        <Button variant="danger" onClick={() => mutation.mutate()} disabled={mutation.isPending}>Excluir</Button>
+      </div>
+    </Modal>
+  );
+}
+
+const SUSPEND_OPTIONS = [
+  { label: '1 hora', value: 1 / 24 },
+  { label: '24 horas', value: 1 },
+  { label: '7 dias', value: 7 },
+  { label: '30 dias', value: 30 },
+];
+
+function ModerationModal({ open, user, onClose, onSuccess }: { open: boolean; user: AdminUser | null; onClose: () => void; onSuccess: () => void }) {
+  const isBanned = user?.isBanned ?? false;
+  const isSuspended = !!user?.suspendedUntil && new Date(user.suspendedUntil) > new Date();
+
+  const mutation = useMutation({
+    mutationFn: async (payload: { isBanned?: boolean; suspendedUntil?: string | null }) => {
+      await api.patch(`/admin/users/${user!.id}/moderation`, payload);
+    },
+    onSuccess: () => { toast.success('Moderação aplicada'); onSuccess(); onClose(); },
+    onError: (e: any) => toast.error(e.response?.data?.message ?? 'Erro'),
+  });
+
+  const ban = () => mutation.mutate({ isBanned: true, suspendedUntil: null });
+  const unban = () => mutation.mutate({ isBanned: false });
+  const suspend = (days: number) => {
+    const until = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
+    mutation.mutate({ suspendedUntil: until, isBanned: false });
+  };
+  const unsuspend = () => mutation.mutate({ suspendedUntil: null });
+
+  return (
+    <Modal open={open} onClose={onClose} title="Moderação" description={user?.username}>
+      <div className="flex flex-col gap-3 pt-1">
+
+        {/* Status atual */}
+        <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)] px-4 py-3 text-sm text-[var(--color-text-muted)]">
+          Status: <span className={cn('font-medium', isBanned ? 'text-[var(--color-danger)]' : isSuspended ? 'text-[var(--color-warning)]' : 'text-[var(--color-accent-mid)]')}>
+            {isBanned ? 'Banido' : isSuspended ? `Suspenso até ${formatDate(user!.suspendedUntil!)}` : 'Ativo'}
+          </span>
+        </div>
+
+        {/* Ban */}
+        <div className="flex flex-col gap-2">
+          <p className="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">Ban permanente</p>
+          {isBanned ? (
+            <Button variant="outline" onClick={unban} disabled={mutation.isPending} className="gap-2">
+              <ShieldCheck size={14} /> Remover ban
+            </Button>
+          ) : (
+            <Button variant="danger" onClick={ban} disabled={mutation.isPending} className="gap-2">
+              <Ban size={14} /> Banir permanentemente
+            </Button>
+          )}
+        </div>
+
+        {/* Suspend */}
+        {!isBanned && (
+          <div className="flex flex-col gap-2">
+            <p className="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">Suspensão temporária</p>
+            {isSuspended ? (
+              <Button variant="outline" onClick={unsuspend} disabled={mutation.isPending} className="gap-2">
+                <ShieldCheck size={14} /> Remover suspensão
+              </Button>
+            ) : (
+              <div className="grid grid-cols-2 gap-2">
+                {SUSPEND_OPTIONS.map(opt => (
+                  <Button key={opt.label} variant="secondary" size="sm" onClick={() => suspend(opt.value)} disabled={mutation.isPending} className="gap-1.5">
+                    <Clock size={13} /> {opt.label}
+                  </Button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        <div className="flex justify-end pt-1">
+          <Button variant="ghost" onClick={onClose}>Fechar</Button>
+        </div>
       </div>
     </Modal>
   );

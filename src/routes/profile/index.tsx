@@ -20,6 +20,7 @@ export default function ProfilePage() {
   const qc = useQueryClient();
 
   const [selectedAvatar, setSelectedAvatar] = useState(user?.avatarIndex ?? 0);
+  const [editingAvatar, setEditingAvatar] = useState(false);
   const [usernameInput, setUsernameInput] = useState(user?.username ?? '');
   const [usernameStatus, setUsernameStatus] = useState<UsernameStatus>('same');
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -86,7 +87,9 @@ export default function ProfilePage() {
   });
 
   const handleSaveAvatar = () => {
-    saveMutation.mutate({ avatarIndex: selectedAvatar });
+    saveMutation.mutate({ avatarIndex: selectedAvatar }, {
+      onSuccess: () => setEditingAvatar(false),
+    });
   };
 
   const handleConfirmUsername = () => {
@@ -115,11 +118,12 @@ export default function ProfilePage() {
           <div className="flex flex-col items-center gap-3 pt-2">
             <div className="relative">
               <AvatarImage index={selectedAvatar} size={88} />
-              {avatarChanged && (
-                <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-[var(--color-accent-strong)] flex items-center justify-center">
-                  <Pencil size={10} className="text-white" />
-                </div>
-              )}
+              <button
+                onClick={() => setEditingAvatar(v => !v)}
+                className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-[var(--color-accent-strong)] flex items-center justify-center hover:opacity-80 transition-opacity"
+              >
+                <Pencil size={11} className="text-white" />
+              </button>
             </div>
             <div className="text-center">
               <p className="text-lg font-semibold text-[var(--color-text-primary)]">{user?.username}</p>
@@ -132,8 +136,8 @@ export default function ProfilePage() {
             )}
           </div>
 
-          {/* Seletor de avatar */}
-          <section className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 flex flex-col gap-4">
+          {/* Seletor de avatar — visível só ao clicar no lápis */}
+          {editingAvatar && <section className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 flex flex-col gap-4">
             <p className="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">Avatar</p>
             <div className="grid grid-cols-4 gap-3">
               {Array.from({ length: avatarCount() }).map((_, i) => (
@@ -160,7 +164,7 @@ export default function ProfilePage() {
             >
               {saveMutation.isPending ? <Loader2 size={14} className="animate-spin" /> : 'Salvar avatar'}
             </Button>
-          </section>
+          </section>}
 
           {/* Alterar username — só para registrados */}
           {!user?.isGuest && (
@@ -175,7 +179,7 @@ export default function ProfilePage() {
                   placeholder={user?.username}
                 />
                 {/* Status indicator */}
-                <div className="absolute right-3 top-[34px] -translate-y-1/2 flex items-center">
+                <div className="absolute right-3 bottom-[11px] flex items-center">
                   {usernameStatus === 'checking' && <Loader2 size={14} className="animate-spin text-[var(--color-text-muted)]" />}
                   {usernameStatus === 'available' && <Check size={14} className="text-[var(--color-accent-mid)]" />}
                   {usernameStatus === 'taken' && <X size={14} className="text-[var(--color-danger)]" />}
