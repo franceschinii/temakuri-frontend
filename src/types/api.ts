@@ -72,7 +72,7 @@ export const RANK_COLORS: Record<GameRank, string> = {
 export type LevelTier = 'none' | 'bronze' | 'silver' | 'gold' | 'platinum' | 'max';
 
 export const TIER_COLORS: Record<LevelTier, string> = {
-  none:     'transparent',
+  none:     'oklch(55% 0.02 260)',
   bronze:   'oklch(60% 0.12 55)',
   silver:   'oklch(72% 0.05 220)',
   gold:     'oklch(78% 0.2 75)',
