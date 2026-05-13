@@ -299,8 +299,11 @@ export function GameBoard() {
   }, []));
 
   useSocketEvent<{ userId: string; action: 'take' | 'discard'; discardedCards: Card[]; takenCount?: number }>('game:trick_pick_result', useCallback(({ userId, action, discardedCards, takenCount }) => {
+    // Regra A2: o pick resolve a pile ANTERIOR (que estava em trickPileForPick),
+    // nao a pile atual. A pile atual contem a jogada nova do mesmo jogador e
+    // permanece na mesa para o proximo jogador superar.
     useGameStore.setState(s => {
-      const updates: Partial<typeof s> = { pile: [] };
+      const updates: Partial<typeof s> = {};
       if (action === 'discard' && discardedCards.length > 0) {
         updates.discardPile = [...s.discardPile, ...discardedCards];
       }
@@ -380,6 +383,18 @@ export function GameBoard() {
   useSocketEvent<{ roomCode: string }>('game:spectator_mode', useCallback(() => {
     setIsSpectator(true);
   }, []));
+
+  // Sala foi resetada (host clicou "Jogar de novo"). Volta para o lobby da sala.
+  useSocketEvent<{ roomCode: string }>('lobby:room_reset', useCallback(({ roomCode: rc }) => {
+    toast.info('A sala foi resetada. Voltando ao lobby...');
+    navigate(`/lobby/${rc}`, { replace: true });
+  }, [navigate]));
+
+  // Engine nao existe mais (servidor reiniciou ou sala foi destruida).
+  useSocketEvent<{ roomCode: string; reason: string }>('game:room_closed', useCallback(({ reason }) => {
+    toast.error(reason);
+    navigate('/lobby', { replace: true });
+  }, [navigate]));
 
   useSocketEvent<{ rankings: GameRanking[]; room: RoomPublicState }>('lobby:game_over_summary', useCallback(({ room }) => {
     // Atualiza sessionWins dos jogadores a partir do estado atualizado da sala

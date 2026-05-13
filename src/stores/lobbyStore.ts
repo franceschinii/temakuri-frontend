@@ -10,6 +10,7 @@ interface LobbyState {
   setCurrentRoom: (room: RoomPublicState | null) => void;
   updateRoom: (room: RoomPublicState) => void;
   setPlayerReady: (userId: string, ready: boolean) => void;
+  setReadySnapshot: (userIds: string[]) => void;
   reset: () => void;
 }
 
@@ -43,6 +44,14 @@ export const useLobbyStore = create<LobbyState>((set) => ({
 
   setPlayerReady: (userId, ready) =>
     set((s) => ({ readyMap: { ...s.readyMap, [userId]: ready } })),
+
+  // Substitui o readyMap inteiro pelo snapshot do servidor (usado ao entrar em sala).
+  setReadySnapshot: (userIds) =>
+    set(() => {
+      const map: Record<string, boolean> = {};
+      for (const id of userIds) map[id] = true;
+      return { readyMap: map };
+    }),
 
   reset: () => set({ currentRoom: null, readyMap: {} }),
 }));

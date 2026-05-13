@@ -36,7 +36,7 @@ export default function RoomPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const user = useAuthStore(s => s.user);
-  const { currentRoom, setCurrentRoom, updateRoom, readyMap, setPlayerReady } = useLobbyStore();
+  const { currentRoom, setCurrentRoom, updateRoom, readyMap, setPlayerReady, setReadySnapshot } = useLobbyStore();
   const [addingBot, setAddingBot] = useState(false);
 
   const roomPassword = (location.state as any)?.password as string | undefined;
@@ -96,6 +96,10 @@ export default function RoomPage() {
   useSocketEvent<{ userId: string; ready: boolean }>('lobby:player_ready', useCallback(({ userId, ready }) => {
     setPlayerReady(userId, ready);
   }, [setPlayerReady]));
+
+  useSocketEvent<{ ready: string[] }>('lobby:ready_snapshot', useCallback(({ ready }) => {
+    setReadySnapshot(ready);
+  }, [setReadySnapshot]));
 
   const [countdown, setCountdown] = useState<number | null>(null);
   const [isSpectator, setIsSpectator] = useState(false);
