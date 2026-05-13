@@ -7,10 +7,17 @@ export function DevFooter() {
           <span className="text-[10px] text-[var(--color-text-muted)] opacity-40 tracking-widest" style={{ fontFamily: 'var(--font-display)' }}>
             寿司 · 拉麺 · 餃子
           </span>
-          <span className="text-[10px] text-[var(--color-text-muted)] opacity-25 font-mono">v0.2.0-beta</span>
+          <span className="text-[10px] text-[var(--color-text-muted)] opacity-25 font-mono">v0.4.0-beta</span>
         </div>
         <div className="flex items-center justify-between">
-          <span className="text-[10px] text-[var(--color-text-muted)] opacity-40">André Franceschini</span>
+          <a
+            href="https://www.linkedin.com/in/andrefranceschini/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[10px] text-[var(--color-text-muted)] opacity-40 hover:opacity-80 hover:text-[var(--color-accent-mid)] transition-all"
+          >
+            André Franceschini
+          </a>
           <a
             href="mailto:contato@andrefranceschini.com.br"
             className="text-[10px] text-[var(--color-text-muted)] opacity-40 hover:opacity-80 hover:text-[var(--color-accent-mid)] transition-all"
@@ -26,10 +33,20 @@ export function DevFooter() {
             寿司 · 拉麺 · 餃子
           </span>
           <span className="text-[10px] text-[var(--color-text-muted)]">·</span>
-          <span className="text-[10px] text-[var(--color-text-muted)] font-mono opacity-70">v0.2.0-beta</span>
+          <span className="text-[10px] text-[var(--color-text-muted)] font-mono opacity-70">v0.4.0-beta</span>
         </div>
         <div className="flex items-center gap-2 opacity-40">
-          <span className="text-[10px] text-[var(--color-text-muted)]">Desenvolvido por André Franceschini</span>
+          <span className="text-[10px] text-[var(--color-text-muted)]">
+            Desenvolvido por{' '}
+            <a
+              href="https://www.linkedin.com/in/andrefranceschini/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:opacity-100 hover:text-[var(--color-accent-mid)] underline-offset-2 hover:underline transition-all"
+            >
+              André Franceschini
+            </a>
+          </span>
           <span className="text-[10px] text-[var(--color-text-muted)]">·</span>
           <a
             href="mailto:contato@andrefranceschini.com.br"

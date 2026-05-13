@@ -208,8 +208,18 @@ export default function LandingPage() {
             寿司 · 拉麺 · 餃子
           </span>
           <div className="flex items-center gap-3 flex-wrap justify-center">
-            <span className="text-[10px] text-[var(--color-text-muted)] opacity-25 font-mono">v0.1.0 beta</span>
-            <span className="text-[10px] text-[var(--color-text-muted)] opacity-40">Desenvolvido por André Franceschini</span>
+            <span className="text-[10px] text-[var(--color-text-muted)] opacity-25 font-mono">v0.4.0-beta</span>
+            <span className="text-[10px] text-[var(--color-text-muted)] opacity-40">
+              Desenvolvido por{' '}
+              <a
+                href="https://www.linkedin.com/in/andrefranceschini/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:opacity-100 hover:text-[var(--color-accent-mid)] underline-offset-2 hover:underline transition-all"
+              >
+                André Franceschini
+              </a>
+            </span>
           </div>
         </div>
 
