@@ -5,8 +5,10 @@ export function useSocketEvent<T = unknown>(event: string, handler: (data: T) =>
   const handlerRef = useRef(handler);
   useEffect(() => { handlerRef.current = handler; });
   useEffect(() => {
-    const stable = (data: T) => handlerRef.current(data);
-    return onSocketEvent<T>(event, stable);
+    let mounted = true;
+    const stable = (data: T) => { if (mounted) handlerRef.current(data); };
+    const unsubscribe = onSocketEvent<T>(event, stable);
+    return () => { mounted = false; unsubscribe(); };
   }, [event]);
 }
 

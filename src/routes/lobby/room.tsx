@@ -103,6 +103,16 @@ export default function RoomPage() {
   const countdownIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const navigatedRef = useRef(false);
 
+  // Garante limpeza do countdown se o componente desmontar a qualquer momento
+  useEffect(() => {
+    return () => {
+      if (countdownIntervalRef.current) {
+        clearInterval(countdownIntervalRef.current);
+        countdownIntervalRef.current = null;
+      }
+    };
+  }, []);
+
   const navigateToGame = useCallback(() => {
     if (navigatedRef.current) return;
     navigatedRef.current = true;
@@ -145,19 +155,20 @@ export default function RoomPage() {
     }
   }, []));
 
-  // Detecta entrada como espectador quando sala está em andamento e redireciona direto para o jogo
+  // Detecta entrada como espectador quando sala está em andamento e redireciona direto para o jogo.
+  // Depende de room.players/status diretamente para reagir tanto ao initialRoom (GET) quanto ao
+  // currentRoom (socket lobby:room_updated), evitando ficar preso no lobby quando o flag isSpectator
+  // chega via socket depois do GET.
   useEffect(() => {
     if (!user || !room) return;
     const me = room.players.find(p => p.userId === user.id);
-    if (me?.isSpectator) {
+    if (me?.isSpectator && room.status === 'IN_PROGRESS') {
       setIsSpectator(true);
-      if (room.status === 'IN_PROGRESS') {
-        navigate(`/game/${roomCode}`, { replace: true });
-      }
-    } else {
+      navigate(`/game/${roomCode}`, { replace: true });
+    } else if (!me?.isSpectator) {
       setIsSpectator(false);
     }
-  }, [room, user, roomCode, navigate]);
+  }, [room?.players, room?.status, user, roomCode, navigate]);
 
   // Quando sala volta ao estado WAITING (após reset), sai do modo espectador
   useSocketEvent<{ room: RoomPublicState }>('lobby:room_updated', useCallback(({ room: updatedRoom }) => {

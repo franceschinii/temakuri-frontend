@@ -114,10 +114,12 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       myDuelPlates: state.myDuelPlates ?? null,
       saborActive: state.saborActive,
       saborMinRequired: state.saborMinRequired,
+      saborTriggeredBy: null,
       currentTurnUserId: state.currentTurnUserId,
       consecutivePasses: state.consecutivePasses,
       selectedIndices: [],
       selectedPlateIndices: [],
+      discardPile: [],
     }),
 
   setMyHand: (hand) => set({ myHand: hand, selectedIndices: [], selectedPlateIndices: [], pendingPickFromPile: false }),

@@ -137,13 +137,17 @@ export function GameBoard() {
     syncState(state);
     if (sc !== undefined) setSpectatorCount(sc);
     if (isSp !== undefined) setIsSpectator(isSp);
-    // Only reset pick mode if we haven't submitted yet OR the server is no longer in PASS_PICK
-    if (state.phase !== 'PASS_PICK' || hasSubmittedPickRef.current) {
+    // Servidor é fonte de verdade — sempre zera refs locais e fecha UIs incompatíveis com a fase
+    hasSubmittedPickRef.current = false;
+    if (state.phase !== 'PASS_PICK') {
       setPickMode(false);
       setDrawnCard(null);
     }
     if (state.phase !== 'DUEL_PASS_PICK') {
       setDuelPickOpen(false);
+    }
+    if (state.phase !== 'TRICK_PICK') {
+      setTrickPickOpen(false);
     }
     setMarketSwapMode(false);
     setSelectedHandIndexForSwap(null);
@@ -163,6 +167,7 @@ export function GameBoard() {
     useGameStore.setState((s) => ({
       currentTurnUserId: userId,
       selectedIndices: [],
+      selectedPlateIndices: [],
       phase: s.phase === 'GAME_OVER' ? s.phase : 'PLAYER_TURN',
     }));
     setTimerMs(timeoutMs);
@@ -343,6 +348,12 @@ export function GameBoard() {
 
   useSocketEvent<{ code: string; message: string }>('game:error', useCallback(({ message }) => {
     toast.error(message);
+    setPickMode(false);
+    setDrawnCard(null);
+    setMarketSwapMode(false);
+    setSelectedHandIndexForSwap(null);
+    hasSubmittedPickRef.current = false;
+    useGameStore.getState().clearSelection();
     emitSocketEvent('game:request_state', { roomCode });
   }, [roomCode]));
 
