@@ -34,9 +34,10 @@ export function TurnTimer({ timeoutMs, isMyTurn }: TurnTimerProps) {
   const seconds = Math.ceil(remaining / 1000);
 
   return (
-    <div className="flex items-center gap-2 w-full max-w-xs">
+    <div className="flex items-center gap-2 w-full max-w-xs" data-testid="turn-timer">
       <div className="flex-1 h-2 rounded-full bg-[var(--color-surface)] overflow-hidden">
         <div
+          data-testid="turn-timer-progress"
           className={cn(
             'h-full rounded-full transition-[width] duration-100',
             pct > 50

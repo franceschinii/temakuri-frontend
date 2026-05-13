@@ -131,6 +131,7 @@ export function ActionHistoryPanel() {
             {/* Desktop: modal centrado */}
             <motion.div
               key="modal-desktop"
+              data-testid="action-history-panel"
               initial={{ opacity: 0, scale: 0.95, y: 12 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 12 }}
@@ -185,8 +186,8 @@ function LogList({ entries, bottomRef }: { entries: LogEntry[]; bottomRef: React
   }
   return (
     <>
-      {entries.map(entry => (
-        <div key={entry.id} className="flex items-start gap-2">
+      {entries.map((entry, idx) => (
+        <div key={entry.id} data-testid={`action-history-entry-${idx}`} className="flex items-start gap-2">
           <span className={cn('flex-1 text-[11px] leading-relaxed break-words min-w-0', TYPE_COLOR[entry.type])}>
             {entry.text}
           </span>

@@ -404,7 +404,7 @@ export function GameBoard() {
   const handleLeaveGame = () => setLeaveConfirmOpen(true);
 
   return (
-    <div className="flex flex-col h-dvh bg-[var(--color-base)] overflow-hidden select-none">
+    <div className="flex flex-col h-dvh bg-[var(--color-base)] overflow-hidden select-none" data-testid="game-board">
       {/* Turn banner */}
       <AnimatePresence>
         {turnBanner && (
@@ -561,7 +561,7 @@ export function GameBoard() {
             )}
           </div>
           <div className="flex items-center gap-3">
-            {me && <TokenDisplay tokens={me.tokensLeft} size="sm" />}
+            {me && <TokenDisplay tokens={me.tokensLeft} size="sm" playerId={me.userId} />}
             <span className="text-xs text-[var(--color-text-muted)] tabular-nums">{myHand.length} cartas</span>
           </div>
         </div>
