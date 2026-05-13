@@ -10,7 +10,7 @@ interface MarketRowProps {
 
 export function MarketRow({ market, onSwap, canSwap }: MarketRowProps) {
   return (
-    <div className="flex flex-col items-center gap-2">
+    <div className="flex flex-col items-center gap-2" data-testid="market-row">
       <p className="text-xs font-medium text-[var(--color-token-gold)] uppercase tracking-wider">
         🛒 Mercado
       </p>
@@ -25,6 +25,7 @@ export function MarketRow({ market, onSwap, canSwap }: MarketRowProps) {
             <CardComponent
               card={card}
               disabled={!canSwap}
+              testId={`market-card-${i}`}
             />
           </motion.div>
         ))}

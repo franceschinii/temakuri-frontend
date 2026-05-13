@@ -4,10 +4,11 @@ import { cn } from '@/lib/utils';
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
   error?: string;
+  errorTestId?: string;
 }
 
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, label, error, id, ...props }, ref) => {
+  ({ className, label, error, errorTestId, id, ...props }, ref) => {
     const inputId = id ?? label?.toLowerCase().replace(/\s/g, '-');
     return (
       <div className="flex flex-col gap-1.5 w-full">
@@ -26,7 +27,11 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
           )}
           {...props}
         />
-        {error && <p className="text-xs text-[var(--color-danger-soft)]">{error}</p>}
+        {error && (
+          <p className="text-xs text-[var(--color-danger-soft)]" data-testid={errorTestId}>
+            {error}
+          </p>
+        )}
       </div>
     );
   },

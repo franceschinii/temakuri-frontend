@@ -17,11 +17,22 @@ export function OpponentRow({ player, isCurrentTurn }: OpponentRowProps) {
   const extraCards = player.cardCount - visibleCards;
 
   return (
-    <div className={cn(
-      'flex flex-col items-center gap-1.5 px-3 py-2 rounded-xl transition-all min-w-0',
-      isCurrentTurn && 'ring-2 ring-[var(--color-accent-soft)] bg-[var(--color-surface)]',
-      player.isEliminated && 'opacity-30',
-    )}>
+    <div
+      data-testid={`opponent-row-${player.userId}`}
+      className={cn(
+        'flex flex-col items-center gap-1.5 px-3 py-2 rounded-xl transition-all min-w-0',
+        isCurrentTurn && 'ring-2 ring-[var(--color-accent-soft)] bg-[var(--color-surface)]',
+        player.isEliminated && 'opacity-30',
+      )}
+    >
+      {isCurrentTurn && (
+        <span
+          data-testid={`current-turn-indicator-${player.userId}`}
+          className="sr-only"
+        >
+          current turn
+        </span>
+      )}
       {/* Avatar + name */}
       <div className="flex items-center gap-1.5">
         <div className={cn(
@@ -78,7 +89,7 @@ export function OpponentRow({ player, isCurrentTurn }: OpponentRowProps) {
       </div>
 
       {/* Tokens */}
-      <TokenDisplay tokens={player.tokensLeft} size="sm" />
+      <TokenDisplay tokens={player.tokensLeft} size="sm" playerId={player.userId} />
 
       {/* Cards facedown — fanned layout */}
       <div className="flex items-end justify-center" style={{ height: 28 }}>
@@ -96,7 +107,10 @@ export function OpponentRow({ player, isCurrentTurn }: OpponentRowProps) {
         )}
       </div>
 
-      <span className="text-[10px] text-[var(--color-text-muted)] tabular-nums">
+      <span
+        className="text-[10px] text-[var(--color-text-muted)] tabular-nums"
+        data-testid={`opponent-card-count-${player.userId}`}
+      >
         {player.cardCount} carta{player.cardCount !== 1 ? 's' : ''}
       </span>
     </div>

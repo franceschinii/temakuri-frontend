@@ -44,6 +44,7 @@ export function DuelPassPickModal({ open, plates, myHand, onPick }: DuelPassPick
     <AnimatePresence onExitComplete={() => { setStep('choose'); setSelectedPlateIndex(null); }}>
       {open && (
         <motion.div
+          data-testid="duel-pass-pick-modal"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -68,16 +69,29 @@ export function DuelPassPickModal({ open, plates, myHand, onPick }: DuelPassPick
 
                 <div className="flex flex-col gap-2">
                   {plates.map((plate, i) => (
-                    <div key={plate.id ?? i} className="flex items-center gap-3 p-2 rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]">
+                    <div
+                      key={plate.id ?? i}
+                      data-testid={`duel-plate-${i}`}
+                      className="flex items-center gap-3 p-2 rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]"
+                    >
                       <CardComponent card={plate} small disabled />
                       <span className="text-sm text-[var(--color-text-primary)] flex-1">
                         Prato {i + 1} — valor {plate.value}
                       </span>
                       <div className="flex gap-1">
-                        <Button variant="outline" size="sm" onClick={() => handleDiscard(i)}>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleDiscard(i)}
+                          data-testid="duel-pass-pick-discard-btn"
+                        >
                           Descartar
                         </Button>
-                        <Button size="sm" onClick={() => handleSelectPlate(i)}>
+                        <Button
+                          size="sm"
+                          onClick={() => handleSelectPlate(i)}
+                          data-testid="duel-pass-pick-insert-btn"
+                        >
                           Inserir
                         </Button>
                       </div>

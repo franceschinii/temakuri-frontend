@@ -30,6 +30,7 @@ export function RoomCard({ room }: RoomCardProps) {
 
   return (
     <div
+      data-testid={`lobby-room-card-${room.code}`}
       className={cn(
         'relative flex flex-col p-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] overflow-hidden gap-2',
         !isInProgress && 'hover:border-[var(--color-accent-mid)] transition-all duration-200 group',
@@ -102,6 +103,7 @@ export function RoomCard({ room }: RoomCardProps) {
             size="sm"
             variant={isInProgress ? 'secondary' : 'primary'}
             onClick={handleEnter}
+            data-testid={`lobby-room-join-btn-${room.code}`}
           >
             {isInProgress ? 'Assistir' : 'Entrar'}
           </Button>

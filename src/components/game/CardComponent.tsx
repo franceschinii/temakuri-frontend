@@ -12,15 +12,19 @@ interface CardProps {
   small?: boolean;
   disabled?: boolean;
   insertTarget?: boolean;
+  testId?: string;
 }
 
-export function CardComponent({ card, selected, onClick, faceDown, small, disabled, insertTarget }: CardProps) {
+export function CardComponent({ card, selected, onClick, faceDown, small, disabled, insertTarget, testId }: CardProps) {
   if (faceDown) {
     return (
-      <div className={cn(
-        'rounded-lg border border-[var(--color-border)] bg-[var(--color-panel)] flex items-center justify-center',
-        small ? 'w-8 h-11' : 'w-14 h-20',
-      )}>
+      <div
+        data-testid={testId}
+        className={cn(
+          'rounded-lg border border-[var(--color-border)] bg-[var(--color-panel)] flex items-center justify-center',
+          small ? 'w-8 h-11' : 'w-14 h-20',
+        )}
+      >
         <EyeOff size={small ? 12 : 18} className="text-[var(--color-text-muted)]" />
       </div>
     );
@@ -32,6 +36,7 @@ export function CardComponent({ card, selected, onClick, faceDown, small, disabl
 
   return (
     <motion.button
+      data-testid={testId}
       onClick={onClick}
       disabled={disabled}
       whileHover={!disabled ? { y: -4, scale: 1.03 } : {}}

@@ -40,6 +40,7 @@ export function ActionBar({ isMyTurn, pile, drawPileCount, onPlay, onPass, canPl
         onClick={onPlay}
         disabled={!canPlay || selectedIndices.length === 0}
         className="min-w-[80px] sm:min-w-[120px]"
+        data-testid="game-action-play-btn"
       >
         {selectedIndices.length > 0 ? `Jogar (${selectedIndices.length})` : 'Jogar'}
       </Button>
@@ -49,6 +50,7 @@ export function ActionBar({ isMyTurn, pile, drawPileCount, onPlay, onPass, canPl
         onClick={onPass}
         disabled={isDuel && myDuelPlatesCount === 0}
         className="min-w-[80px] sm:min-w-[110px]"
+        data-testid="game-action-pass-btn"
       >
         {isDuel ? passLabel : (
           <>

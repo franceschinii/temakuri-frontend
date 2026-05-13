@@ -16,6 +16,7 @@ export function RulesDialog() {
         onClick={() => setOpen(true)}
         className="p-1.5 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-accent-mid)] hover:bg-[var(--color-panel)] transition-all"
         title="Regras"
+        data-testid="rules-dialog-open-btn"
       >
         <HelpCircle size={16} />
       </button>
@@ -24,6 +25,7 @@ export function RulesDialog() {
         <AnimatePresence>
           {open && (
             <motion.div
+              data-testid="rules-dialog"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -42,7 +44,11 @@ export function RulesDialog() {
                   <h2 className="text-lg font-semibold text-[var(--color-text-primary)]" style={{ fontFamily: 'var(--font-display)' }}>
                     Como jogar
                   </h2>
-                  <button onClick={() => setOpen(false)} className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors p-1">
+                  <button
+                    onClick={() => setOpen(false)}
+                    className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors p-1"
+                    data-testid="rules-dialog-close-btn"
+                  >
                     <X size={18} />
                   </button>
                 </div>

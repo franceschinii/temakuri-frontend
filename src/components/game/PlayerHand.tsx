@@ -85,7 +85,7 @@ export function PlayerHand({
 
   // Normal mode
   return (
-    <div className="flex items-end gap-1.5 flex-wrap justify-center px-2 pb-2">
+    <div className="flex items-end gap-1.5 flex-wrap justify-center px-2 pb-2" data-testid="player-hand">
       <AnimatePresence>
         {hand.map((card, i) => (
           <motion.div
@@ -101,6 +101,7 @@ export function PlayerHand({
               selected={isSelected(i)}
               disabled={isCardDisabled(i)}
               onClick={() => isMyTurn && !pickMode && toggleCardSelection(i)}
+              testId={`player-hand-card-${i}`}
             />
           </motion.div>
         ))}

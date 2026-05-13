@@ -255,6 +255,7 @@ export default function RoomPage() {
             onClick={handleLeave}
             className="flex items-center gap-1.5 text-sm text-[var(--color-text-muted)] hover:text-[var(--color-danger)] transition-colors p-1.5 rounded-lg hover:bg-[var(--color-panel)]"
             title="Sair da sala"
+            data-testid="room-leave-btn"
           >
             <LogOut size={16} />
             <span className="hidden sm:inline">Sair</span>
@@ -279,6 +280,7 @@ export default function RoomPage() {
                 <span
                   className="font-mono text-2xl sm:text-3xl font-bold text-[var(--color-accent-soft)] tracking-widest"
                   style={{ fontFamily: 'var(--font-mono)' }}
+                  data-testid="room-code-display"
                 >
                   {room.code}
                 </span>
@@ -317,6 +319,7 @@ export default function RoomPage() {
                 return (
                   <motion.div
                     key={p.userId}
+                    data-testid={`room-player-${p.userId}`}
                     layout
                     initial={{ opacity: 0, scale: 0.92 }}
                     animate={{ opacity: 1, scale: 1 }}
@@ -392,6 +395,7 @@ export default function RoomPage() {
                         <button
                           onClick={() => handleRemoveBot(p.userId)}
                           className="shrink-0 text-[var(--color-text-muted)] hover:text-[var(--color-danger)] transition-colors p-0.5 rounded"
+                          data-testid={`room-remove-bot-btn-${p.userId}`}
                         >
                           <X size={13} />
                         </button>
@@ -401,7 +405,10 @@ export default function RoomPage() {
                     <div className="flex items-center justify-between">
                       <TokenDisplay tokens={room.initialTokens ?? 2} size="sm" />
                       {isReady && !p.isBot && (
-                        <span className="text-[10px] text-[var(--color-accent-mid)] font-medium uppercase tracking-wide">
+                        <span
+                          className="text-[10px] text-[var(--color-accent-mid)] font-medium uppercase tracking-wide"
+                          data-testid={`room-player-ready-${p.userId}`}
+                        >
                           pronto
                         </span>
                       )}
@@ -461,6 +468,7 @@ export default function RoomPage() {
               variant={readyMap[user?.id ?? ''] ? 'secondary' : 'primary'}
               className="flex-1"
               onClick={handleToggleReady}
+              data-testid="room-ready-btn"
             >
               {readyMap[user?.id ?? ''] ? 'Cancelar' : 'Pronto'}
             </Button>
@@ -471,6 +479,7 @@ export default function RoomPage() {
                 variant={readyMap[user?.id ?? ''] ? 'secondary' : 'outline'}
                 onClick={handleToggleReady}
                 className="shrink-0"
+                data-testid="room-ready-btn"
               >
                 {readyMap[user?.id ?? ''] ? 'Cancelar' : 'Pronto'}
               </Button>
@@ -479,6 +488,7 @@ export default function RoomPage() {
                 onClick={handleAddBot}
                 disabled={addingBot || activePlayers.length >= room.maxPlayers}
                 className="shrink-0"
+                data-testid="room-add-bot-btn"
               >
                 <PlusCircle size={14} /> Bot
               </Button>
@@ -486,6 +496,7 @@ export default function RoomPage() {
                 className="flex-1"
                 onClick={handleStart}
                 disabled={room.players.length < 2 || (!allSlotsReady && humanPlayers.length > 1)}
+                data-testid="room-start-btn"
               >
                 {allSlotsReady || humanPlayers.length <= 1
                   ? 'Iniciar Partida'

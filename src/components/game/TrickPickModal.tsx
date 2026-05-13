@@ -28,6 +28,7 @@ export function TrickPickModal({ open, pile, myHand, onTake, onDiscard }: TrickP
     <AnimatePresence onExitComplete={() => setStep('choose')}>
       {open && (
         <motion.div
+          data-testid="trick-pick-modal"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -53,15 +54,15 @@ export function TrickPickModal({ open, pile, myHand, onTake, onDiscard }: TrickP
                 {/* Cartas ganhas */}
                 <div className="flex items-center gap-1.5 flex-wrap">
                   {pile.map((card, i) => (
-                    <CardComponent key={card.id ?? i} card={card} small disabled />
+                    <CardComponent key={card.id ?? i} card={card} small disabled testId={`trick-pick-card-${i}`} />
                   ))}
                 </div>
 
                 <div className="flex gap-2">
-                  <Button variant="outline" className="flex-1" onClick={onDiscard}>
+                  <Button variant="outline" className="flex-1" onClick={onDiscard} data-testid="trick-pick-discard-btn">
                     Descartar
                   </Button>
-                  <Button className="flex-1" onClick={() => setStep('insert')}>
+                  <Button className="flex-1" onClick={() => setStep('insert')} data-testid="trick-pick-take-btn">
                     Pegar ({pile.length})
                   </Button>
                 </div>

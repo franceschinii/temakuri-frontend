@@ -6,11 +6,18 @@ interface TokenDisplayProps {
   tokens: number;
   max?: number;
   size?: 'sm' | 'md';
+  playerId?: string;
 }
 
-export function TokenDisplay({ tokens, max = INITIAL_TOKENS, size = 'md' }: TokenDisplayProps) {
+export function TokenDisplay({ tokens, max = INITIAL_TOKENS, size = 'md', playerId }: TokenDisplayProps) {
   return (
-    <div className="flex gap-1.5 items-center">
+    <div
+      className="flex gap-1.5 items-center"
+      data-testid={playerId ? `token-display-${playerId}` : undefined}
+    >
+      {playerId && (
+        <span data-testid={`tokens-remaining-${playerId}`} className="sr-only">{tokens}</span>
+      )}
       {Array.from({ length: max }).map((_, i) => (
         <Utensils
           key={i}

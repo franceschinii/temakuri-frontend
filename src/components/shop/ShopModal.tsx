@@ -42,7 +42,7 @@ export function ShopModal({ open, onClose }: ShopModalProps) {
   };
 
   return (
-    <Modal open={open} onClose={onClose} title="Loja">
+    <Modal open={open} onClose={onClose} title="Loja" testId="shop-modal">
       <div className="flex flex-col gap-4 min-h-[320px]">
         {/* Coins display */}
         <div className="flex items-center justify-between">
@@ -51,6 +51,7 @@ export function ShopModal({ open, onClose }: ShopModalProps) {
               <button
                 key={t}
                 onClick={() => setTab(t)}
+                data-testid={`shop-tab-${t}`}
                 className={cn(
                   'px-3 py-1.5 rounded-lg text-xs font-medium transition-all',
                   tab === t
@@ -62,7 +63,9 @@ export function ShopModal({ open, onClose }: ShopModalProps) {
               </button>
             ))}
           </div>
-          <CoinDisplay amount={user?.coins ?? 0} size="sm" />
+          <span data-testid="shop-balance">
+            <CoinDisplay amount={user?.coins ?? 0} size="sm" />
+          </span>
         </div>
 
         {isLoading ? (
@@ -76,6 +79,7 @@ export function ShopModal({ open, onClose }: ShopModalProps) {
                 {catalog?.avatars.map(item => (
                   <div
                     key={item.index}
+                    data-testid={`shop-avatar-${item.index}`}
                     className={cn(
                       'flex flex-col items-center gap-1.5 p-2 rounded-xl border transition-all',
                       item.owned
@@ -116,6 +120,7 @@ export function ShopModal({ open, onClose }: ShopModalProps) {
                   return (
                     <div
                       key={item.mode}
+                      data-testid={`shop-mode-${item.mode}`}
                       className={cn(
                         'flex items-center justify-between gap-3 p-3.5 rounded-xl border transition-all',
                         item.owned
@@ -164,7 +169,7 @@ export function ShopModal({ open, onClose }: ShopModalProps) {
               <Button variant="secondary" size="sm" onClick={() => setConfirmItem(null)} disabled={isPurchasing}>
                 Cancelar
               </Button>
-              <Button size="sm" onClick={handlePurchase} disabled={isPurchasing}>
+              <Button size="sm" onClick={handlePurchase} disabled={isPurchasing} data-testid="shop-buy-btn">
                 {isPurchasing ? 'Comprando...' : 'Confirmar'}
               </Button>
             </div>
