@@ -123,7 +123,7 @@ export default function LandingPage() {
                   onKeyDown={e => e.key === 'Enter' && handleGuest()}
                   maxLength={20}
                 />
-                <Button onClick={handleGuest} disabled={loading} size="md" className="shrink-0">
+                <Button onClick={handleGuest} disabled={loading} size="md" className="shrink-0" data-testid="guest-login-btn">
                   {loading ? '...' : 'Jogar'}
                 </Button>
               </div>

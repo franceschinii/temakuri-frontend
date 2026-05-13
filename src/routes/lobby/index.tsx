@@ -84,7 +84,7 @@ export default function LobbyPage() {
         <div className="flex items-center gap-0.5">
           {/* Moedas — só para registrados */}
           {!user?.isGuest && (
-            <span className="px-1.5">
+            <span className="px-1.5" data-testid="access-bar-coins">
               <CoinDisplay amount={user?.coins ?? 0} size="sm" />
             </span>
           )}
@@ -100,6 +100,7 @@ export default function LobbyPage() {
               onClick={() => setShopOpen(true)}
               className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors p-1.5 rounded-lg hover:bg-[var(--color-panel)]"
               title="Loja"
+              data-testid="access-bar-shop-btn"
             >
               <ShoppingBag size={16} />
             </button>
@@ -128,15 +129,17 @@ export default function LobbyPage() {
             onClick={() => navigate('/profile')}
             className="flex items-center gap-1.5 text-sm text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors px-1.5 py-1.5 rounded-lg hover:bg-[var(--color-panel)]"
             title={user?.username ?? 'Perfil'}
+            data-testid="access-bar-profile-link"
           >
             <User size={16} />
-            <span className="hidden sm:inline">{user?.username}</span>
+            <span className="hidden sm:inline" data-testid="access-bar-username">{user?.username}</span>
           </button>
           {/* Sair */}
           <button
             onClick={() => logout().then(() => navigate('/'))}
             className="text-[var(--color-text-muted)] hover:text-[var(--color-danger)] transition-colors p-1.5 rounded-lg hover:bg-[var(--color-panel)]"
             title="Sair"
+            data-testid="access-bar-logout-btn"
           >
             <LogOut size={16} />
           </button>
@@ -171,7 +174,7 @@ export default function LobbyPage() {
               <Swords size={15} /> Buscar
             </Button>
           )}
-          <Button variant="outline" onClick={() => navigate('/ranked')} className="shrink-0">
+          <Button variant="outline" onClick={() => navigate('/ranked')} className="shrink-0" data-testid="access-bar-leaderboard-link">
             <Trophy size={15} /> Ranking
           </Button>
         </motion.div>

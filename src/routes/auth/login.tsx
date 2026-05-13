@@ -103,6 +103,7 @@ export default function LoginPage() {
                 placeholder="seu@email.com"
                 {...register('email')}
                 error={errors.email?.message}
+                data-testid="login-email-input"
               />
 
               <div className="relative">
@@ -114,6 +115,7 @@ export default function LoginPage() {
                   className="pr-10"
                   {...register('password')}
                   error={errors.password?.message}
+                  data-testid="login-password-input"
                 />
                 <button
                   type="button"
@@ -133,7 +135,7 @@ export default function LoginPage() {
                 </Link>
               </div>
 
-              <Button type="submit" size="lg" disabled={isSubmitting} className="mt-1 gap-2">
+              <Button type="submit" size="lg" disabled={isSubmitting} className="mt-1 gap-2" data-testid="login-submit">
                 <LogIn size={16} />
                 {isSubmitting ? 'Entrando...' : 'Entrar'}
               </Button>

@@ -103,6 +103,8 @@ export default function RegisterPage() {
                 placeholder="como quer ser chamado"
                 {...register('username')}
                 error={errors.username?.message}
+                data-testid="register-username-input"
+                errorTestId="register-error-username"
               />
               <Input
                 label="Email"
@@ -111,6 +113,8 @@ export default function RegisterPage() {
                 placeholder="seu@email.com"
                 {...register('email')}
                 error={errors.email?.message}
+                data-testid="register-email-input"
+                errorTestId="register-error-email"
               />
               <div className="relative">
                 <Input
@@ -121,6 +125,8 @@ export default function RegisterPage() {
                   className="pr-10"
                   {...register('password')}
                   error={errors.password?.message}
+                  data-testid="register-password-input"
+                  errorTestId="register-error-password"
                 />
                 <button
                   type="button"
@@ -131,7 +137,7 @@ export default function RegisterPage() {
                 </button>
               </div>
 
-              <Button type="submit" size="lg" disabled={isSubmitting} className="mt-1 gap-2">
+              <Button type="submit" size="lg" disabled={isSubmitting} className="mt-1 gap-2" data-testid="register-submit">
                 <UserPlus size={16} />
                 {isSubmitting ? 'Criando...' : 'Criar Conta'}
               </Button>
