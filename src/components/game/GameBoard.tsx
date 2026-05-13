@@ -42,11 +42,11 @@ export function GameBoard() {
   const user = useAuthStore(s => s.user);
   const {
     phase, mode, round, myHand, players, pile, market, saborActive, saborMinRequired, saborTriggeredBy,
-    currentTurnUserId, consecutivePasses, selectedIndices, discardPile, duelPlates, myDuelPlates,
+    currentTurnUserId, consecutivePasses, selectedIndices, selectedPlateIndices, discardPile, duelPlates, myDuelPlates,
     syncState, setMyHand, applyCardsPlayed, applyTurnPassed, applyWipe, drawPileCount,
     setSaborActive, applyRoundEnd, applyGameOver, clearRoundSummary, addToDiscardPile, reset,
     roundSummaryData, gameOverData, addReaction, reactions, updateMarket, addLog,
-    musicEnabled,
+    musicEnabled, togglePlateSelection,
   } = useGameStore();
 
   const { playSelectedCards, drawCard, insertDrawnCard, swapWithMarket, sendReaction, sendMessage, requestState } = useGame(roomCode!);
@@ -154,20 +154,25 @@ export function GameBoard() {
     }
   }, [roomCode]));
 
-  useSocketEvent<{ userId: string; cards: Card[]; isSabor: boolean }>('game:cards_played', useCallback(({ userId, cards, isSabor }) => {
-    applyCardsPlayed(userId, cards, isSabor);
+  useSocketEvent<{ userId: string; cards: Card[]; isSabor: boolean; usedPlates?: Card[]; remainingPlates?: Card[] }>('game:cards_played', useCallback(({ userId, cards, isSabor, usedPlates, remainingPlates }) => {
+    applyCardsPlayed(userId, cards, isSabor, usedPlates, remainingPlates);
+    // If I used plates in this play, update myDuelPlates from the server's remaining plates
+    if (userId === user?.id && usedPlates && usedPlates.length > 0 && remainingPlates !== undefined) {
+      useGameStore.setState({ myDuelPlates: remainingPlates });
+    }
     playSound('play');
     const name = useGameStore.getState().players.find(p => p.userId === userId)?.username ?? userId;
     const cardDesc = cards.length === 1
       ? `${cards[0].value}`
       : `${cards.length}×${cards[0].value}`;
+    const plateNote = usedPlates && usedPlates.length > 0 ? ` (+${usedPlates.length} prato)` : '';
     addLog({
       type: 'play',
       userId,
       username: name,
-      text: `${name} jogou ${cardDesc}${isSabor ? ' 🔥' : ''}`,
+      text: `${name} jogou ${cardDesc}${plateNote}${isSabor ? ' 🔥' : ''}`,
     });
-  }, [applyCardsPlayed, addLog]));
+  }, [applyCardsPlayed, addLog, user?.id]));
 
   useSocketEvent<{ userId: string; drawnCard: Card | null; discardedCard: Card | null; drawPileCount: number }>('game:turn_passed', useCallback(({ userId, drawnCard, discardedCard, drawPileCount }) => {
     applyTurnPassed(userId, drawnCard, drawPileCount);
@@ -353,8 +358,10 @@ export function GameBoard() {
   const actionLog = useGameStore(s => s.gameLog).filter(e => e.type !== 'chat');
   const recentActions = actionLog.slice(-2);
 
+  const selectedPlateCards = (myDuelPlates ?? []).filter((_, i) => selectedPlateIndices.includes(i));
   const canPlay = isMyTurn && phase === 'PLAYER_TURN' && selectedIndices.length > 0 && validatePlayIndicesClient(
     myHand, selectedIndices, pile, saborActive, saborMinRequired,
+    selectedPlateCards.length > 0 ? selectedPlateCards : undefined,
   );
 
   const handleTrickTake = (insertAtIndex: number) => {
@@ -532,16 +539,37 @@ export function GameBoard() {
         {duelPlates && (
           <div className="flex flex-col gap-1 w-full max-w-md">
             <span className="text-[10px] uppercase tracking-widest text-[var(--color-text-muted)] text-center font-medium">Pratos do Dia</span>
+            {isMyTurn && phase === 'PLAYER_TURN' && myDuelPlates && myDuelPlates.length > 0 && (
+              <span className="text-[10px] text-[var(--color-warning)] text-center">
+                Selecione pratos para combinar com cartas da mão
+              </span>
+            )}
             <div className="flex gap-3 justify-center flex-wrap">
               {Object.entries(duelPlates).map(([playerId, plates]) => {
                 const player = players.find(p => p.userId === playerId);
+                const isMe = playerId === user?.id;
                 return (
                   <div key={playerId} className="flex flex-col items-center gap-1">
                     <span className="text-[10px] text-[var(--color-text-muted)]">{player?.username ?? '...'}</span>
                     <div className="flex gap-1">
-                      {plates.length > 0 ? plates.map((card, i) => (
-                        <CardComponent key={card.id ?? i} card={card} small disabled />
-                      )) : (
+                      {plates.length > 0 ? plates.map((card, i) => {
+                        const isSelected = isMe && selectedPlateIndices.includes(i);
+                        const canSelect = isMe && isMyTurn && phase === 'PLAYER_TURN' && !isSpectator;
+                        return (
+                          <button
+                            key={card.id ?? i}
+                            onClick={canSelect ? () => togglePlateSelection(i) : undefined}
+                            disabled={!canSelect}
+                            className={`transition-all rounded-lg ${canSelect ? 'cursor-pointer' : 'cursor-default'} ${
+                              isSelected
+                                ? 'ring-2 ring-[var(--color-warning)] ring-offset-1 ring-offset-[var(--color-surface)] scale-105'
+                                : ''
+                            }`}
+                          >
+                            <CardComponent card={card} small disabled={!canSelect} />
+                          </button>
+                        );
+                      }) : (
                         <span className="text-[10px] text-[var(--color-danger)] italic">sem pratos</span>
                       )}
                     </div>
