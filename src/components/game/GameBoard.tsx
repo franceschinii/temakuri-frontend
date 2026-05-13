@@ -183,8 +183,13 @@ export function GameBoard() {
     }
   }, [roomCode]));
 
-  useSocketEvent<{ userId: string; cards: Card[]; isSabor: boolean; usedPlates?: Card[]; remainingPlates?: Card[] }>('game:cards_played', useCallback(({ userId, cards, isSabor, usedPlates, remainingPlates }) => {
+  useSocketEvent<{ userId: string; cards: Card[]; isSabor: boolean; usedPlates?: Card[]; remainingPlates?: Card[]; nextPhase?: 'TRICK_PICK' | 'PLAYER_TURN' }>('game:cards_played', useCallback(({ userId, cards, isSabor, usedPlates, remainingPlates, nextPhase }) => {
     applyCardsPlayed(userId, cards, isSabor, usedPlates, remainingPlates);
+    // Sinaliza fase TRICK_PICK aos outros clientes: o jogador que jogou ainda precisa
+    // resolver A2 (pegar/descartar pile anterior) antes do turno avancar.
+    if (nextPhase === 'TRICK_PICK') {
+      useGameStore.setState({ phase: 'TRICK_PICK', currentTurnUserId: userId });
+    }
     // If I used plates in this play, update myDuelPlates from the server's remaining plates
     if (userId === user?.id && usedPlates && usedPlates.length > 0 && remainingPlates !== undefined) {
       useGameStore.setState({ myDuelPlates: remainingPlates });
@@ -298,12 +303,11 @@ export function GameBoard() {
     setTrickPickOpen(true);
   }, []));
 
-  useSocketEvent<{ userId: string; action: 'take' | 'discard'; discardedCards: Card[]; takenCount?: number }>('game:trick_pick_result', useCallback(({ userId, action, discardedCards, takenCount }) => {
-    // Regra A2: o pick resolve a pile ANTERIOR (que estava em trickPileForPick),
-    // nao a pile atual. A pile atual contem a jogada nova do mesmo jogador e
-    // permanece na mesa para o proximo jogador superar.
+  useSocketEvent<{ userId: string; action: 'take' | 'discard'; discardedCards: Card[]; takenCount?: number; nextTurnUserId?: string }>('game:trick_pick_result', useCallback(({ userId, action, discardedCards, takenCount, nextTurnUserId }) => {
+    // Regra A2: o pick resolve a pile ANTERIOR. A pile atual contem a jogada nova
+    // do mesmo jogador e permanece na mesa para o proximo jogador superar.
     useGameStore.setState(s => {
-      const updates: Partial<typeof s> = {};
+      const updates: Partial<typeof s> = { phase: 'PLAYER_TURN' };
       if (action === 'discard' && discardedCards.length > 0) {
         updates.discardPile = [...s.discardPile, ...discardedCards];
       }
@@ -312,10 +316,23 @@ export function GameBoard() {
           p.userId === userId ? { ...p, cardCount: p.cardCount + takenCount } : p,
         );
       }
+      // Forca atualizacao do turno mesmo se game:turn_started for perdido.
+      if (nextTurnUserId) {
+        updates.currentTurnUserId = nextTurnUserId;
+      }
       return updates;
     });
     setTrickPickOpen(false);
   }, []));
+
+  // Heartbeat de fase: backend reenvia phase+currentTurnUserId apos 10s em TRICK_PICK.
+  // Se nosso estado local divergir, forca request_state para resync completo.
+  useSocketEvent<{ phase: string; currentTurnUserId: string }>('game:phase_heartbeat', useCallback(({ phase: serverPhase, currentTurnUserId: serverTurn }) => {
+    const { phase: localPhase, currentTurnUserId: localTurn } = useGameStore.getState();
+    if (localPhase !== serverPhase || localTurn !== serverTurn) {
+      emitSocketEvent('game:request_state', { roomCode });
+    }
+  }, [roomCode]));
 
   useSocketEvent<{ plates: Card[] }>('game:duel_pass_offer', useCallback(({ plates }) => {
     useGameStore.setState(s => ({ myDuelPlates: plates }));
