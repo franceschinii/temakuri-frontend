@@ -170,6 +170,8 @@ export function ChatPanel({ onSendMessage, myUserId }: ChatPanelProps) {
                       </span>
                       <span className="text-[8px] text-[var(--color-text-muted)] opacity-40 tabular-nums">
                         {formatTimestamp(entry.timestamp)}
+                      </span>
+                    </div>
                     <div className={cn(
                       'px-2.5 py-1.5 rounded-xl text-[11px] leading-relaxed max-w-[85%] break-words',
                       entry.userId === myUserId
