@@ -10,7 +10,7 @@ const TYPE_COLOR: Record<LogEntry['type'], string> = {
   pass: 'text-[var(--color-text-muted)]',
   wipe: 'text-[var(--color-token-gold)]',
   sabor: 'text-[var(--color-warning)]',
-  round_end: 'text-[var(--color-danger)]',
+  round_end: 'text-[var(--color-token-gold)]',
   chat: 'text-[var(--color-text-primary)]',
   system: 'text-[var(--color-text-muted)]',
   info: 'text-[var(--color-text-muted)]',

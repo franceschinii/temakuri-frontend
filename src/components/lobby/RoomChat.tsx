@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { Send } from 'lucide-react';
 import { useSocketEvent, emitSocketEvent } from '@/hooks/useSocket';
 import { useAuthStore } from '@/stores/authStore';
+import { formatTimestamp } from '@/lib/formatTime';
 
 interface ChatMessage {
   userId: string;
@@ -47,11 +48,14 @@ export function RoomChat({ roomCode }: RoomChatProps) {
         ) : (
           messages.map((m, i) => (
             <div key={i} className="flex gap-1.5 items-baseline">
+              <span className="text-[9px] text-[var(--color-text-muted)] opacity-50 shrink-0 tabular-nums">
+                {formatTimestamp(m.ts)}
+              </span>
               <span
                 className="text-[11px] font-semibold shrink-0"
                 style={{ color: m.userId === user?.id ? 'var(--color-accent-soft)' : 'var(--color-text-primary)' }}
               >
-                {m.username}:
+                {m.userId === user?.id ? 'Você' : m.username}:
               </span>
               <span className="text-xs text-[var(--color-text-muted)] break-all">{m.text}</span>
             </div>

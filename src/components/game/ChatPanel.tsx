@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { MessageSquare, X, Send } from 'lucide-react';
 import { useGameStore } from '@/stores/gameStore';
 import { cn } from '@/lib/utils';
+import { formatTimestamp } from '@/lib/formatTime';
 
 interface ChatPanelProps {
   onSendMessage: (text: string) => void;
@@ -160,12 +161,15 @@ export function ChatPanel({ onSendMessage, myUserId }: ChatPanelProps) {
                     animate={{ opacity: 1, y: 0 }}
                     className={cn('flex flex-col gap-0.5', entry.userId === myUserId && 'items-end')}
                   >
-                    <span className={cn(
-                      'text-[9px] font-semibold uppercase tracking-wider',
-                      entry.userId === myUserId ? 'text-[var(--color-accent-strong)]' : 'text-[var(--color-accent-mid)]',
-                    )}>
-                      {entry.userId === myUserId ? 'Você' : entry.username}
-                    </span>
+                    <div className={cn('flex items-center gap-1', entry.userId === myUserId && 'flex-row-reverse')}>
+                      <span className={cn(
+                        'text-[9px] font-semibold uppercase tracking-wider',
+                        entry.userId === myUserId ? 'text-[var(--color-accent-strong)]' : 'text-[var(--color-accent-mid)]',
+                      )}>
+                        {entry.userId === myUserId ? 'Você' : entry.username}
+                      </span>
+                      <span className="text-[8px] text-[var(--color-text-muted)] opacity-40 tabular-nums">
+                        {formatTimestamp(entry.timestamp)}
                     <div className={cn(
                       'px-2.5 py-1.5 rounded-xl text-[11px] leading-relaxed max-w-[85%] break-words',
                       entry.userId === myUserId

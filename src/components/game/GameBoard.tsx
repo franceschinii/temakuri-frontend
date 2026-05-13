@@ -54,7 +54,7 @@ export function GameBoard() {
   const [timerMs, setTimerMs] = useState(30_000);
   const [timerKey, setTimerKey] = useState(0);
   const [reactionCooldown, setReactionCooldown] = useState(false);
-  const [reactionCount, setReactionCount] = useState(0);
+  const reactionTimestampsRef = useRef<number[]>([]);
   const [pickMode, setPickMode] = useState(false);
   const [drawnCard, setDrawnCard] = useState<Card | null>(null);
   const hasSubmittedPickRef = useRef(false);
@@ -222,7 +222,7 @@ export function GameBoard() {
     playSound('round_end');
     const allPlayers = useGameStore.getState().players;
     const loserNames = loserIds.map(id => allPlayers.find(p => p.userId === id)?.username ?? id);
-    addLog({ type: 'round_end', text: `🏁 Rodada encerrada — ${loserNames.join(', ')} esvaziou a mão e perdeu 1 Prato` });
+    addLog({ type: 'round_end', text: `🏁 Rodada encerrada — ${loserNames.join(', ')} esvaziou a mão e ganhou a rodada` });
   }, [applyRoundEnd, addLog]));
 
   useSocketEvent<{ round: number; drawPileCount: number; cardCounts: Record<string, number>; market: Card[] | null }>('game:round_started', useCallback(({ round, drawPileCount, cardCounts, market }) => {
@@ -416,18 +416,19 @@ export function GameBoard() {
 
   const handleSendReaction = useCallback((emoji: string) => {
     if (reactionCooldown) return;
+    const now = Date.now();
+    // Flood: 3 reações em menos de 2 segundos = cooldown de 4 segundos
+    const recent = reactionTimestampsRef.current.filter(t => now - t < 2000);
+    if (recent.length >= 3) {
+      setReactionCooldown(true);
+      toast.info('Calma aí!');
+      setTimeout(() => setReactionCooldown(false), 4000);
+      return;
+    }
+    reactionTimestampsRef.current = [...reactionTimestampsRef.current.filter(t => now - t < 5000), now];
     sendReaction(emoji);
     addReaction(user?.id ?? '', emoji);
-
-    const newCount = reactionCount + 1;
-    if (newCount >= 5) {
-      setReactionCooldown(true);
-      setReactionCount(0);
-      setTimeout(() => setReactionCooldown(false), 3000);
-    } else {
-      setReactionCount(newCount);
-    }
-  }, [reactionCooldown, reactionCount, sendReaction, addReaction, user?.id]);
+  }, [reactionCooldown, sendReaction, addReaction, user?.id]);
 
   const handleLeaveGame = () => setLeaveConfirmOpen(true);
 
@@ -696,7 +697,7 @@ export function GameBoard() {
                 Jogada inválida — precisa de mais cartas ou valor maior
               </p>
             )}
-            <ReactionBar onReact={handleSendReaction} disabled={reactionCooldown} usesLeft={5 - reactionCount} />
+            <ReactionBar onReact={handleSendReaction} disabled={reactionCooldown} />
           </div>
         )}
 
