@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Check, X, Loader2, Pencil, LogOut, ShoppingBag, Wine } from 'lucide-react';
+import { Check, X, Loader2, Pencil, Wine, ShoppingBag } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,8 +11,7 @@ import { RankBadge } from '@/components/ui/RankBadge';
 import { XpBar } from '@/components/ui/XpBar';
 import { CoinDisplay } from '@/components/ui/CoinDisplay';
 import { ShopModal } from '@/components/shop/ShopModal';
-import { AccessBar } from '@/components/ui/AccessBar';
-import { RulesDialog } from '@/components/game/RulesDialog';
+import { AppNavbar } from '@/components/ui/AppNavbar';
 import { DevFooter } from '@/components/ui/DevFooter';
 import { AdBanner } from '@/components/ui/AdBanner';
 import { useAuthStore } from '@/stores/authStore';
@@ -119,56 +118,10 @@ export default function ProfilePage() {
 
   const stats = profile?.stats;
   const [shopOpen, setShopOpen] = useState(false);
-  const logout = useAuthStore(s => s.logout);
 
   return (
     <div className="min-h-dvh bg-[var(--color-base)] flex flex-col">
-      <header className="sticky top-0 z-20 border-b border-[var(--color-border)] bg-[var(--color-surface)]/95 backdrop-blur-sm px-4 py-3 flex items-center gap-2 shrink-0">
-        <button
-          onClick={() => navigate('/lobby')}
-          className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors p-1.5 rounded-lg hover:bg-[var(--color-panel)] shrink-0"
-          title="Voltar ao lobby"
-        >
-          <ArrowLeft size={18} />
-        </button>
-        <h1 className="text-base font-semibold flex-1" style={{ color: 'var(--color-text-primary)' }}>Perfil</h1>
-        <div className="flex items-center gap-0.5 shrink-0">
-          {/* Moedas */}
-          {!user?.isGuest && (
-            <span className="px-1">
-              <CoinDisplay amount={user?.coins ?? 0} size="sm" />
-            </span>
-          )}
-          {/* Premium badge */}
-          {user?.isPremium && (
-            <span title="Premium" className="p-1.5 text-[oklch(75%_0.2_310)]">
-              <Wine size={16} />
-            </span>
-          )}
-          {/* Loja */}
-          {!user?.isGuest && (
-            <button
-              onClick={() => setShopOpen(true)}
-              className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors p-1.5 rounded-lg hover:bg-[var(--color-panel)]"
-              title="Loja"
-            >
-              <ShoppingBag size={16} />
-            </button>
-          )}
-          {/* Ajuda */}
-          <RulesDialog />
-          {/* Som + Música */}
-          <AccessBar />
-          {/* Sair */}
-          <button
-            onClick={() => logout().then(() => navigate('/'))}
-            className="text-[var(--color-text-muted)] hover:text-[var(--color-danger)] transition-colors p-1.5 rounded-lg hover:bg-[var(--color-panel)]"
-            title="Sair"
-          >
-            <LogOut size={16} />
-          </button>
-        </div>
-      </header>
+      <AppNavbar back="/lobby" />
 
       <main className="flex-1 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <div className="max-w-md mx-auto w-full p-5 flex flex-col gap-6">
@@ -189,8 +142,21 @@ export default function ProfilePage() {
               <div className="flex items-center gap-2">
                 <p className="text-lg font-semibold text-[var(--color-text-primary)]" data-testid="profile-username">{user?.username}</p>
                 {user?.isPremium && (
-                  <span title="Premium" className="text-[oklch(75%_0.2_310)]">
+                  <span title="Premium" style={{ color: 'oklch(75% 0.2 310)' }}>
                     <Wine size={16} />
+                  </span>
+                )}
+                {user?.isAdmin && (
+                  <span
+                    title="Administrador"
+                    className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full"
+                    style={{
+                      background: 'oklch(78% 0.18 80 / 0.15)',
+                      color: 'var(--color-warning)',
+                      border: '1px solid oklch(78% 0.18 80 / 0.4)',
+                    }}
+                  >
+                    Admin
                   </span>
                 )}
               </div>
@@ -345,8 +311,9 @@ export default function ProfilePage() {
         </div>
       </main>
 
-      {/* Modal de confirmação de troca de username */}
       <ShopModal open={shopOpen} onClose={() => setShopOpen(false)} />
+
+      {/* Modal de confirmação de troca de username */}
       <Modal
         open={confirmOpen}
         onClose={() => setConfirmOpen(false)}

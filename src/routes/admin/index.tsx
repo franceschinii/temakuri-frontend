@@ -1,8 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Pencil, KeyRound, Trash2, BarChart2, Search, X, Ban, Clock, ShieldCheck, Users, DoorOpen, UserX, RefreshCw, TrendingUp, Wine } from 'lucide-react';
-import { Logo } from '@/components/ui/Logo';
+import { Pencil, KeyRound, Trash2, BarChart2, Search, X, Ban, Clock, ShieldCheck, Users, DoorOpen, UserX, RefreshCw, TrendingUp, Wine } from 'lucide-react';
+import { AppNavbar } from '@/components/ui/AppNavbar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Modal } from '@/components/ui/modal';
@@ -170,32 +170,30 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-dvh bg-[var(--color-base)] flex flex-col">
-      <header className="border-b border-[var(--color-border)] backdrop-blur-sm px-6 py-3 flex items-center gap-3 shrink-0" style={{ background: 'var(--color-surface)' }}>
-        <button onClick={() => navigate('/lobby')} className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors">
-          <ArrowLeft size={18} />
-        </button>
-        <div className="flex items-center gap-2.5">
-          <Logo variant="mark" size={20} />
-          <h1 className="text-lg font-semibold" style={{ color: 'var(--color-text-primary)' }}>Painel de Administração</h1>
-        </div>
-        <div className="ml-auto flex items-center gap-1">
-          {(['users', 'rooms'] as AdminTab[]).map(t => (
-            <button
-              key={t}
-              onClick={() => setTab(t)}
-              className={cn(
-                'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all',
-                tab === t
-                  ? 'bg-[var(--color-accent-strong)] text-white'
-                  : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-panel)]'
-              )}
-            >
-              {t === 'users' ? <Users size={13} /> : <DoorOpen size={13} />}
-              {t === 'users' ? 'Usuários' : 'Salas'}
-            </button>
-          ))}
-        </div>
-      </header>
+      <AppNavbar
+        back="/lobby"
+        hideUsername
+        center={
+          <div className="flex items-center gap-1">
+            {(['users', 'rooms'] as AdminTab[]).map(t => (
+              <button
+                key={t}
+                onClick={() => setTab(t)}
+                className={cn(
+                  'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all',
+                  tab === t
+                    ? 'bg-[var(--color-accent-strong)] text-white'
+                    : 'hover:bg-[var(--color-panel)]'
+                )}
+                style={tab !== t ? { color: 'var(--color-text-muted)' } : {}}
+              >
+                {t === 'users' ? <Users size={13} /> : <DoorOpen size={13} />}
+                <span className="hidden sm:inline">{t === 'users' ? 'Usuários' : 'Salas'}</span>
+              </button>
+            ))}
+          </div>
+        }
+      />
 
       <main className="flex-1 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <div className="max-w-5xl mx-auto w-full p-4 sm:p-6 flex flex-col gap-4">

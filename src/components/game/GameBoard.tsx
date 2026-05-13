@@ -1,7 +1,7 @@
 import { useEffect, useCallback, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { LogOut } from 'lucide-react';
-import { AccessBar } from '@/components/ui/AccessBar';
+import { Eye } from 'lucide-react';
+import { AppNavbar } from '@/components/ui/AppNavbar';
 import { Modal } from '@/components/ui/modal';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -24,7 +24,6 @@ import { MarketRow } from './MarketRow';
 import { ReactionBar } from './ReactionBar';
 import { ActionHistoryPanel } from './ActionHistoryPanel';
 import { ChatPanel } from './ChatPanel';
-import { RulesDialog } from './RulesDialog';
 import { CardComponent } from './CardComponent';
 import { TrickPickModal } from './TrickPickModal';
 import { DuelPassPickModal } from './DuelPassPickModal';
@@ -256,7 +255,10 @@ export function GameBoard() {
     playSound('wipe');
     const name = useGameStore.getState().players.find(p => p.userId === winnerId)?.username ?? winnerId;
     addLog({ type: 'wipe', userId: winnerId, username: name, text: `${name} ganhou a vaza! 🧹` });
-  }, [applyWipe, addLog]));
+    const isMe = winnerId === user?.id;
+    setTurnBanner({ name: isMe ? 'Você ganhou a vaza!' : `${name} ganhou a vaza`, isMe });
+    setTimeout(() => setTurnBanner(null), 2200);
+  }, [applyWipe, addLog, user?.id]));
 
   useSocketEvent<{ triggeredBy: string; minRequired: number }>('game:sabor_active', useCallback(({ triggeredBy, minRequired }) => {
     const name = players.find(p => p.userId === triggeredBy)?.username ?? triggeredBy;
@@ -277,7 +279,11 @@ export function GameBoard() {
     const allPlayers = useGameStore.getState().players;
     const loserNames = loserIds.map(id => allPlayers.find(p => p.userId === id)?.username ?? id);
     addLog({ type: 'round_end', text: `🏁 Rodada encerrada — ${loserNames.join(', ')} esvaziou a mão e ganhou a rodada` });
-  }, [applyRoundEnd, addLog]));
+    // Banner no topo da mesa
+    const isMe = user?.id ? loserIds.includes(user.id) : false;
+    setTurnBanner({ name: isMe ? 'Você venceu a rodada!' : `${loserNames.join(', ')} venceu a rodada`, isMe });
+    setTimeout(() => setTurnBanner(null), 2600);
+  }, [applyRoundEnd, addLog, user?.id]));
 
   useSocketEvent<{ round: number; drawPileCount: number; cardCounts: Record<string, number>; market: Card[] | null }>('game:round_started', useCallback(({ round, drawPileCount, cardCounts, market }) => {
     useGameStore.setState(s => ({
@@ -397,15 +403,38 @@ export function GameBoard() {
     emitSocketEvent('game:request_state', { roomCode });
   }, [roomCode]));
 
-  // Disconnection/reconnection go to game log, not toast
+  // Disconnect/reconnect: so registra no log se a queda for confirmada (>5s) ou
+  // se o usuario voltou depois de ter sido marcado como desconectado.
+  // Evita spam tipo "X desconectou. X voltou. X desconectou. X voltou." em redes flutuantes.
+  const disconnectTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+  const announcedDisconnectsRef = useRef<Set<string>>(new Set());
   useSocketEvent<{ userId: string }>('game:player_disconnected', useCallback(({ userId }) => {
-    const name = useGameStore.getState().players.find(p => p.userId === userId)?.username ?? userId;
-    addLog({ type: 'system', text: `${name} desconectou` });
+    // Cancela timer existente (se houver)
+    const existing = disconnectTimersRef.current.get(userId);
+    if (existing) clearTimeout(existing);
+    const timer = setTimeout(() => {
+      const name = useGameStore.getState().players.find(p => p.userId === userId)?.username ?? userId;
+      addLog({ type: 'system', text: `${name} desconectou` });
+      announcedDisconnectsRef.current.add(userId);
+      disconnectTimersRef.current.delete(userId);
+    }, 5000);
+    disconnectTimersRef.current.set(userId, timer);
   }, [addLog]));
 
   useSocketEvent<{ userId: string }>('game:player_reconnected', useCallback(({ userId }) => {
-    const name = useGameStore.getState().players.find(p => p.userId === userId)?.username ?? userId;
-    addLog({ type: 'system', text: `${name} voltou` });
+    // Se reconectou antes do timer (5s), cancela o anuncio e nao fala nada
+    const existing = disconnectTimersRef.current.get(userId);
+    if (existing) {
+      clearTimeout(existing);
+      disconnectTimersRef.current.delete(userId);
+      return;
+    }
+    // So anuncia "voltou" se "desconectou" ja foi anunciado
+    if (announcedDisconnectsRef.current.has(userId)) {
+      const name = useGameStore.getState().players.find(p => p.userId === userId)?.username ?? userId;
+      addLog({ type: 'system', text: `${name} voltou` });
+      announcedDisconnectsRef.current.delete(userId);
+    }
   }, [addLog]));
 
   useSocketEvent<{ userId: string; emoji: string }>('game:reaction', useCallback(({ userId, emoji }) => {
@@ -533,68 +562,36 @@ export function GameBoard() {
 
   return (
     <div className="flex flex-col h-dvh bg-[var(--color-base)] overflow-hidden select-none" data-testid="game-board">
-      {/* Turn banner */}
-      <AnimatePresence>
-        {turnBanner && (
-          <motion.div
-            key={turnBanner.name}
-            initial={{ opacity: 0, y: -16, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 16, scale: 0.9 }}
-            transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-            className="fixed top-32 left-1/2 -translate-x-1/2 z-40 pointer-events-none"
-          >
-            <div className={`px-4 py-1.5 rounded-full text-sm font-semibold shadow-lg border ${
-              turnBanner.isMe
-                ? 'bg-[var(--color-accent-strong)] border-[var(--color-accent-glow)] text-white'
-                : 'bg-[var(--color-panel)] border-[var(--color-border)] text-[var(--color-text-primary)]'
-            }`}>
-              {turnBanner.name}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Game header */}
-      <div className="flex items-center justify-between px-6 py-3 border-b border-[var(--color-border)] bg-[var(--color-surface)]/95 backdrop-blur-sm shrink-0">
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-[var(--color-text-muted)] font-mono uppercase tracking-widest">{roomCode}</span>
-          {round > 0 && (
-            <span className="text-[10px] bg-[var(--color-panel)] border border-[var(--color-border)] text-[var(--color-accent-mid)] rounded-full px-1.5 py-0.5 font-mono">
-              R{round}
-            </span>
-          )}
-          {isDuel && (
-            <span className="text-[10px] bg-[var(--color-warning)]/15 border border-[var(--color-warning)]/40 text-[var(--color-warning)] rounded-full px-2 py-0.5 font-semibold uppercase tracking-wider">
-              Duelo
-            </span>
-          )}
-          {isSpectator && (
-            <span className="text-[10px] bg-[var(--color-accent-mid)]/15 border border-[var(--color-accent-mid)]/40 text-[var(--color-accent-mid)] rounded-full px-2 py-0.5 font-semibold uppercase tracking-wider">
-              Espectador
-            </span>
-          )}
-          {!isSpectator && spectatorCount > 0 && (
-            <span className="text-[10px] text-[var(--color-text-muted)] flex items-center gap-0.5" title={`${spectatorCount} espectador${spectatorCount !== 1 ? 'es' : ''}`}>
-              👁 {spectatorCount}
-            </span>
-          )}
-        </div>
-        <div className="flex-1 flex items-center justify-center px-4">
-          <TurnTimer key={timerKey} timeoutMs={timerMs} isMyTurn={isMyTurn} />
-        </div>
-        <div className="flex items-center gap-1">
-          <RulesDialog />
-          <AccessBar />
-          <button
-            onClick={handleLeaveGame}
-            className="p-1.5 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-danger)] hover:bg-[var(--color-panel)] transition-all"
-            title="Sair da partida"
-          >
-            <LogOut size={15} />
-          </button>
-        </div>
-      </div>
+      {/* Game header — usa AppNavbar com badges no slot center */}
+      <AppNavbar
+        back={handleLeaveGame}
+        center={
+          <div className="flex items-center gap-2 min-w-0 flex-wrap justify-center">
+            <span className="text-xs font-mono uppercase tracking-widest" style={{ color: 'var(--color-text-muted)' }}>{roomCode}</span>
+            {round > 0 && (
+              <span className="text-[10px] bg-[var(--color-panel)] border border-[var(--color-border)] rounded-full px-1.5 py-0.5 font-mono" style={{ color: 'var(--color-accent-mid)' }}>
+                R{round}
+              </span>
+            )}
+            {isDuel && (
+              <span className="text-[10px] border rounded-full px-2 py-0.5 font-semibold uppercase tracking-wider" style={{ background: 'oklch(78% 0.18 80 / 0.15)', borderColor: 'oklch(78% 0.18 80 / 0.4)', color: 'var(--color-warning)' }}>
+                Duelo
+              </span>
+            )}
+            {isSpectator && (
+              <span className="text-[10px] border rounded-full px-2 py-0.5 font-semibold uppercase tracking-wider" style={{ background: 'oklch(68% 0.15 145 / 0.15)', borderColor: 'oklch(68% 0.15 145 / 0.4)', color: 'var(--color-accent-mid)' }}>
+                Espectador
+              </span>
+            )}
+            {!isSpectator && spectatorCount > 0 && (
+              <span className="text-[10px] flex items-center gap-0.5" style={{ color: 'var(--color-text-muted)' }} title={`${spectatorCount} espectador${spectatorCount !== 1 ? 'es' : ''}`}>
+                <Eye size={12} /> {spectatorCount}
+              </span>
+            )}
+            <TurnTimer key={timerKey} timeoutMs={timerMs} isMyTurn={isMyTurn} />
+          </div>
+        }
+      />
 
       {/* Opponents */}
       <div className="flex gap-1.5 justify-center flex-wrap px-2 py-2 border-b border-[var(--color-border)] bg-[var(--color-surface)]">
@@ -610,16 +607,44 @@ export function GameBoard() {
           e sem overflow-y-auto que causava layout shift. Conteudo opcional usa
           min-h reservado em vez de entrar/sair do DOM. */}
       <div className="flex-1 min-h-0 flex flex-col items-center justify-center gap-2 px-2 py-3 sm:px-4">
-        {/* Slot reservado para SaborIndicator: ocupa 28px mesmo quando vazio */}
-        <div className="h-7 flex items-center justify-center w-full">
-          <AnimatePresence>
-            {saborActive && (
-              <SaborIndicator
-                active={saborActive}
-                minRequired={saborMinRequired}
-                triggeredBy={saborTriggeredBy ?? undefined}
-              />
-            )}
+        {/* Banner de eventos importantes (turno, sabor, etc.) — topo da area de mesa,
+            altura reservada de 36px para nao empurrar a mesa quando entra/sai. */}
+        <div className="h-9 flex items-center justify-center w-full pointer-events-none">
+          <AnimatePresence mode="wait">
+            {turnBanner ? (
+              <motion.div
+                key={`turn-${turnBanner.name}`}
+                initial={{ opacity: 0, y: -8, scale: 0.9 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 8, scale: 0.9 }}
+                transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+              >
+                <div
+                  className={`px-4 py-1.5 rounded-full text-sm font-semibold shadow-lg border ${
+                    turnBanner.isMe
+                      ? 'bg-[var(--color-accent-strong)] border-[var(--color-accent-glow)] text-white'
+                      : 'bg-[var(--color-panel)] border-[var(--color-border)]'
+                  }`}
+                  style={!turnBanner.isMe ? { color: 'var(--color-text-primary)' } : {}}
+                >
+                  {turnBanner.name}
+                </div>
+              </motion.div>
+            ) : saborActive ? (
+              <motion.div
+                key="sabor"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                transition={{ duration: 0.18 }}
+              >
+                <SaborIndicator
+                  active={saborActive}
+                  minRequired={saborMinRequired}
+                  triggeredBy={saborTriggeredBy ?? undefined}
+                />
+              </motion.div>
+            ) : null}
           </AnimatePresence>
         </div>
 

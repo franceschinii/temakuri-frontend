@@ -1,11 +1,10 @@
 import { useEffect, useCallback, useState, useRef } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { Copy, Crown, LogOut, Bot, PlusCircle, X, Lock } from 'lucide-react';
-import { AccessBar } from '@/components/ui/AccessBar';
+import { Copy, Crown, Bot, PlusCircle, X, Lock } from 'lucide-react';
+import { AppNavbar } from '@/components/ui/AppNavbar';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { Logo } from '@/components/ui/Logo';
 import { TokenDisplay } from '@/components/game/TokenDisplay';
 import { AvatarWithBorder } from '@/components/ui/Avatar';
 import { LevelBadge } from '@/components/ui/LevelBadge';
@@ -21,7 +20,6 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { startMusic, stopMusic } from '@/lib/music';
 import { playSound } from '@/lib/sounds';
-import { RulesDialog } from '@/components/game/RulesDialog';
 import { RoomChat } from '@/components/lobby/RoomChat';
 import { DevFooter } from '@/components/ui/DevFooter';
 import { Input } from '@/components/ui/input';
@@ -253,30 +251,17 @@ export default function RoomPage() {
 
   return (
     <div className="h-dvh bg-[var(--color-base)] flex flex-col overflow-hidden">
-      <header className="border-b border-[var(--color-border)] bg-[var(--color-surface)]/95 backdrop-blur-sm px-6 py-3 flex items-center justify-between shrink-0 z-20">
-        <div className="flex items-center gap-2.5">
-          <Logo variant="mark" size={20} />
+      <AppNavbar
+        back={handleLeave}
+        center={
           <span
-            className="text-lg font-semibold text-[var(--color-accent-soft)] tracking-wide"
-            style={{ fontFamily: 'var(--font-display)' }}
+            className="text-base font-semibold tracking-wide hidden sm:inline"
+            style={{ color: 'var(--color-text-muted)' }}
           >
-            Temakuri
+            Sala {roomCode}
           </span>
-        </div>
-        <div className="flex items-center gap-0.5">
-          <RulesDialog />
-          <AccessBar />
-          <button
-            onClick={handleLeave}
-            className="flex items-center gap-1.5 text-sm text-[var(--color-text-muted)] hover:text-[var(--color-danger)] transition-colors p-1.5 rounded-lg hover:bg-[var(--color-panel)]"
-            title="Sair da sala"
-            data-testid="room-leave-btn"
-          >
-            <LogOut size={16} />
-            <span className="hidden sm:inline">Sair</span>
-          </button>
-        </div>
-      </header>
+        }
+      />
 
       <main className="flex-1 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <div className="max-w-lg mx-auto w-full p-4 sm:p-6 flex flex-col gap-5 sm:gap-6">

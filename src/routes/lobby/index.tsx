@@ -1,22 +1,18 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Search, HelpCircle, Info, User, ShoppingBag, LogOut, Swords, Wine, Trophy } from 'lucide-react';
+import { Plus, Search, HelpCircle, Swords, Trophy } from 'lucide-react';
 import { DevFooter } from '@/components/ui/DevFooter';
 import { AdBanner } from '@/components/ui/AdBanner';
 import { motion } from 'framer-motion';
-import { Logo } from '@/components/ui/Logo';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Modal } from '@/components/ui/modal';
-import { AccessBar } from '@/components/ui/AccessBar';
-import { CoinDisplay } from '@/components/ui/CoinDisplay';
+import { AppNavbar } from '@/components/ui/AppNavbar';
 import { RoomCard } from '@/components/lobby/RoomCard';
 import { CreateRoomModal } from '@/components/lobby/CreateRoomModal';
-import { HelpModal } from '@/components/lobby/HelpModal';
 import { NewsCard } from '@/components/lobby/NewsCard';
 import { ChangelogCard } from '@/components/lobby/ChangelogCard';
-import { ShopModal } from '@/components/shop/ShopModal';
 import { MatchmakingDialog } from '@/components/matchmaking/MatchmakingDialog';
 import { useAuthStore } from '@/stores/authStore';
 import { useSocketEvent } from '@/hooks/useSocket';
@@ -32,13 +28,10 @@ export default function LobbyPage() {
   }, []);
 
   const user = useAuthStore(s => s.user);
-  const logout = useAuthStore(s => s.logout);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [createOpen, setCreateOpen] = useState(false);
   const [rulesOpen, setRulesOpen] = useState(false);
-  const [helpOpen, setHelpOpen] = useState(false);
-  const [shopOpen, setShopOpen] = useState(false);
   const [matchOpen, setMatchOpen] = useState(false);
   const [joinCode, setJoinCode] = useState('');
   const [joinPassword, setJoinPassword] = useState('');
@@ -84,89 +77,20 @@ export default function LobbyPage() {
 
   return (
     <div className="h-dvh bg-[var(--color-base)] flex flex-col overflow-hidden">
-      {/* Header */}
-      <header className="border-b border-[var(--color-border)] bg-[var(--color-surface)]/95 backdrop-blur-sm px-6 py-3 flex items-center justify-between shrink-0 z-20">
-        <div className="flex items-center gap-2.5">
-          <Logo variant="mark" size={22} />
-          <span
-            className="text-lg font-semibold text-[var(--color-accent-soft)] tracking-wide"
-            style={{ fontFamily: 'var(--font-display)' }}
-          >
-            Temakuri
-          </span>
-        </div>
-        <div className="flex items-center gap-0.5">
-          {/* Moedas — só para registrados */}
-          {!user?.isGuest && (
-            <span className="px-1.5" data-testid="access-bar-coins">
-              <CoinDisplay amount={user?.coins ?? 0} size="sm" />
-            </span>
-          )}
-          {/* Premium badge */}
-          {user?.isPremium && (
-            <span title="Premium" className="p-1.5 text-[oklch(75%_0.2_310)]">
-              <Wine size={16} />
-            </span>
-          )}
-          {/* Loja */}
-          {!user?.isGuest && (
-            <button
-              onClick={() => setShopOpen(true)}
-              className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors p-1.5 rounded-lg hover:bg-[var(--color-panel)]"
-              title="Loja"
-              data-testid="access-bar-shop-btn"
-            >
-              <ShoppingBag size={16} />
-            </button>
-          )}
-          {/* Como jogar (regras) */}
+      {/* Header — AppNavbar comum a todas as telas, mais botao "Como jogar" especifico */}
+      <AppNavbar
+        center={
           <button
             onClick={() => setRulesOpen(true)}
-            className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors p-1.5 rounded-lg hover:bg-[var(--color-panel)]"
+            className="p-1.5 rounded-lg transition-colors hover:bg-[var(--color-panel)] flex items-center gap-1.5"
+            style={{ color: 'var(--color-text-muted)' }}
             title="Como jogar"
           >
-            <HelpCircle size={17} />
+            <HelpCircle size={16} />
+            <span className="text-xs hidden sm:inline">Como jogar</span>
           </button>
-          {/* Como funciona (ranks, moedas, bordas, icones) */}
-          <button
-            onClick={() => setHelpOpen(true)}
-            className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors p-1.5 rounded-lg hover:bg-[var(--color-panel)]"
-            title="Como funciona"
-          >
-            <Info size={17} />
-          </button>
-          {/* Som + Música */}
-          <AccessBar />
-          {/* Admin */}
-          {user?.isAdmin && (
-            <button
-              onClick={() => navigate('/admin')}
-              className="text-xs text-[var(--color-warning)] hover:text-[var(--color-text-primary)] transition-colors px-2 py-1 rounded-lg hover:bg-[var(--color-panel)] hidden sm:block"
-            >
-              Admin
-            </button>
-          )}
-          {/* Perfil */}
-          <button
-            onClick={() => navigate('/profile')}
-            className="flex items-center gap-1.5 text-sm text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors px-1.5 py-1.5 rounded-lg hover:bg-[var(--color-panel)]"
-            title={user?.username ?? 'Perfil'}
-            data-testid="access-bar-profile-link"
-          >
-            <User size={16} />
-            <span className="hidden sm:inline" data-testid="access-bar-username">{user?.username}</span>
-          </button>
-          {/* Sair */}
-          <button
-            onClick={() => logout().then(() => navigate('/'))}
-            className="text-[var(--color-text-muted)] hover:text-[var(--color-danger)] transition-colors p-1.5 rounded-lg hover:bg-[var(--color-panel)]"
-            title="Sair"
-            data-testid="access-bar-logout-btn"
-          >
-            <LogOut size={16} />
-          </button>
-        </div>
-      </header>
+        }
+      />
 
       <main className="flex-1 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <div className="max-w-7xl mx-auto w-full p-4 sm:p-6 grid grid-cols-1 lg:grid-cols-[340px_1fr] gap-5 sm:gap-6">
@@ -284,9 +208,7 @@ export default function LobbyPage() {
       <DevFooter />
 
       <CreateRoomModal open={createOpen} onClose={() => setCreateOpen(false)} />
-      <ShopModal open={shopOpen} onClose={() => setShopOpen(false)} />
       <MatchmakingDialog open={matchOpen} onClose={() => setMatchOpen(false)} />
-      <HelpModal open={helpOpen} onClose={() => setHelpOpen(false)} />
 
       <Modal open={rulesOpen} onClose={() => setRulesOpen(false)} title="Como jogar">
         <div className="flex flex-col gap-5 text-sm">

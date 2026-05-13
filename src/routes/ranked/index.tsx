@@ -1,8 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { useNavigate } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
-import { Logo } from '@/components/ui/Logo';
-import { AccessBar } from '@/components/ui/AccessBar';
+import { AppNavbar } from '@/components/ui/AppNavbar';
 import { DevFooter } from '@/components/ui/DevFooter';
 import { AvatarImage } from '@/components/ui/Avatar';
 import { LevelBadge } from '@/components/ui/LevelBadge';
@@ -46,7 +43,6 @@ const RANK_TIERS: {
 const TOP3_MEDALS = ['🥇', '🥈', '🥉'];
 
 export default function RankedPage() {
-  const navigate = useNavigate();
   const user = useAuthStore(s => s.user);
 
   const {
@@ -75,25 +71,17 @@ export default function RankedPage() {
 
   return (
     <div className="min-h-dvh bg-[var(--color-base)] flex flex-col">
-      <header className="border-b border-[var(--color-border)] bg-[var(--color-surface)]/95 backdrop-blur-sm px-6 py-3 flex items-center justify-between shrink-0 z-20">
-        <div className="flex items-center gap-2.5">
-          <button
-            onClick={() => navigate('/lobby')}
-            className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors p-1.5 rounded-lg hover:bg-[var(--color-panel)] mr-1"
-            aria-label="Voltar ao lobby"
-          >
-            <ArrowLeft size={18} />
-          </button>
-          <Logo variant="mark" size={22} />
+      <AppNavbar
+        back="/lobby"
+        center={
           <span
-            className="text-lg font-semibold text-[var(--color-accent-soft)] tracking-wide"
-            style={{ fontFamily: 'var(--font-display)' }}
+            className="text-lg font-semibold tracking-wide hidden sm:inline"
+            style={{ color: 'var(--color-accent-soft)', fontFamily: 'var(--font-display)' }}
           >
             Ranked
           </span>
-        </div>
-        <AccessBar />
-      </header>
+        }
+      />
 
       <main className="flex-1 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <div className="max-w-2xl mx-auto w-full p-4 sm:p-6 flex flex-col gap-8">
