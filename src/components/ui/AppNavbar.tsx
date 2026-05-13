@@ -33,13 +33,20 @@ interface AppNavbarProps {
    * pequenas (admin com muitos botoes, p.ex).
    */
   hideUsername?: boolean;
+
+  /**
+   * Callback do botao "Como jogar" — quando passado, mostra o botao ao lado
+   * do logo na esquerda. So usado no lobby (RulesDialog detalhado nao faz
+   * sentido in-game ou em telas administrativas).
+   */
+  onHowToPlay?: () => void;
 }
 
 /**
  * Navbar unica do app. Usada em: lobby, lobby da sala, in-game, perfil,
  * ranked, admin. Auth telas tem layout proprio.
  */
-export function AppNavbar({ center, back, hideUsername }: AppNavbarProps) {
+export function AppNavbar({ center, back, hideUsername, onHowToPlay }: AppNavbarProps) {
   const navigate = useNavigate();
   const user = useAuthStore(s => s.user);
   const logout = useAuthStore(s => s.logout);
@@ -80,6 +87,17 @@ export function AppNavbar({ center, back, hideUsername }: AppNavbarProps) {
               Temakuri
             </span>
           </button>
+          {onHowToPlay && (
+            <button
+              onClick={onHowToPlay}
+              className="p-1.5 rounded-lg transition-colors hover:bg-[var(--color-panel)] flex items-center gap-1.5"
+              style={{ color: 'var(--color-text-muted)' }}
+              title="Como jogar"
+            >
+              <HelpCircle size={16} />
+              <span className="text-xs hidden md:inline">Como jogar</span>
+            </button>
+          )}
         </div>
 
         {/* Centro: slot customizado */}

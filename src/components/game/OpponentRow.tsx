@@ -20,10 +20,11 @@ export function OpponentRow({ player, isCurrentTurn }: OpponentRowProps) {
     <div
       data-testid={`opponent-row-${player.userId}`}
       className={cn(
-        'flex flex-col items-center gap-1.5 px-3 py-2 rounded-xl transition-all min-w-0',
+        'flex flex-col items-center gap-1.5 px-3 py-2 rounded-xl transition-all shrink-0',
         isCurrentTurn && 'ring-2 ring-[var(--color-accent-soft)] bg-[var(--color-surface)]',
         player.isEliminated && 'opacity-30',
       )}
+      style={{ width: 180 }}
     >
       {isCurrentTurn && (
         <span

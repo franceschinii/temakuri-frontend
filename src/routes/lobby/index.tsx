@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Search, HelpCircle, Swords, Trophy } from 'lucide-react';
+import { Plus, Search, Swords, Trophy } from 'lucide-react';
 import { DevFooter } from '@/components/ui/DevFooter';
 import { AdBanner } from '@/components/ui/AdBanner';
 import { motion } from 'framer-motion';
@@ -77,20 +77,8 @@ export default function LobbyPage() {
 
   return (
     <div className="h-dvh bg-[var(--color-base)] flex flex-col overflow-hidden">
-      {/* Header — AppNavbar comum a todas as telas, mais botao "Como jogar" especifico */}
-      <AppNavbar
-        center={
-          <button
-            onClick={() => setRulesOpen(true)}
-            className="p-1.5 rounded-lg transition-colors hover:bg-[var(--color-panel)] flex items-center gap-1.5"
-            style={{ color: 'var(--color-text-muted)' }}
-            title="Como jogar"
-          >
-            <HelpCircle size={16} />
-            <span className="text-xs hidden sm:inline">Como jogar</span>
-          </button>
-        }
-      />
+      {/* Header — AppNavbar comum a todas as telas, com "Como jogar" ao lado do logo */}
+      <AppNavbar onHowToPlay={() => setRulesOpen(true)} />
 
       <main className="flex-1 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <div className="max-w-7xl mx-auto w-full p-4 sm:p-6 grid grid-cols-1 lg:grid-cols-[340px_1fr] gap-5 sm:gap-6">
