@@ -165,7 +165,7 @@ export function MatchmakingDialog({ open, onClose }: Props) {
   const strokeDashoffset = circumference * (1 - confirmProgress / 100);
 
   return createPortal(
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm" data-testid="matchmaking-dialog">
       <div className="relative w-full max-w-sm mx-4 rounded-2xl border border-[var(--color-border)] bg-[var(--color-panel)] shadow-2xl">
         {/* Header */}
         <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-[var(--color-border)]">
@@ -221,7 +221,7 @@ export function MatchmakingDialog({ open, onClose }: Props) {
                 </div>
               </div>
 
-              <Button onClick={handleSearch} className="w-full">
+              <Button onClick={handleSearch} className="w-full" data-testid="matchmaking-start-btn">
                 <Swords size={15} /> Buscar
               </Button>
             </>
@@ -257,7 +257,7 @@ export function MatchmakingDialog({ open, onClose }: Props) {
               </div>
 
               <div className="flex flex-col items-center gap-1">
-                <span className="text-sm font-medium text-[var(--color-text-primary)]">Procurando partida...</span>
+                <span className="text-sm font-medium text-[var(--color-text-primary)]" data-testid="matchmaking-status">Procurando partida...</span>
                 <span className="text-xs text-[var(--color-text-muted)] font-mono">{formatTime(queueTime)}</span>
               </div>
 
@@ -277,7 +277,7 @@ export function MatchmakingDialog({ open, onClose }: Props) {
                 )}
               </div>
 
-              <Button variant="ghost" size="sm" onClick={handleCancel} className="text-[var(--color-danger)]">
+              <Button variant="ghost" size="sm" onClick={handleCancel} className="text-[var(--color-danger)]" data-testid="matchmaking-cancel-btn">
                 Cancelar
               </Button>
             </div>

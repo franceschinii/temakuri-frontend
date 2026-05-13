@@ -86,7 +86,7 @@ export function CreateRoomModal({ open, onClose }: CreateRoomModalProps) {
   const biasStep = BIAS_STEPS.find(s => Math.abs(s.value - handBias) < 0.01) ?? BIAS_STEPS[0];
 
   return (
-    <Modal open={open} onClose={onClose} title="Criar Sala">
+    <Modal open={open} onClose={onClose} title="Criar Sala" testId="create-room-modal">
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
         <div>
           <p className="text-sm text-[var(--color-text-muted)] mb-2">Modo de jogo</p>
@@ -97,6 +97,7 @@ export function CreateRoomModal({ open, onClose }: CreateRoomModalProps) {
               return (
                 <label
                   key={m.value}
+                  data-testid={`create-room-mode-${m.value}`}
                   className={cn(
                     'flex flex-col gap-0.5 p-3 rounded-lg border transition-all',
                     locked ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer',
@@ -130,6 +131,7 @@ export function CreateRoomModal({ open, onClose }: CreateRoomModalProps) {
               type="checkbox"
               {...register('isRanked')}
               className="accent-[oklch(72%_0.2_240)]"
+              data-testid="create-room-ranked-toggle"
             />
             <Swords size={13} className="text-[oklch(72%_0.2_240)]" />
             <span className="text-[var(--color-text-primary)]">Ranqueada</span>
@@ -142,6 +144,7 @@ export function CreateRoomModal({ open, onClose }: CreateRoomModalProps) {
           <select
             {...register('maxPlayers')}
             className="bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text-primary)] rounded-lg px-3 py-1.5 text-sm"
+            data-testid="create-room-max-players"
           >
             {[2, 3, 4, 5, 6].map(n => <option key={n} value={n}>{n}</option>)}
           </select>
@@ -150,6 +153,7 @@ export function CreateRoomModal({ open, onClose }: CreateRoomModalProps) {
           <select
             {...register('initialTokens')}
             className="bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text-primary)] rounded-lg px-3 py-1.5 text-sm"
+            data-testid="create-room-initial-tokens"
           >
             <option value={1}>1 prato</option>
             <option value={2}>2 pratos</option>
@@ -157,7 +161,12 @@ export function CreateRoomModal({ open, onClose }: CreateRoomModalProps) {
           </select>
 
           <label className="flex items-center gap-2 text-sm text-[var(--color-text-muted)] cursor-pointer ml-auto">
-            <input type="checkbox" {...register('isPrivate')} className="accent-[var(--color-accent-strong)]" />
+            <input
+              type="checkbox"
+              {...register('isPrivate')}
+              className="accent-[var(--color-accent-strong)]"
+              data-testid="create-room-private-toggle"
+            />
             Privada
           </label>
         </div>
@@ -174,6 +183,7 @@ export function CreateRoomModal({ open, onClose }: CreateRoomModalProps) {
                 key={step.value}
                 type="button"
                 onClick={() => setHandBias(step.value)}
+                data-testid={`create-room-hand-bias-${step.value}`}
                 className={cn(
                   'flex-1 py-1.5 rounded-md text-xs font-medium border transition-all',
                   Math.abs(step.value - handBias) < 0.01
@@ -190,7 +200,7 @@ export function CreateRoomModal({ open, onClose }: CreateRoomModalProps) {
           </p>
         </div>
 
-        <Button type="submit" disabled={loading}>
+        <Button type="submit" disabled={loading} data-testid="create-room-submit">
           {loading ? 'Criando...' : 'Criar Sala'}
         </Button>
       </form>

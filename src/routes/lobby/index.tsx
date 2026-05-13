@@ -166,11 +166,11 @@ export default function LobbyPage() {
           <Button variant="outline" onClick={handleJoin} disabled={joining} className="shrink-0">
             {joining ? '...' : <><Search size={15} /> Entrar</>}
           </Button>
-          <Button onClick={() => setCreateOpen(true)} className="shrink-0">
+          <Button onClick={() => setCreateOpen(true)} className="shrink-0" data-testid="lobby-create-room-btn">
             <Plus size={15} /> Criar
           </Button>
           {!user?.isGuest && (
-            <Button variant="secondary" onClick={() => setMatchOpen(true)} className="shrink-0">
+            <Button variant="secondary" onClick={() => setMatchOpen(true)} className="shrink-0" data-testid="lobby-matchmaking-btn">
               <Swords size={15} /> Buscar
             </Button>
           )}

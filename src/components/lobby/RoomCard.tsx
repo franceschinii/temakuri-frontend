@@ -27,6 +27,7 @@ export function RoomCard({ room }: RoomCardProps) {
 
   return (
     <div
+      data-testid={`lobby-room-card-${room.code}`}
       className={cn(
         'relative flex items-center justify-between p-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] overflow-hidden',
         !isInProgress && 'hover:border-[var(--color-accent-mid)] transition-all duration-200 group',
@@ -94,6 +95,7 @@ export function RoomCard({ room }: RoomCardProps) {
           variant={isInProgress ? 'secondary' : 'primary'}
           disabled={entering}
           onClick={() => { setEntering(true); navigate(`/lobby/${room.code}`, { state: { isMatchmaking: false } }); }}
+          data-testid={`lobby-room-join-btn-${room.code}`}
         >
           {entering ? '...' : isInProgress ? 'Espectador' : 'Entrar'}
         </Button>
