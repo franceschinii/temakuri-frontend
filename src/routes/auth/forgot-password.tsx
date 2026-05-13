@@ -47,7 +47,7 @@ export default function ForgotPasswordPage() {
         className="relative z-10 w-full max-w-sm"
       >
         <div className="text-center mb-8">
-          <Logo variant="full" size={64} className="mx-auto mb-6" />
+          <Logo variant="full" size={96} className="mx-auto mb-6" />
         </div>
 
         <AnimatePresence mode="wait">

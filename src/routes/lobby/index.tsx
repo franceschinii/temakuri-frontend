@@ -169,7 +169,7 @@ export default function LobbyPage() {
       </header>
 
       <main className="flex-1 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        <div className="max-w-6xl mx-auto w-full p-4 sm:p-6 grid grid-cols-1 lg:grid-cols-[260px_1fr] gap-5 sm:gap-6">
+        <div className="max-w-7xl mx-auto w-full p-4 sm:p-6 grid grid-cols-1 lg:grid-cols-[340px_1fr] gap-5 sm:gap-6">
 
         {/* Sidebar esquerda: Noticias + Changelog (so visivel em lg+; abaixo, fica embaixo) */}
         <aside className="flex flex-col gap-3 order-2 lg:order-1">

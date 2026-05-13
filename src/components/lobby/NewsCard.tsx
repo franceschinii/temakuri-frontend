@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Megaphone, Pin } from 'lucide-react';
+import { X, Megaphone } from 'lucide-react';
 import { NEWS, type NewsItem } from '@/data/news';
 import { formatDate } from '@/lib/formatTime';
 
@@ -23,16 +23,12 @@ export function NewsCard() {
         className="w-full text-left bg-gradient-to-r from-[var(--color-accent-strong)]/15 to-[var(--color-accent-mid)]/10 border border-[var(--color-accent-mid)]/30 rounded-xl px-4 py-2.5 flex items-center gap-3 hover:from-[var(--color-accent-strong)]/25 hover:to-[var(--color-accent-mid)]/20 transition-all group"
       >
         <div className="shrink-0 w-8 h-8 rounded-lg bg-[var(--color-accent-mid)]/20 flex items-center justify-center">
-          {featured.pinned ? (
-            <Pin size={14} className="text-[var(--color-accent-mid)]" />
-          ) : (
-            <Megaphone size={14} className="text-[var(--color-accent-mid)]" />
-          )}
+          <Megaphone size={14} className="text-[var(--color-accent-mid)]" />
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-0.5">
             <span className="text-[9px] uppercase tracking-widest text-[var(--color-accent-mid)] font-bold">
-              {featured.pinned ? 'Em destaque' : 'Novidade'}
+              Notícias
             </span>
             <span className="text-[10px] text-[var(--color-text-muted)]">·</span>
             <span className="text-[10px] text-[var(--color-text-muted)] font-mono">{formatDate(featured.date)}</span>

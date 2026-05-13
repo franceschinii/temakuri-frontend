@@ -46,7 +46,7 @@ export default function RegisterPage() {
           <div className="absolute bottom-0 left-0 w-[300px] h-[300px] rounded-full bg-[var(--color-accent-mid)]/5 blur-[80px]" />
         </div>
         <div className="relative z-10 text-center max-w-md">
-          <Logo variant="full" size={72} className="mx-auto mb-8" />
+          <Logo variant="full" size={112} className="mx-auto mb-8" />
           <h1 className="text-3xl font-bold text-[var(--color-text-primary)] mb-3" style={{ fontFamily: 'var(--font-display)' }}>
             Crie sua conta
           </h1>
@@ -83,7 +83,7 @@ export default function RegisterPage() {
         >
           {/* Mobile logo */}
           <div className="lg:hidden text-center mb-8">
-            <Logo variant="full" size={56} className="mx-auto mb-4" />
+            <Logo variant="full" size={88} className="mx-auto mb-4" />
           </div>
 
           <div className="mb-7">
