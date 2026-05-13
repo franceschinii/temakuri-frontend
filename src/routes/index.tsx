@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link, Navigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Layers, ChevronsUp, RefreshCw, Flame } from 'lucide-react';
 import { Logo } from '@/components/ui/Logo';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,33 +8,6 @@ import { AccessBar } from '@/components/ui/AccessBar';
 import { useAuthStore } from '@/stores/authStore';
 import { toast } from 'sonner';
 import { startMusic, stopMusic } from '@/lib/music';
-
-const rules = [
-  {
-    icon: Layers,
-    label: 'Hierarquia de jogadas',
-    text: 'Mais cartas batem qualquer jogada menor: uma dupla de 1s bate um 7 sozinho. Mesmo count? Valor maior vence. No primeiro turno, você é obrigado a jogar.',
-    accent: false,
-  },
-  {
-    icon: ChevronsUp,
-    label: 'Como jogar',
-    text: 'Selecione cartas adjacentes de mesmo valor na mão (1 carta, dupla, trinca…). A ordem da mão é fixa — só muda ao comprar ou receber cartas da vaza.',
-    accent: false,
-  },
-  {
-    icon: RefreshCw,
-    label: 'Passar a vez',
-    text: 'Compre uma carta do monte e escolha: inserir na mão ou descartar. Monte esgotado? Passa sem comprar. Se todos passarem, o último que jogou ganha a vaza: pode pegar ou descartar a pilha.',
-    accent: false,
-  },
-  {
-    icon: Flame,
-    label: 'Sabor',
-    text: '2+ cartas do mesmo tipo de comida ativam o Sabor. O próximo deve jogar pelo menos essa quantidade. As regras normais continuam valendo. Categorias mistas quebram o Sabor.',
-    accent: true,
-  },
-];
 
 export default function LandingPage() {
   const navigate = useNavigate();
@@ -187,35 +159,44 @@ export default function LandingPage() {
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
-            className="w-full md:flex-1 flex flex-col gap-1"
+            className="w-full md:flex-1 flex flex-col gap-3"
           >
-            <p className="text-[9px] uppercase tracking-[0.2em] font-medium text-[var(--color-text-muted)] mb-3">
+            <p className="text-[9px] uppercase tracking-[0.2em] font-medium text-[var(--color-text-muted)]">
               Como jogar
             </p>
 
-            <div className="flex flex-col gap-3">
-              {rules.map((rule, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.35 + i * 0.07 }}
-                  className={`flex flex-col gap-1 pb-3 ${i < rules.length - 1 ? 'border-b border-[var(--color-border)]/40' : ''}`}
-                >
-                  <div className={`flex items-center gap-1.5 ${rule.accent ? 'text-[var(--color-warning)]' : 'text-[var(--color-accent-mid)]'}`}>
-                    <rule.icon size={11} />
-                    <span className="text-[10px] uppercase tracking-widest font-semibold">{rule.label}</span>
-                  </div>
-                  <p className="text-xs text-[var(--color-text-muted)] leading-relaxed">{rule.text}</p>
-                </motion.div>
-              ))}
+            {/* Objetivo */}
+            <div className="flex flex-col gap-1 pb-3 border-b border-[var(--color-border)]/40">
+              <span className="text-[10px] uppercase tracking-widest font-semibold text-[var(--color-accent-mid)]">Objetivo</span>
+              <p className="text-xs text-[var(--color-text-muted)] leading-relaxed">
+                Quem ficar com cartas na mão ao fim da rodada perde 1 Prato. Os demais sobrevivem. Perca todos os seus Pratos para vencer.
+              </p>
             </div>
 
-            <div className="mt-2 pt-3 border-t border-[var(--color-border)]/40">
-              <p className="text-[10px] text-[var(--color-text-muted)] leading-relaxed">
-                <span className="text-[var(--color-text-primary)] font-medium">Objetivo:</span>{' '}
-                esvazie sua mão para perder Pratos. <span className="text-[var(--color-text-primary)] font-medium">Quem esvaziar a mão primeiro perde 1 Prato</span> — o objetivo é chegar a zero.
-                Cada jogador começa com <span className="text-[var(--color-token-gold)]">2 Pratos</span>. O primeiro a perder todos os seus Pratos vence.
+            {/* Jogar cartas */}
+            <div className="flex flex-col gap-1 pb-3 border-b border-[var(--color-border)]/40">
+              <span className="text-[10px] uppercase tracking-widest font-semibold text-[var(--color-accent-mid)]">Jogar cartas</span>
+              <p className="text-xs text-[var(--color-text-muted)] leading-relaxed">
+                Selecione cartas <strong className="text-[var(--color-text-secondary)]">adjacentes de mesmo valor</strong> e jogue na pilha. Mais cartas batem qualquer jogada menor — uma dupla de 1 bate um 7 sozinho. Mesmo count: valor maior vence.
+              </p>
+              <p className="text-xs text-[var(--color-text-muted)] leading-relaxed">
+                Após jogar, <strong className="text-[var(--color-text-secondary)]">pegue a pilha</strong> (insere na mão) ou <strong className="text-[var(--color-text-secondary)]">descarte</strong> ela.
+              </p>
+            </div>
+
+            {/* Passar */}
+            <div className="flex flex-col gap-1 pb-3 border-b border-[var(--color-border)]/40">
+              <span className="text-[10px] uppercase tracking-widest font-semibold text-[var(--color-accent-mid)]">Passar a vez</span>
+              <p className="text-xs text-[var(--color-text-muted)] leading-relaxed">
+                Compre do monte e escolha: inserir na mão ou descartar. Monte vazio? Passa sem comprar. Se todos passarem, a pilha é descartada e quem jogou por último reinicia o turno.
+              </p>
+            </div>
+
+            {/* Duelo */}
+            <div className="flex flex-col gap-1">
+              <span className="text-[10px] uppercase tracking-widest font-semibold text-[var(--color-warning)]">Modo Duelo (2 jogadores)</span>
+              <p className="text-xs text-[var(--color-text-muted)] leading-relaxed">
+                Cada um recebe 11 cartas + 2 cartas de mesa (viradas). Ao passar, pegue uma carta de mesa — não do monte. Sem cartas de mesa: perde. Vença esvaziando a mão ou forçando o adversário a passar 3 vezes na mesma rodada.
               </p>
             </div>
           </motion.div>

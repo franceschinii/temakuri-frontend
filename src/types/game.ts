@@ -107,4 +107,5 @@ export interface RoomPublicState {
   handBias: number;
   initialTokens: number;
   players: RoomPlayer[];
+  hasPassword?: boolean;
 }

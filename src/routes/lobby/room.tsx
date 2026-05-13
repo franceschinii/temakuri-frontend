@@ -22,6 +22,7 @@ import { cn } from '@/lib/utils';
 import { startMusic, stopMusic } from '@/lib/music';
 import { playSound } from '@/lib/sounds';
 import { RulesDialog } from '@/components/game/RulesDialog';
+import { RoomChat } from '@/components/lobby/RoomChat';
 import { DevFooter } from '@/components/ui/DevFooter';
 
 export default function RoomPage() {
@@ -373,6 +374,9 @@ export default function RoomPage() {
             </AnimatePresence>
           </div>
         </div>
+
+        {/* Chat */}
+        <RoomChat roomCode={roomCode!} />
 
         {/* Actions */}
         <motion.div
