@@ -18,6 +18,7 @@ interface GameStoreState {
   toggleSound: () => void;
   toggleMusic: () => void;
   phase: GamePhase | null;
+  mode: import('../types/game').GameMode | null;
   round: number;
   myHand: Card[];
   players: PublicPlayerState[];
@@ -74,6 +75,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     return { musicEnabled: next };
   }),
   phase: null,
+  mode: null,
   round: 0,
   myHand: [],
   players: [],
@@ -98,6 +100,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   syncState: (state) =>
     set({
       phase: state.phase,
+      mode: state.mode,
       round: state.round,
       myHand: state.myHand,
       players: state.players,
@@ -211,7 +214,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
 
   reset: () =>
     set({
-      phase: null, round: 0, myHand: [], players: [], pile: [], drawPileCount: 0, discardPile: [], market: null,
+      phase: null, mode: null, round: 0, myHand: [], players: [], pile: [], drawPileCount: 0, discardPile: [], market: null,
       duelPlates: null, myDuelPlates: null,
       saborActive: false, saborMinRequired: 0, saborTriggeredBy: null, currentTurnUserId: '',
       consecutivePasses: 0, selectedIndices: [], pendingPickFromPile: false,

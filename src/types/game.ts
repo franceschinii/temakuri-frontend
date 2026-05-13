@@ -25,7 +25,6 @@ export type GamePhase =
   | 'PASS_PICK'
   | 'TRICK_PICK'
   | 'DUEL_PASS_PICK'
-  | 'WIPE_RESOLUTION'
   | 'ROUND_END'
   | 'GAME_OVER';
 

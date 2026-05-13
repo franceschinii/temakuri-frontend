@@ -41,7 +41,7 @@ export function GameBoard() {
   const navigate = useNavigate();
   const user = useAuthStore(s => s.user);
   const {
-    phase, round, myHand, players, pile, market, saborActive, saborMinRequired, saborTriggeredBy,
+    phase, mode, round, myHand, players, pile, market, saborActive, saborMinRequired, saborTriggeredBy,
     currentTurnUserId, consecutivePasses, selectedIndices, discardPile, duelPlates, myDuelPlates,
     syncState, setMyHand, applyCardsPlayed, applyTurnPassed, applyWipe, drawPileCount,
     setSaborActive, applyRoundEnd, applyGameOver, clearRoundSummary, addToDiscardPile, reset,
@@ -73,6 +73,7 @@ export function GameBoard() {
   const me = players.find(p => p.userId === user?.id);
   const opponents = players.filter(p => p.userId !== user?.id);
   const isWipeWinner = phase === 'PLAYER_TURN' && market !== null && currentTurnUserId === user?.id && pile.length === 0;
+  const isDuel = players.filter(p => !p.isEliminated).length === 2 || duelPlates !== null;
 
   useEffect(() => {
     if (musicEnabled) startMusic('game');
@@ -172,12 +173,18 @@ export function GameBoard() {
       setPickMode(false);
       setDrawnCard(null);
     }
-    const name = useGameStore.getState().players.find(p => p.userId === userId)?.username ?? userId;
+    const { players: ps, duelPlates: dp } = useGameStore.getState();
+    const name = ps.find(p => p.userId === userId)?.username ?? userId;
+    const inDuel = dp !== null;
     addLog({
       type: 'pass',
       userId,
       username: name,
-      text: drawnCard ? `${name} passou e comprou do monte` : `${name} passou (monte vazio)`,
+      text: inDuel
+        ? `${name} passou`
+        : drawnCard
+          ? `${name} passou e comprou do monte`
+          : `${name} passou (monte vazio)`,
     });
   }, [applyTurnPassed, addToDiscardPile, user?.id, addLog]));
 
@@ -273,7 +280,7 @@ export function GameBoard() {
     }));
   }, []));
 
-  useSocketEvent<{ userId: string; plateIndex: number; action: 'insert' | 'discard'; remainingPlates: Card[]; drawnCard: Card | null }>('game:duel_plate_used', useCallback(({ userId, remainingPlates }) => {
+  useSocketEvent<{ userId: string; plateIndex: number; action: 'insert' | 'discard'; remainingPlates: Card[]; drawnCard: Card | null }>('game:duel_plate_used', useCallback(({ userId, action, remainingPlates }) => {
     useGameStore.setState(s => {
       const newDuelPlates = s.duelPlates ? { ...s.duelPlates, [userId]: remainingPlates } : null;
       const isMe = userId === user?.id;
@@ -282,7 +289,17 @@ export function GameBoard() {
         myDuelPlates: isMe ? remainingPlates : s.myDuelPlates,
       };
     });
-  }, [user?.id]));
+    playSound('pass');
+    const name = useGameStore.getState().players.find(p => p.userId === userId)?.username ?? userId;
+    addLog({
+      type: 'pass',
+      userId,
+      username: name,
+      text: action === 'insert'
+        ? `${name} usou um Prato do Dia`
+        : `${name} descartou um Prato do Dia`,
+    });
+  }, [user?.id, addLog]));
 
   useSocketEvent<{ code: string; message: string }>('game:error', useCallback(({ message }) => {
     toast.error(message);
@@ -354,7 +371,7 @@ export function GameBoard() {
 
   const handlePass = () => {
     if (!isMyTurn || phase !== 'PLAYER_TURN') return;
-    if (drawPileCount === 0) {
+    if (!isDuel && drawPileCount === 0) {
       toast.info('Monte esgotado — passando sem comprar');
     }
     drawCard();
@@ -436,6 +453,11 @@ export function GameBoard() {
               R{round}
             </span>
           )}
+          {isDuel && (
+            <span className="text-[10px] bg-[var(--color-warning)]/15 border border-[var(--color-warning)]/40 text-[var(--color-warning)] rounded-full px-2 py-0.5 font-semibold uppercase tracking-wider">
+              Duelo
+            </span>
+          )}
         </div>
         <div className="flex-1 flex items-center justify-center px-4">
           <TurnTimer key={timerKey} timeoutMs={timerMs} isMyTurn={isMyTurn} />
@@ -483,6 +505,7 @@ export function GameBoard() {
           saborMinRequired={saborMinRequired}
           consecutivePasses={consecutivePasses}
           pickMode={pickMode}
+          isDuel={isDuel}
         />
 
         {phase === 'TRICK_PICK' && currentTurnUserId !== user?.id && (
@@ -623,6 +646,8 @@ export function GameBoard() {
               onPlay={playSelectedCards}
               onPass={handlePass}
               canPlay={canPlay}
+              isDuel={isDuel}
+              myDuelPlatesCount={myDuelPlates?.length ?? 0}
             />
             {isMyTurn && selectedIndices.length > 0 && !canPlay && pile.length > 0 && (
               <p className="text-xs text-center text-[var(--color-warning)]">

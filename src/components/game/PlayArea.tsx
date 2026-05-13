@@ -11,6 +11,7 @@ interface PlayAreaProps {
   saborMinRequired: number;
   consecutivePasses: number;
   pickMode?: boolean;
+  isDuel?: boolean;
 }
 
 function PileStack({ count, topCard, label }: { count: number; topCard?: Card; label: string }) {
@@ -49,16 +50,16 @@ function PileStack({ count, topCard, label }: { count: number; topCard?: Card; l
   );
 }
 
-export function PlayArea({ pile, drawPileCount, discardPile, saborActive, saborMinRequired, consecutivePasses, pickMode }: PlayAreaProps) {
+export function PlayArea({ pile, drawPileCount, discardPile, saborActive, saborMinRequired, consecutivePasses, pickMode, isDuel }: PlayAreaProps) {
   const topDiscard = discardPile[discardPile.length - 1];
 
   return (
     <div className="flex items-start justify-center gap-3 w-full max-w-2xl mx-auto px-4">
-      {/* Draw pile (left) */}
-      <PileStack count={drawPileCount} label="Monte" />
+      {/* Draw pile (left) — oculto no modo duelo */}
+      {!isDuel && <PileStack count={drawPileCount} label="Monte" />}
 
       {/* Divider */}
-      <div className="w-px bg-[var(--color-border)] self-stretch mt-6" />
+      {!isDuel && <div className="w-px bg-[var(--color-border)] self-stretch mt-6" />}
 
       {/* Active play area (center) */}
       <div className={cn(
