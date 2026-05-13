@@ -170,33 +170,31 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-dvh bg-[var(--color-base)] flex flex-col">
-      <AppNavbar
-        back="/lobby"
-        hideUsername
-        center={
-          <div className="flex items-center gap-1">
-            {(['users', 'rooms'] as AdminTab[]).map(t => (
-              <button
-                key={t}
-                onClick={() => setTab(t)}
-                className={cn(
-                  'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all',
-                  tab === t
-                    ? 'bg-[var(--color-accent-strong)] text-white'
-                    : 'hover:bg-[var(--color-panel)]'
-                )}
-                style={tab !== t ? { color: 'var(--color-text-muted)' } : {}}
-              >
-                {t === 'users' ? <Users size={13} /> : <DoorOpen size={13} />}
-                <span className="hidden sm:inline">{t === 'users' ? 'Usuários' : 'Salas'}</span>
-              </button>
-            ))}
-          </div>
-        }
-      />
+      <AppNavbar back="/lobby" hideUsername />
 
       <main className="flex-1 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <div className="max-w-5xl mx-auto w-full p-4 sm:p-6 flex flex-col gap-4">
+
+        {/* Tabs */}
+        <div className="flex w-full sm:w-auto sm:self-start items-center gap-1 rounded-lg bg-[var(--color-panel)] border border-[var(--color-border)] p-1">
+          {(['users', 'rooms'] as AdminTab[]).map(t => (
+            <button
+              key={t}
+              onClick={() => setTab(t)}
+              className={cn(
+                'flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-1.5 rounded-md text-sm font-medium transition-all',
+                tab === t
+                  ? 'bg-[var(--color-accent-strong)] text-white shadow-sm'
+                  : 'hover:bg-[var(--color-surface)]'
+              )}
+              style={tab !== t ? { color: 'var(--color-text-muted)' } : {}}
+            >
+              {t === 'users' ? <Users size={14} /> : <DoorOpen size={14} />}
+              <span>{t === 'users' ? 'Usuários' : 'Salas'}</span>
+            </button>
+          ))}
+        </div>
+
 
         {tab === 'rooms' && (
           <>
