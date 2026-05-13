@@ -9,7 +9,7 @@ import { startMusic, stopMusic } from '@/lib/music';
 import { useGameStore } from '@/stores/gameStore';
 import { useAuthStore } from '@/stores/authStore';
 import { useSocketEvent, emitSocketEvent } from '@/hooks/useSocket';
-import { onReconnect } from '@/lib/socket';
+import { onReconnect, isSocketConnected } from '@/lib/socket';
 import { useGame } from '@/hooks/useGame';
 import { PlayerHand } from './PlayerHand';
 import { PlayArea } from './PlayArea';
@@ -109,9 +109,10 @@ export function GameBoard() {
   useEffect(() => {
     if (!roomCode) return;
     const handleVisibility = () => {
-      if (document.visibilityState === 'visible') {
+      if (document.visibilityState === 'visible' && isSocketConnected()) {
         emitSocketEvent('game:request_state', { roomCode });
       }
+      // se socket morto, onReconnect ja dispara request_state apos reconectar
     };
     document.addEventListener('visibilitychange', handleVisibility);
     return () => document.removeEventListener('visibilitychange', handleVisibility);
@@ -247,6 +248,8 @@ export function GameBoard() {
       drawPileCount,
       pile: [],
       discardPile: [],
+      duelPlates: null,
+      myDuelPlates: null,
       saborActive: false,
       saborMinRequired: 0,
       saborTriggeredBy: null,
