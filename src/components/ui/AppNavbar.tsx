@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Wine, ShoppingBag, HelpCircle, Info, User, LogOut, ArrowLeft } from 'lucide-react';
+import { Wine, ShoppingBag, HelpCircle, Info, User, LogOut, ArrowLeft, ShieldCheck } from 'lucide-react';
 import { Logo } from '@/components/ui/Logo';
 import { CoinDisplay } from '@/components/ui/CoinDisplay';
 import { AccessBar } from '@/components/ui/AccessBar';
@@ -148,10 +148,13 @@ export function AppNavbar({ center, back, hideUsername, onHowToPlay }: AppNavbar
           {user?.isAdmin && (
             <button
               onClick={() => navigate('/admin')}
-              className="text-xs transition-colors px-2 py-1 rounded-lg hover:bg-[var(--color-panel)] hidden sm:block"
+              className="flex items-center gap-1.5 text-xs font-medium transition-colors px-2 py-1.5 rounded-lg hover:bg-[var(--color-panel)]"
               style={{ color: 'var(--color-warning)' }}
+              title="Admin"
+              aria-label="Admin"
             >
-              Admin
+              <ShieldCheck size={16} />
+              <span className="hidden sm:inline">Admin</span>
             </button>
           )}
           {/* Perfil */}

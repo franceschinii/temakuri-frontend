@@ -339,7 +339,72 @@ export default function AdminPage() {
               <p className="text-sm text-[var(--color-text-muted)]">Nenhum resultado</p>
             </div>
           ) : (
-            <div className="rounded-xl border border-[var(--color-border)] overflow-x-auto">
+            <>
+            {/* Mobile: card list */}
+            <div className="flex flex-col gap-2 sm:hidden">
+              {filtered.map(user => (
+                <div
+                  key={user.id}
+                  className={cn(
+                    'rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-3 flex flex-col gap-2.5',
+                    user.isBanned && 'opacity-60',
+                  )}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex flex-col gap-1 min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="font-medium text-[var(--color-text-primary)] truncate">{user.username}</span>
+                        {user.isPremium && (
+                          <span title="Premium" className="text-[oklch(75%_0.2_310)] shrink-0">
+                            <Wine size={12} />
+                          </span>
+                        )}
+                      </div>
+                      {user.email && (
+                        <span className="text-xs text-[var(--color-text-muted)] truncate">{user.email}</span>
+                      )}
+                    </div>
+                    <span className={cn('text-[10px] px-2 py-0.5 rounded-full border shrink-0', userTypeColor(user))}>
+                      {userTypeLabel(user)}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-3 text-[11px] text-[var(--color-text-muted)] font-mono">
+                    <span>Nv {user.level ?? 1}</span>
+                    <span>{user.coins ?? 0} moedas</span>
+                    <span>{user.stats?.gamesPlayed ?? 0} partidas</span>
+                  </div>
+
+                  <div className="flex items-center justify-end gap-0.5 flex-wrap border-t border-[var(--color-border)] pt-2 -mx-1">
+                    <button onClick={() => openModal('moderation', user)} title="Moderação" className={cn('p-2 rounded-lg transition-colors hover:bg-[var(--color-panel)]', user.isBanned ? 'text-[var(--color-danger)]' : 'text-[var(--color-text-muted)]')}>
+                      <Ban size={16} />
+                    </button>
+                    <button onClick={() => openModal('edit', user)} title="Editar" className="p-2 rounded-lg text-[var(--color-text-muted)] hover:bg-[var(--color-panel)] transition-colors">
+                      <Pencil size={16} />
+                    </button>
+                    {!user.isGuest && !user.isBot && (
+                      <button onClick={() => openModal('progression', user)} title="Progressão" className="p-2 rounded-lg text-[var(--color-text-muted)] hover:bg-[var(--color-panel)] transition-colors">
+                        <TrendingUp size={16} />
+                      </button>
+                    )}
+                    <button onClick={() => openModal('stats', user)} title="Stats" className="p-2 rounded-lg text-[var(--color-text-muted)] hover:bg-[var(--color-panel)] transition-colors">
+                      <BarChart2 size={16} />
+                    </button>
+                    {!user.isGuest && (
+                      <button onClick={() => openModal('password', user)} title="Resetar senha" className="p-2 rounded-lg text-[var(--color-text-muted)] hover:bg-[var(--color-panel)] transition-colors">
+                        <KeyRound size={16} />
+                      </button>
+                    )}
+                    <button onClick={() => openModal('delete', user)} title="Excluir" className="p-2 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-danger)] hover:bg-[var(--color-panel)] transition-colors">
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop: table */}
+            <div className="rounded-xl border border-[var(--color-border)] overflow-x-auto hidden sm:block">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-[var(--color-border)] bg-[var(--color-surface)]">
@@ -414,6 +479,7 @@ export default function AdminPage() {
                 </tbody>
               </table>
             </div>
+            </>
           )}
         </>}
         </div>
