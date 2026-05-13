@@ -48,3 +48,46 @@ export async function setAuthInStorage(page: Page, auth: AuthBundle): Promise<vo
     window.localStorage.setItem('temakuri-auth', JSON.stringify(state));
   }, auth as any);
 }
+
+/**
+ * Navigates to `path` as an authenticated user.
+ *
+ * Pattern (mirrors `02-lobby.spec.ts`): the Zustand-persist `main.tsx`
+ * `refreshUser()` call races with `addInitScript`-based auth injection, so
+ * instead we load `/` first to establish the origin, write `localStorage`
+ * via `page.evaluate`, then navigate to the target path. `extraUserProps`
+ * is merged into the user object — useful for `unlockedModes`, `level`, etc.
+ */
+export async function gotoAsUser(
+  page: Page,
+  auth: AuthBundle,
+  path: string,
+  extraUserProps: Record<string, unknown> = {},
+): Promise<void> {
+  await page.goto('/');
+  await page.evaluate(
+    ({ auth, extra }) => {
+      const state = {
+        state: {
+          user: {
+            id: auth.userId,
+            username: auth.username,
+            email: auth.email,
+            isGuest: false,
+            ...extra,
+          },
+          accessToken: auth.accessToken,
+          refreshToken: auth.refreshToken,
+          isGuest: false,
+        },
+        version: 0,
+      };
+      window.localStorage.setItem('temakuri-auth', JSON.stringify(state));
+      window.localStorage.setItem('accessToken', auth.accessToken);
+      window.localStorage.setItem('refreshToken', auth.refreshToken);
+    },
+    { auth: auth as any, extra: extraUserProps },
+  );
+  await page.goto(path);
+  await page.waitForLoadState('networkidle');
+}

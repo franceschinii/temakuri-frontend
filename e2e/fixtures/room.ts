@@ -6,6 +6,7 @@ export interface CreateRoomOpts {
   botCount?: number;
   isRanked?: boolean;
   isPrivate?: boolean;
+  initialTokens?: number;
 }
 
 export async function createRoomWithBots(
@@ -23,7 +24,7 @@ export async function createRoomWithBots(
       isPrivate: opts.isPrivate ?? false,
       isRanked: opts.isRanked ?? false,
       handBias: 0,
-      initialTokens: 2,
+      initialTokens: opts.initialTokens ?? 2,
     },
   });
   if (!createRes.ok()) {
