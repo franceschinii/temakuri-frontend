@@ -67,11 +67,19 @@ export function connectSocket(token: string): WebSocket {
     reconnectAttempts = 0;
     clearReconnectTimer();
 
-    // Drena o outbox na reconexão
+    // Descarta eventos de jogo obsoletos do outbox — eles chegam fora de ordem
+    // e causam erros no servidor (ex: game:pass_turn antes de game:request_state).
+    // Só entrega eventos de lobby e controle; o estado do jogo é restaurado via request_state.
+    const GAME_EVENTS = new Set(['game:play_cards', 'game:draw_card', 'game:insert_drawn_card', 'game:pass_turn', 'game:trick_pick', 'game:duel_pass_pick', 'game:market_swap']);
     const ws = socket;
     if (!ws) return;
     while (outbox.length > 0) {
-      ws.send(outbox.shift()!);
+      const raw = outbox.shift()!;
+      try {
+        const parsed = JSON.parse(raw);
+        if (GAME_EVENTS.has(parsed.event)) continue;
+      } catch { /* ignora */ }
+      ws.send(raw);
     }
 
     // Notifica listeners de reconexão (ex: game:request_state)

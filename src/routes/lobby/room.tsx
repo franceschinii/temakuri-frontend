@@ -112,12 +112,23 @@ export default function RoomPage() {
       if (room.status === 'IN_PROGRESS') {
         navigate(`/game/${roomCode}`, { replace: true });
       }
+    } else {
+      setIsSpectator(false);
     }
   }, [room, user, roomCode, navigate]);
 
   // Quando sala volta ao estado WAITING (após reset), sai do modo espectador
   useSocketEvent<{ room: RoomPublicState }>('lobby:room_updated', useCallback(({ room: updatedRoom }) => {
-    if (updatedRoom.status === 'WAITING') setIsSpectator(false);
+    if (updatedRoom.status === 'WAITING') {
+      const me = updatedRoom.players.find(p => p.userId === user?.id);
+      if (!me?.isSpectator) setIsSpectator(false);
+    }
+  }, [user]));
+
+  // Promovido de espectador para jogador ativo
+  useSocketEvent<{ roomCode: string }>('lobby:promoted_to_player', useCallback(() => {
+    setIsSpectator(false);
+    toast.success('Você entrou como jogador!');
   }, []));
 
   if (isError) return null;
@@ -135,8 +146,9 @@ export default function RoomPage() {
   // Sala de matchmaking = veio via navigate com state.isMatchmaking (MatchmakingDialog)
   const isMatchmakingRoom = !!(location.state as any)?.isMatchmaking;
   const mode = GAME_MODES.find(m => m.value === room.mode);
-  const allSlotsReady = room.players.filter(p => !p.isBot).every(p => readyMap[p.userId]);
-  const humanPlayers = room.players.filter(p => !p.isBot);
+  const activePlayers = room.players.filter(p => !p.isSpectator);
+  const allSlotsReady = activePlayers.filter(p => !p.isBot).every(p => readyMap[p.userId]);
+  const humanPlayers = activePlayers.filter(p => !p.isBot);
 
   const handleCopyCode = () => {
     navigator.clipboard.writeText(room.code);
@@ -179,7 +191,7 @@ export default function RoomPage() {
   };
 
   // Build seat grid: real players first, then empty slots
-  const emptySlots = room.maxPlayers - room.players.length;
+  const emptySlots = room.maxPlayers - activePlayers.length;
 
   return (
     <div className="h-dvh bg-[var(--color-base)] flex flex-col overflow-hidden">
@@ -378,6 +390,22 @@ export default function RoomPage() {
         {/* Chat */}
         <RoomChat roomCode={roomCode!} />
 
+        {/* Spectator waiting banner */}
+        {isSpectator && room.status === 'WAITING' && (
+          <motion.div
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)] px-4 py-3 text-center"
+          >
+            <p className="text-sm text-[var(--color-text-muted)]">
+              Sala lotada — você está na <strong className="text-[var(--color-text-primary)]">fila de espera</strong>.
+            </p>
+            <p className="text-xs text-[var(--color-text-muted)] mt-0.5 opacity-70">
+              Entrará automaticamente quando uma vaga abrir.
+            </p>
+          </motion.div>
+        )}
+
         {/* Actions */}
         <motion.div
           initial={{ opacity: 0, y: 8 }}
@@ -385,7 +413,7 @@ export default function RoomPage() {
           transition={{ delay: 0.2 }}
           className="flex flex-wrap gap-2"
         >
-          {!isHost && (
+          {!isHost && !isSpectator && (
             <Button
               variant={readyMap[user?.id ?? ''] ? 'secondary' : 'primary'}
               className="flex-1"
@@ -406,7 +434,7 @@ export default function RoomPage() {
               <Button
                 variant="outline"
                 onClick={handleAddBot}
-                disabled={addingBot || room.players.length >= room.maxPlayers}
+                disabled={addingBot || activePlayers.length >= room.maxPlayers}
                 className="shrink-0"
               >
                 <PlusCircle size={14} /> Bot
