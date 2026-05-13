@@ -44,10 +44,10 @@ export function TrickPickModal({ open, pile, myHand, onTake, onDiscard }: TrickP
               <>
                 <div>
                   <h2 className="text-lg font-semibold text-[var(--color-text-primary)] mb-1" style={{ fontFamily: 'var(--font-display)' }}>
-                    Você ganhou a vaza!
+                    Pegar ou descartar?
                   </h2>
                   <p className="text-sm text-[var(--color-text-muted)]">
-                    O que fazer com {pile.length === 1 ? 'a carta' : `as ${pile.length} cartas`} da pilha?
+                    O que fazer com {pile.length === 1 ? 'a carta anterior' : `as ${pile.length} cartas anteriores`} da pilha?
                   </p>
                 </div>
 
