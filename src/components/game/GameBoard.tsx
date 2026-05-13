@@ -58,6 +58,12 @@ export function GameBoard() {
   const [pickMode, setPickMode] = useState(false);
   const [drawnCard, setDrawnCard] = useState<Card | null>(null);
   const hasSubmittedPickRef = useRef(false);
+  // Timestamp do ultimo evento visual de jogada (cards_played, turn_passed, wipe).
+  // Usado para segurar o currentTurnUserId por ~1.8s, dando tempo de ver a jogada
+  // antes do "vez de fulano" mudar visualmente. Estilo "tempo de visualizar a acao".
+  const lastActionAtRef = useRef<number>(0);
+  const pendingTurnTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const ACTION_VIEW_DELAY = 1800;
   const [marketSwapMode, setMarketSwapMode] = useState(false);
   const [selectedHandIndexForSwap, setSelectedHandIndexForSwap] = useState<number | null>(null);
   const [leaveConfirmOpen, setLeaveConfirmOpen] = useState(false);
@@ -80,6 +86,7 @@ export function GameBoard() {
     if (musicEnabled) startMusic('game');
     return () => {
       stopMusic();
+      if (pendingTurnTimerRef.current) clearTimeout(pendingTurnTimerRef.current);
       reset();
     };
   }, []);
@@ -161,29 +168,40 @@ export function GameBoard() {
   }, []));
 
   useSocketEvent<{ userId: string; timeoutMs: number; spectatorCount?: number }>('game:turn_started', useCallback(({ userId, timeoutMs, spectatorCount: sc }) => {
-    // Fix #7: forçar phase=PLAYER_TURN em turn_started. Sem isso, após
-    // round_ended o phase fica stale (ROUND_END), e handlePass/playCards
-    // ficam silenciosamente bloqueados até o user dar F5.
-    useGameStore.setState((s) => ({
-      currentTurnUserId: userId,
-      selectedIndices: [],
-      selectedPlateIndices: [],
-      phase: s.phase === 'GAME_OVER' ? s.phase : 'PLAYER_TURN',
-    }));
-    setTimerMs(timeoutMs);
-    setTimerKey(k => k + 1);
-    setPickMode(false);
-    setDrawnCard(null);
-    hasSubmittedPickRef.current = false;
-    if (sc !== undefined) setSpectatorCount(sc);
-    // Resyncs if hand appears empty mid-game (lost game:your_hand event)
-    const { myHand, phase } = useGameStore.getState();
-    if (myHand.length === 0 && phase !== 'GAME_OVER' && phase !== 'ROUND_END') {
-      emitSocketEvent('game:request_state', { roomCode });
+    // Aplica a mudanca de turno. Se houve uma jogada recente (cards_played,
+    // turn_passed, wipe), segura por ACTION_VIEW_DELAY para dar tempo de ver
+    // o que aconteceu antes do "vez de fulano" mudar.
+    const applyTurnChange = () => {
+      useGameStore.setState((s) => ({
+        currentTurnUserId: userId,
+        selectedIndices: [],
+        selectedPlateIndices: [],
+        phase: s.phase === 'GAME_OVER' ? s.phase : 'PLAYER_TURN',
+      }));
+      setTimerMs(timeoutMs);
+      setTimerKey(k => k + 1);
+      setPickMode(false);
+      setDrawnCard(null);
+      hasSubmittedPickRef.current = false;
+      if (sc !== undefined) setSpectatorCount(sc);
+      const { myHand, phase } = useGameStore.getState();
+      if (myHand.length === 0 && phase !== 'GAME_OVER' && phase !== 'ROUND_END') {
+        emitSocketEvent('game:request_state', { roomCode });
+      }
+    };
+
+    const elapsed = Date.now() - lastActionAtRef.current;
+    const remaining = ACTION_VIEW_DELAY - elapsed;
+    if (pendingTurnTimerRef.current) clearTimeout(pendingTurnTimerRef.current);
+    if (remaining > 0) {
+      pendingTurnTimerRef.current = setTimeout(applyTurnChange, remaining);
+    } else {
+      applyTurnChange();
     }
   }, [roomCode]));
 
   useSocketEvent<{ userId: string; cards: Card[]; isSabor: boolean; usedPlates?: Card[]; remainingPlates?: Card[]; nextPhase?: 'TRICK_PICK' | 'PLAYER_TURN' }>('game:cards_played', useCallback(({ userId, cards, isSabor, usedPlates, remainingPlates, nextPhase }) => {
+    lastActionAtRef.current = Date.now();
     applyCardsPlayed(userId, cards, isSabor, usedPlates, remainingPlates);
     // Sinaliza fase TRICK_PICK aos outros clientes: o jogador que jogou ainda precisa
     // resolver A2 (pegar/descartar pile anterior) antes do turno avancar.
@@ -209,6 +227,7 @@ export function GameBoard() {
   }, [applyCardsPlayed, addLog, user?.id]));
 
   useSocketEvent<{ userId: string; drawnCard: Card | null; discardedCard: Card | null; drawPileCount: number }>('game:turn_passed', useCallback(({ userId, drawnCard, discardedCard, drawPileCount }) => {
+    lastActionAtRef.current = Date.now();
     applyTurnPassed(userId, drawnCard, drawPileCount);
     if (discardedCard) addToDiscardPile([discardedCard]);
     playSound('pass');
@@ -232,6 +251,7 @@ export function GameBoard() {
   }, [applyTurnPassed, addToDiscardPile, user?.id, addLog]));
 
   useSocketEvent<{ winnerId: string }>('game:wipe', useCallback(({ winnerId }) => {
+    lastActionAtRef.current = Date.now();
     applyWipe(winnerId);
     playSound('wipe');
     const name = useGameStore.getState().players.find(p => p.userId === winnerId)?.username ?? winnerId;
@@ -408,10 +428,14 @@ export function GameBoard() {
   }, [navigate]));
 
   // Engine nao existe mais (servidor reiniciou ou sala foi destruida).
+  // Se ja estamos em GAME_OVER, ignora — provavelmente é o cleanup pos-partida
+  // e o GameOverModal ja esta aberto. So redireciona se for queda inesperada.
   useSocketEvent<{ roomCode: string; reason: string }>('game:room_closed', useCallback(({ reason }) => {
+    const currentPhase = useGameStore.getState().phase;
+    if (currentPhase === 'GAME_OVER' || gameOverData !== null) return;
     toast.error(reason);
     navigate('/lobby', { replace: true });
-  }, [navigate]));
+  }, [navigate, gameOverData]));
 
   useSocketEvent<{ rankings: GameRanking[]; room: RoomPublicState }>('lobby:game_over_summary', useCallback(({ room }) => {
     // Atualiza sessionWins dos jogadores a partir do estado atualizado da sala
@@ -682,8 +706,14 @@ export function GameBoard() {
         )}
       </div>
 
-      {/* My area */}
-      <div className="relative shrink-0 border-t border-[var(--color-border)] bg-[var(--color-surface)] px-2 pt-1.5 pb-2 sm:px-4 sm:pt-2 sm:pb-3 flex flex-col">
+      {/* My area — destaque visual forte quando e meu turno */}
+      <div
+        className={`relative shrink-0 border-t-2 bg-[var(--color-surface)] px-2 pt-1.5 pb-2 sm:px-4 sm:pt-2 sm:pb-3 flex flex-col transition-all ${
+          isMyTurn && phase === 'PLAYER_TURN'
+            ? 'border-t-[var(--color-accent-strong)] shadow-[0_-8px_24px_-4px_oklch(52%_0.18_145_/_0.4)]'
+            : 'border-t-[var(--color-border)]'
+        }`}
+      >
         {/* Mini-historico — mobile only, altura reservada de 2 linhas para nao
             empurrar o resto quando ha 0/1/2 acoes recentes. */}
         <div className="sm:hidden flex flex-col gap-0.5 mb-1.5 pb-1.5 border-b border-[var(--color-border)]/40 min-h-[28px]">
@@ -696,15 +726,17 @@ export function GameBoard() {
         {/* Info bar */}
         <div className="flex items-center justify-between mb-1.5">
           <div className="flex items-center gap-2">
-            <AvatarWithBorder index={me?.avatarIndex ?? 0} level={me?.level ?? 1} size={36} />
+            <div className={isMyTurn && phase === 'PLAYER_TURN' ? 'ring-2 ring-[var(--color-accent-strong)] ring-offset-2 ring-offset-[var(--color-surface)] rounded-full animate-pulse' : ''}>
+              <AvatarWithBorder index={me?.avatarIndex ?? 0} level={me?.level ?? 1} size={36} />
+            </div>
             <span className="text-base font-semibold" style={{ color: 'var(--color-text-primary)' }}>
               {me?.username ?? 'Você'}
             </span>
             <LevelBadge level={me?.level ?? 1} size="xs" />
             <MedalBadge count={me?.sessionWins ?? 0} />
-            {isMyTurn && (
-              <span className="text-xs px-1.5 py-0.5 rounded bg-[var(--color-accent-strong)] text-[var(--color-text-primary)] font-medium">
-                Seu turno
+            {isMyTurn && phase === 'PLAYER_TURN' && (
+              <span className="text-xs px-2 py-0.5 rounded-full bg-[var(--color-accent-strong)] text-white font-bold uppercase tracking-wider shadow-[0_0_8px_oklch(52%_0.18_145_/_0.6)]">
+                Sua vez
               </span>
             )}
           </div>
