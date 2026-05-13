@@ -7,3 +7,13 @@ export function formatTimestamp(ts: number): string {
   const m = String(brt.getUTCMinutes()).padStart(2, '0');
   return `${h}:${m}`;
 }
+
+/**
+ * Formata uma data ISO (YYYY-MM-DD) ou Date para "DD/MM" pt-BR.
+ */
+export function formatDate(input: string | Date): string {
+  const d = typeof input === 'string' ? new Date(input + 'T00:00:00') : input;
+  const day = String(d.getDate()).padStart(2, '0');
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  return `${day}/${month}`;
+}
