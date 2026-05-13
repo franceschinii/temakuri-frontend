@@ -67,6 +67,7 @@ export function GameBoard() {
   const [duelPickOpen, setDuelPickOpen] = useState(false);
   const prevTurnRef = useRef<string>('');
   const [isSpectator, setIsSpectator] = useState(false);
+  const [spectatorCount, setSpectatorCount] = useState(0);
   const [roomHostId, setRoomHostId] = useState<string | null>(null);
 
   const isMyTurn = user?.id === currentTurnUserId;
@@ -115,8 +116,10 @@ export function GameBoard() {
     }
   }, [isMyTurn, currentTurnUserId, players]);
 
-  useSocketEvent<{ state: ClientGameState }>('game:state_sync', useCallback(({ state }) => {
+  useSocketEvent<{ state: ClientGameState; spectatorCount?: number; isSpectator?: boolean }>('game:state_sync', useCallback(({ state, spectatorCount: sc, isSpectator: isSp }) => {
     syncState(state);
+    if (sc !== undefined) setSpectatorCount(sc);
+    if (isSp !== undefined) setIsSpectator(isSp);
     // Only reset pick mode if we haven't submitted yet OR the server is no longer in PASS_PICK
     if (state.phase !== 'PASS_PICK' || hasSubmittedPickRef.current) {
       setPickMode(false);
@@ -136,13 +139,14 @@ export function GameBoard() {
     useGameStore.setState({ drawPileCount });
   }, []));
 
-  useSocketEvent<{ userId: string; timeoutMs: number }>('game:turn_started', useCallback(({ userId, timeoutMs }) => {
+  useSocketEvent<{ userId: string; timeoutMs: number; spectatorCount?: number }>('game:turn_started', useCallback(({ userId, timeoutMs, spectatorCount: sc }) => {
     useGameStore.setState({ currentTurnUserId: userId, selectedIndices: [] });
     setTimerMs(timeoutMs);
     setTimerKey(k => k + 1);
     setPickMode(false);
     setDrawnCard(null);
     hasSubmittedPickRef.current = false;
+    if (sc !== undefined) setSpectatorCount(sc);
     // Resyncs if hand appears empty mid-game (lost game:your_hand event)
     const { myHand, phase } = useGameStore.getState();
     if (myHand.length === 0 && phase !== 'GAME_OVER' && phase !== 'ROUND_END') {
@@ -458,6 +462,16 @@ export function GameBoard() {
               Duelo
             </span>
           )}
+          {isSpectator && (
+            <span className="text-[10px] bg-[var(--color-accent-mid)]/15 border border-[var(--color-accent-mid)]/40 text-[var(--color-accent-mid)] rounded-full px-2 py-0.5 font-semibold uppercase tracking-wider">
+              Espectador
+            </span>
+          )}
+          {!isSpectator && spectatorCount > 0 && (
+            <span className="text-[10px] text-[var(--color-text-muted)] flex items-center gap-0.5" title={`${spectatorCount} espectador${spectatorCount !== 1 ? 'es' : ''}`}>
+              👁 {spectatorCount}
+            </span>
+          )}
         </div>
         <div className="flex-1 flex items-center justify-center px-4">
           <TurnTimer key={timerKey} timeoutMs={timerMs} isMyTurn={isMyTurn} />
@@ -724,14 +738,12 @@ export function GameBoard() {
         />
       )}
 
-      {/* Spectator overlay */}
+      {/* Spectator notice — non-blocking, stays at bottom */}
       {isSpectator && (
-        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[var(--color-base)]/85 backdrop-blur-sm pointer-events-none">
-          <div className="flex flex-col items-center gap-3 px-6 py-5 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)]/90">
-            <span className="text-lg font-semibold text-[var(--color-text-primary)]">Modo espectador</span>
-            <span className="text-sm text-[var(--color-text-muted)] text-center max-w-xs">
-              Aguardando a próxima rodada para entrar na partida...
-            </span>
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 pointer-events-none">
+          <div className="flex items-center gap-2 px-4 py-2 rounded-full border border-[var(--color-accent-mid)]/40 bg-[var(--color-surface)]/90 backdrop-blur-sm shadow-lg text-xs text-[var(--color-text-muted)]">
+            <span className="text-[var(--color-accent-mid)]">👁</span>
+            Você está assistindo — aguardando a próxima rodada para entrar
           </div>
         </div>
       )}
