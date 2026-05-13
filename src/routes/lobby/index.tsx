@@ -157,7 +157,7 @@ export default function LobbyPage() {
       </header>
 
       <main className="flex-1 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        <div className="max-w-2xl mx-auto w-full p-4 sm:p-6 flex flex-col gap-5 sm:gap-6">
+        <div className="max-w-4xl mx-auto w-full p-4 sm:p-6 flex flex-col gap-5 sm:gap-6">
         {/* Join or Create */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}

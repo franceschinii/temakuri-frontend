@@ -38,10 +38,11 @@ export function MatchmakingDialog({ open, onClose }: Props) {
   const [queueTime, setQueueTime] = useState(0);
   const [position, setPosition] = useState(0);
   const [queueSize, setQueueSize] = useState(0);
-  const [matchData, setMatchData] = useState<{ roomCode: string; players: QueuePlayer[] } | null>(null);
-  const [confirmTimer, setConfirmTimer] = useState(120);
+  const [matchData, setMatchData] = useState<{ roomCode: string; players: QueuePlayer[]; isRanked: boolean } | null>(null);
+  const [confirmTimer, setConfirmTimer] = useState(20);
+  const [confirmTimerMax, setConfirmTimerMax] = useState(20);
   const [myConfirmed, setMyConfirmed] = useState(false);
-  const [confirmedCount, setConfirmedCount] = useState(0);
+  const [confirmedUserIds, setConfirmedUserIds] = useState<string[]>([]);
 
   const queueTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const confirmTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -53,9 +54,10 @@ export function MatchmakingDialog({ open, onClose }: Props) {
     setPosition(0);
     setQueueSize(0);
     setMatchData(null);
-    setConfirmTimer(120);
+    setConfirmTimer(20);
+    setConfirmTimerMax(20);
     setMyConfirmed(false);
-    setConfirmedCount(0);
+    setConfirmedUserIds([]);
     roomCodeRef.current = null;
     if (queueTimerRef.current) clearInterval(queueTimerRef.current);
     if (confirmTimerRef.current) clearInterval(confirmTimerRef.current);
@@ -114,13 +116,16 @@ export function MatchmakingDialog({ open, onClose }: Props) {
     setStatus('queued');
   }, []));
 
-  useSocketEvent<{ roomCode: string; players: QueuePlayer[] }>('matchmaking:match_found', useCallback((data) => {
+  useSocketEvent<{ roomCode: string; players: QueuePlayer[]; isRanked?: boolean }>('matchmaking:match_found', useCallback((data) => {
     if (queueTimerRef.current) clearInterval(queueTimerRef.current);
     roomCodeRef.current = data.roomCode;
-    setMatchData(data);
-    setConfirmTimer(120);
+    const isRanked = data.isRanked === true;
+    setMatchData({ roomCode: data.roomCode, players: data.players, isRanked });
+    const initialTimer = isRanked ? 120 : 20;
+    setConfirmTimer(initialTimer);
+    setConfirmTimerMax(initialTimer);
     setMyConfirmed(false);
-    setConfirmedCount(0);
+    setConfirmedUserIds([]);
     setStatus('found');
   }, []));
 
@@ -130,20 +135,24 @@ export function MatchmakingDialog({ open, onClose }: Props) {
   }, [resetState]));
 
   useSocketEvent<{ userId: string; ready: boolean }>('lobby:player_ready', useCallback(() => {
-    // Apenas placeholder — confirmedCount agora vem de lobby:ready_snapshot
+    // Placeholder — confirmedUserIds vem de lobby:ready_snapshot (fonte de verdade)
   }, []));
 
   useSocketEvent<{ ready: string[] }>('lobby:ready_snapshot', useCallback((data) => {
     if (status !== 'found') return;
-    setConfirmedCount(data.ready.length);
-  }, [status]));
+    setConfirmedUserIds(data.ready);
+    // Sincroniza myConfirmed com servidor: se nosso userId esta no snapshot, marcamos como confirmado
+    if (user?.id && data.ready.includes(user.id)) {
+      setMyConfirmed(true);
+    }
+  }, [status, user?.id]));
 
   useSocketEvent<{ reason: string }>('matchmaking:cancelled', useCallback((data) => {
     toast.info(data.reason);
     // Volta para o estado 'queued' — backend ja recolocou na fila
     setMatchData(null);
     setMyConfirmed(false);
-    setConfirmedCount(0);
+    setConfirmedUserIds([]);
     setStatus('queued');
   }, []));
 
@@ -166,12 +175,18 @@ export function MatchmakingDialog({ open, onClose }: Props) {
     if (!matchData || myConfirmed) return;
     emitSocketEvent('lobby:set_ready', { roomCode: matchData.roomCode, ready: true });
     setMyConfirmed(true);
-    // confirmedCount sera atualizado via lobby:ready_snapshot
+    // confirmedUserIds sera atualizado via lobby:ready_snapshot (fonte de verdade)
+  };
+
+  const handleDecline = () => {
+    if (!matchData) return;
+    emitSocketEvent('matchmaking:decline', { roomCode: matchData.roomCode });
+    resetState();
   };
 
   if (!open) return null;
 
-  const confirmProgress = (confirmTimer / 120) * 100;
+  const confirmProgress = confirmTimerMax > 0 ? (confirmTimer / confirmTimerMax) * 100 : 0;
   const circumference = 2 * Math.PI * 26;
   const strokeDashoffset = circumference * (1 - confirmProgress / 100);
 
@@ -323,37 +338,53 @@ export function MatchmakingDialog({ open, onClose }: Props) {
               <div className="flex flex-col items-center gap-1">
                 <span className="text-sm font-semibold text-[var(--color-text-primary)]">Partida encontrada!</span>
                 <span className="text-xs text-[var(--color-text-muted)]">
-                  {confirmedCount}/4 confirmados
+                  {confirmedUserIds.length}/{matchData.players.length} confirmados
                 </span>
               </div>
 
-              {/* Players */}
+              {/* Players — verde para QUALQUER um que confirmou (visivel para todos) */}
               <div className="grid grid-cols-4 gap-2 w-full">
-                {matchData.players.map(p => (
-                  <div key={p.userId} className="flex flex-col items-center gap-1">
-                    <div className={[
-                      'rounded-full overflow-hidden border-2 transition-colors',
-                      p.userId === user?.id && myConfirmed
-                        ? 'border-emerald-500'
-                        : 'border-[var(--color-border)]',
-                    ].join(' ')}>
-                      <AvatarImage index={p.avatarIndex} size={40} />
+                {matchData.players.map(p => {
+                  const isConfirmed = confirmedUserIds.includes(p.userId);
+                  return (
+                    <div key={p.userId} className="flex flex-col items-center gap-1">
+                      <div className={[
+                        'rounded-full overflow-hidden border-2 transition-colors',
+                        isConfirmed ? 'border-emerald-500' : 'border-[var(--color-border)]',
+                      ].join(' ')}>
+                        <AvatarImage index={p.avatarIndex} size={40} />
+                      </div>
+                      <span
+                        className={[
+                          'text-[10px] truncate max-w-full text-center leading-tight',
+                          isConfirmed ? 'text-emerald-400 font-medium' : 'text-[var(--color-text-muted)]',
+                        ].join(' ')}
+                      >
+                        {p.username}
+                      </span>
                     </div>
-                    <span className="text-[10px] text-[var(--color-text-muted)] truncate max-w-full text-center leading-tight">
-                      {p.username}
-                    </span>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
-              <Button
-                onClick={handleConfirm}
-                disabled={myConfirmed}
-                className="w-full"
-                style={myConfirmed ? { opacity: 0.6 } : {}}
-              >
-                {myConfirmed ? 'Confirmado' : 'Confirmar'}
-              </Button>
+              <div className="flex gap-2 w-full">
+                <Button
+                  variant="outline"
+                  onClick={handleDecline}
+                  disabled={myConfirmed}
+                  className="flex-1"
+                >
+                  Recusar
+                </Button>
+                <Button
+                  onClick={handleConfirm}
+                  disabled={myConfirmed}
+                  className="flex-1"
+                  style={myConfirmed ? { opacity: 0.6 } : {}}
+                >
+                  {myConfirmed ? 'Confirmado' : 'Confirmar'}
+                </Button>
+              </div>
             </div>
           )}
         </div>
