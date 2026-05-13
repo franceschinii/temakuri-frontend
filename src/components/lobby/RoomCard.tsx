@@ -118,7 +118,7 @@ export function RoomCard({ room }: RoomCardProps) {
           </div>
         </div>
 
-        {isInProgress && isFull ? (
+        {!isInProgress && isFull ? (
           <span className="text-[10px] text-[var(--color-text-muted)] shrink-0">Lotada</span>
         ) : (
           <Button
@@ -127,7 +127,7 @@ export function RoomCard({ room }: RoomCardProps) {
             disabled={entering}
             onClick={handleEnter}
           >
-            {entering ? '...' : isInProgress ? 'Espectador' : 'Entrar'}
+            {entering ? '...' : isInProgress ? 'Assistir' : 'Entrar'}
           </Button>
         )}
       </div>
