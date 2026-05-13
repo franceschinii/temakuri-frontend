@@ -697,7 +697,7 @@ export function GameBoard() {
         <div className="flex items-center justify-between mb-1.5">
           <div className="flex items-center gap-2">
             <AvatarWithBorder index={me?.avatarIndex ?? 0} level={me?.level ?? 1} size={36} />
-            <span className="text-base font-semibold text-[var(--color-text-primary)]">
+            <span className="text-base font-semibold" style={{ color: 'var(--color-text-primary)' }}>
               {me?.username ?? 'Você'}
             </span>
             <LevelBadge level={me?.level ?? 1} size="xs" />

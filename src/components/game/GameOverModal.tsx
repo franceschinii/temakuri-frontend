@@ -81,34 +81,48 @@ export function GameOverModal({ rankings, myUserId, onPlayAgain }: GameOverModal
             ))}
           </div>
 
-          {/* Rewards for local player */}
+          {/* Rewards for local player — destaque grande para XP/coins */}
           {myReward && (
-            <div className="mt-1 border border-[var(--color-border)] rounded-xl p-3 flex flex-col gap-1.5 bg-[var(--color-panel)]">
-              <p className="text-[10px] uppercase tracking-widest text-[var(--color-text-muted)] font-medium">Recompensas</p>
-              <div className="flex items-center gap-3 flex-wrap">
+            <div className="mt-1 border border-[var(--color-border)] rounded-xl p-4 flex flex-col gap-3 bg-[var(--color-panel)]">
+              <p className="text-[10px] uppercase tracking-widest text-[var(--color-text-muted)] font-medium text-center">Recompensas</p>
+
+              {/* XP + Moedas em destaque grande */}
+              <div className="grid grid-cols-2 gap-3">
                 {myReward.xpEarned > 0 && (
-                  <span className="text-xs font-semibold text-[var(--color-accent-mid)]" data-testid="game-over-rewards-xp">+{myReward.xpEarned} XP</span>
+                  <div className="flex flex-col items-center gap-0.5 p-2 rounded-lg bg-[var(--color-surface)]/60" data-testid="game-over-rewards-xp">
+                    <span className="text-[9px] uppercase tracking-widest text-[var(--color-text-muted)]">XP</span>
+                    <span className="text-xl font-bold text-[var(--color-accent-mid)]">+{myReward.xpEarned}</span>
+                  </div>
                 )}
                 {myReward.coinsEarned > 0 && (
-                  <span className="flex items-center gap-0.5 text-xs" data-testid="game-over-rewards-coins">
-                    <span className="font-semibold">+</span>
-                    <CoinDisplay amount={myReward.coinsEarned} size="sm" />
-                  </span>
-                )}
-                {myReward.pdsChange !== 0 && (
-                  <span
-                    className={`text-xs font-semibold ${myReward.pdsChange > 0 ? 'text-[var(--color-accent-mid)]' : 'text-[var(--color-danger)]'}`}
-                    data-testid="game-over-rewards-pds"
-                  >
-                    {myReward.pdsChange > 0 ? '+' : ''}{myReward.pdsChange} PDS
-                  </span>
-                )}
-                {myReward.leveledUp && (
-                  <span className="text-xs font-bold text-[var(--color-token-gold)]">
-                    Level {myReward.newLevel}!
-                  </span>
+                  <div className="flex flex-col items-center gap-0.5 p-2 rounded-lg bg-[var(--color-surface)]/60" data-testid="game-over-rewards-coins">
+                    <span className="text-[9px] uppercase tracking-widest text-[var(--color-text-muted)]">Moedas</span>
+                    <div className="flex items-center gap-1">
+                      <span className="text-xl font-bold text-[var(--color-token-gold)]">+</span>
+                      <CoinDisplay amount={myReward.coinsEarned} size="sm" />
+                    </div>
+                  </div>
                 )}
               </div>
+
+              {/* PDS e level-up em linha menor */}
+              {(myReward.pdsChange !== 0 || myReward.leveledUp) && (
+                <div className="flex items-center justify-center gap-3 flex-wrap pt-1 border-t border-[var(--color-border)]/40">
+                  {myReward.pdsChange !== 0 && (
+                    <span
+                      className={`text-sm font-semibold ${myReward.pdsChange > 0 ? 'text-[var(--color-accent-mid)]' : 'text-[var(--color-danger)]'}`}
+                      data-testid="game-over-rewards-pds"
+                    >
+                      {myReward.pdsChange > 0 ? '+' : ''}{myReward.pdsChange} PDS
+                    </span>
+                  )}
+                  {myReward.leveledUp && (
+                    <span className="text-sm font-bold text-[var(--color-token-gold)] animate-pulse">
+                      🎉 Level {myReward.newLevel}!
+                    </span>
+                  )}
+                </div>
+              )}
             </div>
           )}
         </div>

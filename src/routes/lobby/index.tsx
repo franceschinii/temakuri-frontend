@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Search, HelpCircle, User, ShoppingBag, LogOut, Swords, Wine, Trophy } from 'lucide-react';
+import { Plus, Search, HelpCircle, Info, User, ShoppingBag, LogOut, Swords, Wine, Trophy } from 'lucide-react';
 import { DevFooter } from '@/components/ui/DevFooter';
 import { AdBanner } from '@/components/ui/AdBanner';
 import { motion } from 'framer-motion';
@@ -13,6 +13,9 @@ import { AccessBar } from '@/components/ui/AccessBar';
 import { CoinDisplay } from '@/components/ui/CoinDisplay';
 import { RoomCard } from '@/components/lobby/RoomCard';
 import { CreateRoomModal } from '@/components/lobby/CreateRoomModal';
+import { HelpModal } from '@/components/lobby/HelpModal';
+import { NewsCard } from '@/components/lobby/NewsCard';
+import { ChangelogCard } from '@/components/lobby/ChangelogCard';
 import { ShopModal } from '@/components/shop/ShopModal';
 import { MatchmakingDialog } from '@/components/matchmaking/MatchmakingDialog';
 import { useAuthStore } from '@/stores/authStore';
@@ -34,6 +37,7 @@ export default function LobbyPage() {
   const queryClient = useQueryClient();
   const [createOpen, setCreateOpen] = useState(false);
   const [rulesOpen, setRulesOpen] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
   const [shopOpen, setShopOpen] = useState(false);
   const [matchOpen, setMatchOpen] = useState(false);
   const [joinCode, setJoinCode] = useState('');
@@ -115,13 +119,21 @@ export default function LobbyPage() {
               <ShoppingBag size={16} />
             </button>
           )}
-          {/* Ajuda */}
+          {/* Como jogar (regras) */}
           <button
             onClick={() => setRulesOpen(true)}
             className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors p-1.5 rounded-lg hover:bg-[var(--color-panel)]"
             title="Como jogar"
           >
             <HelpCircle size={17} />
+          </button>
+          {/* Como funciona (ranks, moedas, bordas, icones) */}
+          <button
+            onClick={() => setHelpOpen(true)}
+            className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors p-1.5 rounded-lg hover:bg-[var(--color-panel)]"
+            title="Como funciona"
+          >
+            <Info size={17} />
           </button>
           {/* Som + Música */}
           <AccessBar />
@@ -207,6 +219,12 @@ export default function LobbyPage() {
           )}
         </motion.div>
 
+        {/* Notícias (em destaque) + Changelog */}
+        <div className="flex flex-col gap-3">
+          <NewsCard />
+          <ChangelogCard />
+        </div>
+
         {/* Room list */}
         <div>
           <div className="flex items-center gap-3 mb-4">
@@ -263,6 +281,7 @@ export default function LobbyPage() {
       <CreateRoomModal open={createOpen} onClose={() => setCreateOpen(false)} />
       <ShopModal open={shopOpen} onClose={() => setShopOpen(false)} />
       <MatchmakingDialog open={matchOpen} onClose={() => setMatchOpen(false)} />
+      <HelpModal open={helpOpen} onClose={() => setHelpOpen(false)} />
 
       <Modal open={rulesOpen} onClose={() => setRulesOpen(false)} title="Como jogar">
         <div className="flex flex-col gap-5 text-sm">
