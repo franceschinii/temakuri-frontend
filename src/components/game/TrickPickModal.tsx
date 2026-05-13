@@ -31,11 +31,7 @@ export function TrickPickModal({ open, pile, myHand, onTake, onDiscard }: TrickP
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          style={{
-            position: 'fixed', inset: 0, zIndex: 9999,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            padding: '1rem', background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(4px)',
-          }}
+          className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm"
         >
           <motion.div
             initial={{ scale: 0.9, opacity: 0 }}

@@ -246,6 +246,7 @@ export function GameBoard() {
       round,
       drawPileCount,
       pile: [],
+      discardPile: [],
       saborActive: false,
       saborMinRequired: 0,
       saborTriggeredBy: null,
