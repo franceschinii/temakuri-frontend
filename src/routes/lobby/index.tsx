@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Search, HelpCircle, CreditCard, ArrowUpRight, RefreshCw, Flame, User, ShoppingBag, LogOut, Swords, Wine, Trophy } from 'lucide-react';
+import { Plus, Search, HelpCircle, User, ShoppingBag, LogOut, Swords, Wine, Trophy } from 'lucide-react';
 import { DevFooter } from '@/components/ui/DevFooter';
 import { AdBanner } from '@/components/ui/AdBanner';
 import { motion } from 'framer-motion';
@@ -37,6 +37,8 @@ export default function LobbyPage() {
   const [shopOpen, setShopOpen] = useState(false);
   const [matchOpen, setMatchOpen] = useState(false);
   const [joinCode, setJoinCode] = useState('');
+  const [joinPassword, setJoinPassword] = useState('');
+  const [joinNeedsPassword, setJoinNeedsPassword] = useState(false);
 
   const { data: rooms = [], isLoading } = useQuery<RoomPublicState[]>({
     queryKey: ['rooms'],
@@ -60,10 +62,18 @@ export default function LobbyPage() {
     if (!code) return;
     setJoining(true);
     try {
-      await api.get(`/rooms/${code}`);
-      navigate(`/lobby/${code}`, { state: { isMatchmaking: false } });
+      const { data: roomInfo } = await api.get(`/rooms/${code}`);
+      if (roomInfo?.hasPassword && !joinNeedsPassword) {
+        setJoinNeedsPassword(true);
+        setJoining(false);
+        return;
+      }
+      if (joinNeedsPassword) {
+        await api.get(`/rooms/${code}`, { params: { password: joinPassword.trim() } });
+      }
+      navigate(`/lobby/${code}`, { state: { isMatchmaking: false, password: joinPassword.trim() || undefined } });
     } catch {
-      toast.error('Sala não encontrada');
+      toast.error(joinNeedsPassword ? 'Senha incorreta' : 'Sala não encontrada');
       setJoining(false);
     }
   };
@@ -153,30 +163,48 @@ export default function LobbyPage() {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-          className="flex flex-col sm:flex-row gap-2"
+          className="flex flex-col gap-2"
         >
-          <Input
-            placeholder="Código da sala (ex: ABC123)"
-            value={joinCode}
-            onChange={e => setJoinCode(e.target.value.toUpperCase())}
-            onKeyDown={e => e.key === 'Enter' && handleJoin()}
-            maxLength={6}
-            className="font-mono tracking-widest"
-          />
-          <Button variant="outline" onClick={handleJoin} disabled={joining} className="shrink-0">
-            {joining ? '...' : <><Search size={15} /> Entrar</>}
-          </Button>
-          <Button onClick={() => setCreateOpen(true)} className="shrink-0" data-testid="lobby-create-room-btn">
-            <Plus size={15} /> Criar
-          </Button>
-          {!user?.isGuest && (
-            <Button variant="secondary" onClick={() => setMatchOpen(true)} className="shrink-0" data-testid="lobby-matchmaking-btn">
-              <Swords size={15} /> Buscar
+          <div className="flex flex-col sm:flex-row gap-2">
+            <Input
+              placeholder="Código da sala (ex: ABC123)"
+              value={joinCode}
+              onChange={e => { setJoinCode(e.target.value.toUpperCase()); setJoinNeedsPassword(false); setJoinPassword(''); }}
+              onKeyDown={e => e.key === 'Enter' && handleJoin()}
+              maxLength={6}
+              className="font-mono tracking-widest"
+            />
+            <Button variant="outline" onClick={handleJoin} disabled={joining} className="shrink-0">
+              {joining ? '...' : <><Search size={15} /> Entrar</>}
             </Button>
+            <Button onClick={() => setCreateOpen(true)} className="shrink-0" data-testid="lobby-create-room-btn">
+              <Plus size={15} /> Criar
+            </Button>
+            {!user?.isGuest && (
+              <Button variant="secondary" onClick={() => setMatchOpen(true)} className="shrink-0" data-testid="lobby-matchmaking-btn">
+                <Swords size={15} /> Buscar
+              </Button>
+            )}
+            <Button variant="outline" onClick={() => navigate('/ranked')} className="shrink-0" data-testid="access-bar-leaderboard-link">
+              <Trophy size={15} /> Ranking
+            </Button>
+          </div>
+          {joinNeedsPassword && (
+            <div className="flex gap-2">
+              <Input
+                type="password"
+                placeholder="Senha da sala"
+                value={joinPassword}
+                onChange={e => setJoinPassword(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && handleJoin()}
+                maxLength={32}
+                autoFocus
+              />
+              <Button onClick={handleJoin} disabled={joining || !joinPassword.trim()} className="shrink-0">
+                {joining ? '...' : 'Confirmar'}
+              </Button>
+            </div>
           )}
-          <Button variant="outline" onClick={() => navigate('/ranked')} className="shrink-0" data-testid="access-bar-leaderboard-link">
-            <Trophy size={15} /> Ranking
-          </Button>
         </motion.div>
 
         {/* Room list */}
@@ -239,47 +267,48 @@ export default function LobbyPage() {
       <Modal open={rulesOpen} onClose={() => setRulesOpen(false)} title="Como jogar">
         <div className="flex flex-col gap-5 text-sm">
 
-          <section className="flex flex-col gap-2">
+          <section className="flex flex-col gap-1.5">
+            <p className="text-xs font-semibold uppercase tracking-wider text-[var(--color-accent-mid)]">Preparação</p>
+            <p className="text-[var(--color-text-muted)] leading-relaxed">
+              3 a 6 jogadores. Cada um recebe <strong className="text-[var(--color-text-primary)]">8 cartas</strong>. A ordem das cartas na mão <strong className="text-[var(--color-text-primary)]">não pode ser alterada</strong> — só muda ao comprar ou pegar a pilha.
+            </p>
+          </section>
+
+          <section className="flex flex-col gap-1.5">
             <p className="text-xs font-semibold uppercase tracking-wider text-[var(--color-accent-mid)]">Objetivo</p>
             <p className="text-[var(--color-text-muted)] leading-relaxed">
-              Esvazie sua mão para perder Pratos — esse é o objetivo. <strong className="text-[var(--color-text-primary)]">Quem esvaziar a mão perde 1 Prato</strong>.
-              Cada jogador começa com <strong className="text-[var(--color-text-primary)]">2 Pratos</strong>. O primeiro a chegar a zero Pratos vence a partida.
+              Quem ficar com cartas na mão ao fim da rodada perde <strong className="text-[var(--color-text-primary)]">1 Prato</strong>. Os demais sobrevivem. O primeiro a perder todos os Pratos vence.
             </p>
           </section>
 
-          <section className="flex flex-col gap-2">
-            <p className="text-xs font-semibold uppercase tracking-wider text-[var(--color-accent-mid)]">Hierarquia de jogadas</p>
-            <ul className="flex flex-col gap-2 text-[var(--color-text-muted)] leading-relaxed">
-              <li className="flex items-start gap-2">
-                <CreditCard size={13} className="mt-0.5 shrink-0 text-[var(--color-text-muted)]" />
-                <span>Cartas têm valores <strong className="text-[var(--color-text-primary)]">1 a 7</strong>. Selecione cartas <strong className="text-[var(--color-text-primary)]">adjacentes de mesmo valor</strong> na mão: 1 carta, dupla, trinca, etc. A ordem da mão é fixa — só muda ao comprar.</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <ArrowUpRight size={13} className="mt-0.5 shrink-0 text-[var(--color-text-muted)]" />
-                <span><strong className="text-[var(--color-text-primary)]">Mais cartas bate qualquer jogada menor</strong> — uma dupla de 1s bate um 7 sozinho. Se o count for igual, <strong className="text-[var(--color-text-primary)]">valor maior</strong> vence.</span>
-              </li>
+          <section className="flex flex-col gap-1.5">
+            <p className="text-xs font-semibold uppercase tracking-wider text-[var(--color-accent-mid)]">A — Jogar cartas</p>
+            <p className="text-[var(--color-text-muted)] leading-relaxed">
+              Selecione cartas <strong className="text-[var(--color-text-primary)]">adjacentes de mesmo valor</strong> e jogue na pilha central. A jogada deve superar a anterior:
+            </p>
+            <ul className="list-disc list-inside text-[var(--color-text-muted)] space-y-0.5 pl-1">
+              <li><strong className="text-[var(--color-text-primary)]">Mais cartas</strong> batem qualquer jogada menor</li>
+              <li>Mesmo count: <strong className="text-[var(--color-text-primary)]">valor mais alto</strong> vence</li>
             </ul>
-          </section>
-
-          <section className="flex flex-col gap-2">
-            <p className="text-xs font-semibold uppercase tracking-wider text-[var(--color-accent-mid)]">Passar a vez</p>
-            <p className="text-[var(--color-text-muted)] leading-relaxed flex items-start gap-2">
-              <RefreshCw size={13} className="mt-0.5 shrink-0" />
-              <span>Compre uma carta do monte e escolha: inserir em qualquer posição da mão ou descartar. Monte esgotado? Passa sem comprar.
-              Se todos passarem em sequência, o último que jogou ganha a <strong className="text-[var(--color-text-primary)]">vaza</strong>: pode pegar ou descartar a pilha e inicia o próximo turno.</span>
+            <p className="text-[var(--color-text-muted)] leading-relaxed">
+              Após jogar, <strong className="text-[var(--color-text-primary)]">pegue a pilha</strong> (insere na mão) ou <strong className="text-[var(--color-text-primary)]">descarte</strong>.
             </p>
           </section>
 
-          <section className="flex flex-col gap-2 border border-[var(--color-warning)]/30 rounded-xl px-4 py-3">
-            <p className="text-xs font-semibold uppercase tracking-wider text-[var(--color-warning)] flex items-center gap-1.5">
-              <Flame size={12} />
-              Sabor
+          <section className="flex flex-col gap-1.5">
+            <p className="text-xs font-semibold uppercase tracking-wider text-[var(--color-accent-mid)]">B — Passar a vez</p>
+            <p className="text-[var(--color-text-muted)] leading-relaxed">
+              Compre uma carta do monte: insira na mão ou descarte. Monte vazio? Passa sem comprar. Se todos passarem, a pilha é descartada e quem jogou por último reinicia o turno.
+            </p>
+          </section>
+
+          <section className="flex flex-col gap-1.5 border border-[var(--color-border)] rounded-xl px-4 py-3 bg-[var(--color-panel)]/50">
+            <p className="text-xs font-semibold uppercase tracking-wider text-[var(--color-warning)]">Modo Duelo (2 jogadores)</p>
+            <p className="text-[var(--color-text-muted)] leading-relaxed">
+              Cada um recebe <strong className="text-[var(--color-text-primary)]">11 cartas</strong> + <strong className="text-[var(--color-text-primary)]">2 cartas de mesa</strong> (viradas para cima). Ao passar, pegue uma carta de mesa — não do monte. Sem cartas de mesa: perde.
             </p>
             <p className="text-[var(--color-text-muted)] leading-relaxed">
-              Jogue <strong className="text-[var(--color-text-primary)]">2 ou mais cartas do mesmo tipo de comida</strong> para ativar o Sabor.
-              O próximo jogador deve jogar <strong className="text-[var(--color-text-primary)]">pelo menos a mesma quantidade</strong> de cartas.
-              As regras normais continuam: pode bater pelo valor (mesmo count, valor maior) ou jogar mais cartas.
-              Jogar <strong className="text-[var(--color-text-primary)]">categorias mistas</strong> com a quantidade mínima <strong className="text-[var(--color-text-primary)]">quebra</strong> o Sabor.
+              Vença esvaziando a mão <strong className="text-[var(--color-text-primary)]">ou</strong> forçando o adversário a passar <strong className="text-[var(--color-text-primary)]">3 vezes na mesma rodada</strong>.
             </p>
           </section>
 

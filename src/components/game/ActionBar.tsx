@@ -9,9 +9,11 @@ interface ActionBarProps {
   onPlay: () => void;
   onPass: () => void;
   canPlay: boolean;
+  isDuel?: boolean;
+  myDuelPlatesCount?: number;
 }
 
-export function ActionBar({ isMyTurn, pile, drawPileCount, onPlay, onPass, canPlay }: ActionBarProps) {
+export function ActionBar({ isMyTurn, pile, drawPileCount, onPlay, onPass, canPlay, isDuel, myDuelPlatesCount }: ActionBarProps) {
   const selectedIndices = useGameStore(s => s.selectedIndices);
 
   if (!isMyTurn) {
@@ -21,6 +23,14 @@ export function ActionBar({ isMyTurn, pile, drawPileCount, onPlay, onPass, canPl
       </div>
     );
   }
+
+  const passLabel = isDuel
+    ? myDuelPlatesCount && myDuelPlatesCount > 0
+      ? `Prato do Dia (${myDuelPlatesCount})`
+      : 'Sem pratos — Perder'
+    : drawPileCount > 0
+      ? `+1 (${drawPileCount})`
+      : '—';
 
   return (
     <div className="flex items-center gap-1.5 sm:gap-2 justify-center">
@@ -38,13 +48,16 @@ export function ActionBar({ isMyTurn, pile, drawPileCount, onPlay, onPass, canPl
         variant="secondary"
         size="md"
         onClick={onPass}
+        disabled={isDuel && myDuelPlatesCount === 0}
         className="min-w-[80px] sm:min-w-[110px]"
         data-testid="game-action-pass-btn"
       >
-        Passar
-        <span className="text-[10px] text-[var(--color-text-muted)] ml-1">
-          {drawPileCount > 0 ? `+1 (${drawPileCount})` : '—'}
-        </span>
+        {isDuel ? passLabel : (
+          <>
+            Passar
+            <span className="text-[10px] text-[var(--color-text-muted)] ml-1">{passLabel}</span>
+          </>
+        )}
       </Button>
     </div>
   );

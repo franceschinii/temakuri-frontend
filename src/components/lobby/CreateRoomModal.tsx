@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Modal } from '@/components/ui/modal';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { CoinDisplay } from '@/components/ui/CoinDisplay';
 import { GAME_MODES } from '@/constants/game';
 import type { GameMode } from '@/types/game';
@@ -13,7 +14,7 @@ import api from '@/lib/api';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
-import { Lock, Swords } from 'lucide-react';
+import { Lock, Swords, Eye, EyeOff } from 'lucide-react';
 
 const BIAS_STEPS = [
   { value: 0,    label: 'Aleatória' },
@@ -46,6 +47,8 @@ export function CreateRoomModal({ open, onClose }: CreateRoomModalProps) {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [handBias, setHandBias] = useState(0);
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const user = useAuthStore(s => s.user);
   const { register, handleSubmit, watch } = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -70,9 +73,15 @@ export function CreateRoomModal({ open, onClose }: CreateRoomModalProps) {
   const onSubmit = async (values: FormValues) => {
     setLoading(true);
     try {
-      const { data } = await api.post('/rooms', { ...values, handBias, initialTokens: values.initialTokens, isRanked: values.isRanked && values.mode === 'TRADITIONAL' });
+      const { data } = await api.post('/rooms', {
+        ...values,
+        handBias,
+        initialTokens: values.initialTokens,
+        isRanked: values.isRanked && values.mode === 'TRADITIONAL',
+        password: password.trim() || undefined,
+      });
       onClose();
-      navigate(`/lobby/${data.code}`, { state: { isMatchmaking: false } });
+      navigate(`/lobby/${data.code}`, { state: { isMatchmaking: false, password: password.trim() || undefined } });
     } catch (e: any) {
       const detail = e?.response?.data?.message;
       const msg = Array.isArray(detail) ? detail.join(', ') : detail ?? e?.message ?? 'Erro ao criar sala';
@@ -198,6 +207,28 @@ export function CreateRoomModal({ open, onClose }: CreateRoomModalProps) {
           <p className="text-[10px] text-[var(--color-text-muted)]">
             Controla a chance de duplas e trincas adjacentes na mão inicial.
           </p>
+        </div>
+
+        {/* Senha opcional */}
+        <div className="flex flex-col gap-1.5">
+          <p className="text-sm text-[var(--color-text-muted)]">Senha da sala <span className="text-[10px] opacity-60">(opcional)</span></p>
+          <div className="relative">
+            <Input
+              type={showPassword ? 'text' : 'password'}
+              placeholder="Deixe vazio para sala sem senha"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              maxLength={32}
+              className="pr-9"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(v => !v)}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors"
+            >
+              {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+            </button>
+          </div>
         </div>
 
         <Button type="submit" disabled={loading} data-testid="create-room-submit">

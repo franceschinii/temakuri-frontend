@@ -4,6 +4,7 @@ import { useGameStore } from '../stores/gameStore';
 
 export function useGame(roomCode: string) {
   const selectedIndices = useGameStore(s => s.selectedIndices);
+  const selectedPlateIndices = useGameStore(s => s.selectedPlateIndices);
   const myHand = useGameStore(s => s.myHand);
   const pile = useGameStore(s => s.pile);
   const phase = useGameStore(s => s.phase);
@@ -13,9 +14,16 @@ export function useGame(roomCode: string) {
   const playSelectedCards = useCallback(() => {
     if (selectedIndices.length === 0) return;
     if (phase !== 'PLAYER_TURN') return;
-    emitSocketEvent('game:play_cards', { roomCode, cardIndices: selectedIndices });
+    const payload: { roomCode: string; cardIndices: number[]; plateIndices?: number[] } = {
+      roomCode,
+      cardIndices: selectedIndices,
+    };
+    if (selectedPlateIndices.length > 0) {
+      payload.plateIndices = selectedPlateIndices;
+    }
+    emitSocketEvent('game:play_cards', payload);
     clearSelection();
-  }, [roomCode, selectedIndices, phase, clearSelection]);
+  }, [roomCode, selectedIndices, selectedPlateIndices, phase, clearSelection]);
 
   const drawCard = useCallback(() => {
     if (phase !== 'PLAYER_TURN') return;

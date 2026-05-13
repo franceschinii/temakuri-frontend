@@ -18,6 +18,7 @@ interface GameStoreState {
   toggleSound: () => void;
   toggleMusic: () => void;
   phase: GamePhase | null;
+  mode: import('../types/game').GameMode | null;
   round: number;
   myHand: Card[];
   players: PublicPlayerState[];
@@ -33,6 +34,7 @@ interface GameStoreState {
   currentTurnUserId: string;
   consecutivePasses: number;
   selectedIndices: number[];
+  selectedPlateIndices: number[];
   pendingPickFromPile: boolean;
   gameOverData: { rankings: GameRanking[]; stats: GameStats } | null;
   roundSummaryData: { loserIds: string[]; playerTokens: Record<string, number> } | null;
@@ -42,9 +44,10 @@ interface GameStoreState {
   syncState: (state: ClientGameState) => void;
   setMyHand: (hand: Card[]) => void;
   toggleCardSelection: (index: number) => void;
+  togglePlateSelection: (index: number) => void;
   clearSelection: () => void;
   setSelectedIndices: (indices: number[]) => void;
-  applyCardsPlayed: (userId: string, cards: Card[], isSabor: boolean) => void;
+  applyCardsPlayed: (userId: string, cards: Card[], isSabor: boolean, usedPlates?: Card[], remainingPlates?: Card[]) => void;
   applyTurnPassed: (userId: string, drawnCard: Card | null, drawPileCount: number) => void;
   applyWipe: (winnerId: string) => void;
   addToDiscardPile: (cards: Card[]) => void;
@@ -74,6 +77,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     return { musicEnabled: next };
   }),
   phase: null,
+  mode: null,
   round: 0,
   myHand: [],
   players: [],
@@ -89,6 +93,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   currentTurnUserId: '',
   consecutivePasses: 0,
   selectedIndices: [],
+  selectedPlateIndices: [],
   pendingPickFromPile: false,
   gameOverData: null,
   roundSummaryData: null,
@@ -98,6 +103,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   syncState: (state) =>
     set({
       phase: state.phase,
+      mode: state.mode,
       round: state.round,
       myHand: state.myHand,
       players: state.players,
@@ -111,9 +117,10 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       currentTurnUserId: state.currentTurnUserId,
       consecutivePasses: state.consecutivePasses,
       selectedIndices: [],
+      selectedPlateIndices: [],
     }),
 
-  setMyHand: (hand) => set({ myHand: hand, selectedIndices: [], pendingPickFromPile: false }),
+  setMyHand: (hand) => set({ myHand: hand, selectedIndices: [], selectedPlateIndices: [], pendingPickFromPile: false }),
 
   toggleCardSelection: (index) =>
     set((s) => {
@@ -127,18 +134,39 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       return { selectedIndices: next };
     }),
 
-  clearSelection: () => set({ selectedIndices: [] }),
+  togglePlateSelection: (index) =>
+    set((s) => {
+      const current = s.selectedPlateIndices;
+      if (current.includes(index)) {
+        return { selectedPlateIndices: current.filter(i => i !== index) };
+      }
+      return { selectedPlateIndices: [...current, index] };
+    }),
+
+  clearSelection: () => set({ selectedIndices: [], selectedPlateIndices: [] }),
 
   setSelectedIndices: (indices) => set({ selectedIndices: indices }),
 
-  applyCardsPlayed: (userId, cards, isSabor) =>
-    set((s) => ({
-      pile: cards,
-      consecutivePasses: 0,
-      players: s.players.map(p =>
-        p.userId === userId ? { ...p, cardCount: Math.max(0, p.cardCount - cards.length) } : p,
-      ),
-    })),
+  applyCardsPlayed: (userId, cards, isSabor, usedPlates, remainingPlates) =>
+    set((s) => {
+      const plateCardCount = usedPlates?.length ?? 0;
+      const handCardCount = cards.length - plateCardCount;
+      const updates: Partial<GameStoreState> = {
+        pile: cards,
+        consecutivePasses: 0,
+        players: s.players.map(p =>
+          p.userId === userId ? { ...p, cardCount: Math.max(0, p.cardCount - handCardCount) } : p,
+        ),
+      };
+      // Update duelPlates for everyone when plates were used in a combination play
+      if (usedPlates && usedPlates.length > 0 && remainingPlates !== undefined) {
+        if (s.duelPlates) {
+          updates.duelPlates = { ...s.duelPlates, [userId]: remainingPlates };
+        }
+        // myDuelPlates updated by caller (GameBoard) for own plays
+      }
+      return updates;
+    }),
 
   applyTurnPassed: (userId, drawnCard, drawPileCount) =>
     set((s) => ({
@@ -211,10 +239,10 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
 
   reset: () =>
     set({
-      phase: null, round: 0, myHand: [], players: [], pile: [], drawPileCount: 0, discardPile: [], market: null,
+      phase: null, mode: null, round: 0, myHand: [], players: [], pile: [], drawPileCount: 0, discardPile: [], market: null,
       duelPlates: null, myDuelPlates: null,
       saborActive: false, saborMinRequired: 0, saborTriggeredBy: null, currentTurnUserId: '',
-      consecutivePasses: 0, selectedIndices: [], pendingPickFromPile: false,
+      consecutivePasses: 0, selectedIndices: [], selectedPlateIndices: [], pendingPickFromPile: false,
       gameOverData: null, roundSummaryData: null, reactions: [], gameLog: [],
     }),
 }));

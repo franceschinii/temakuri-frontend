@@ -1,4 +1,4 @@
-export type SoundName = 'play' | 'pass' | 'wipe' | 'sabor' | 'round_end' | 'game_over' | 'your_turn' | 'countdown_tick' | 'countdown_go';
+export type SoundName = 'play' | 'pass' | 'wipe' | 'sabor' | 'round_end' | 'game_over' | 'your_turn' | 'countdown_tick' | 'countdown_go' | 'ready' | 'unready';
 
 // Initialize muted state from localStorage on module load
 let muted = localStorage.getItem('soundEnabled') === 'false';
@@ -86,6 +86,14 @@ const sounds: Record<SoundName, () => void> = {
     [329.63, 415.30, 493.88, 659.25].forEach((freq, i) => {
       setTimeout(() => beep(freq, 0.22, 0.2, 'triangle'), i * 85);
     });
+  },
+  ready: () => {
+    beep(523, 0.08, 0.12);
+    setTimeout(() => beep(659, 0.12, 0.14), 90);
+  },
+  unready: () => {
+    beep(440, 0.08, 0.1);
+    setTimeout(() => beep(330, 0.12, 0.1), 90);
   },
 };
 

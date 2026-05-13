@@ -41,12 +41,12 @@ export function GameBoard() {
   const navigate = useNavigate();
   const user = useAuthStore(s => s.user);
   const {
-    phase, round, myHand, players, pile, market, saborActive, saborMinRequired, saborTriggeredBy,
-    currentTurnUserId, consecutivePasses, selectedIndices, discardPile, duelPlates, myDuelPlates,
+    phase, mode, round, myHand, players, pile, market, saborActive, saborMinRequired, saborTriggeredBy,
+    currentTurnUserId, consecutivePasses, selectedIndices, selectedPlateIndices, discardPile, duelPlates, myDuelPlates,
     syncState, setMyHand, applyCardsPlayed, applyTurnPassed, applyWipe, drawPileCount,
     setSaborActive, applyRoundEnd, applyGameOver, clearRoundSummary, addToDiscardPile, reset,
     roundSummaryData, gameOverData, addReaction, reactions, updateMarket, addLog,
-    musicEnabled,
+    musicEnabled, togglePlateSelection,
   } = useGameStore();
 
   const { playSelectedCards, drawCard, insertDrawnCard, swapWithMarket, sendReaction, sendMessage, requestState } = useGame(roomCode!);
@@ -54,7 +54,7 @@ export function GameBoard() {
   const [timerMs, setTimerMs] = useState(30_000);
   const [timerKey, setTimerKey] = useState(0);
   const [reactionCooldown, setReactionCooldown] = useState(false);
-  const [reactionCount, setReactionCount] = useState(0);
+  const reactionTimestampsRef = useRef<number[]>([]);
   const [pickMode, setPickMode] = useState(false);
   const [drawnCard, setDrawnCard] = useState<Card | null>(null);
   const hasSubmittedPickRef = useRef(false);
@@ -67,12 +67,14 @@ export function GameBoard() {
   const [duelPickOpen, setDuelPickOpen] = useState(false);
   const prevTurnRef = useRef<string>('');
   const [isSpectator, setIsSpectator] = useState(false);
+  const [spectatorCount, setSpectatorCount] = useState(0);
   const [roomHostId, setRoomHostId] = useState<string | null>(null);
 
   const isMyTurn = user?.id === currentTurnUserId;
   const me = players.find(p => p.userId === user?.id);
   const opponents = players.filter(p => p.userId !== user?.id);
   const isWipeWinner = phase === 'PLAYER_TURN' && market !== null && currentTurnUserId === user?.id && pile.length === 0;
+  const isDuel = players.filter(p => !p.isEliminated).length === 2 || duelPlates !== null;
 
   useEffect(() => {
     if (musicEnabled) startMusic('game');
@@ -114,8 +116,10 @@ export function GameBoard() {
     }
   }, [isMyTurn, currentTurnUserId, players]);
 
-  useSocketEvent<{ state: ClientGameState }>('game:state_sync', useCallback(({ state }) => {
+  useSocketEvent<{ state: ClientGameState; spectatorCount?: number; isSpectator?: boolean }>('game:state_sync', useCallback(({ state, spectatorCount: sc, isSpectator: isSp }) => {
     syncState(state);
+    if (sc !== undefined) setSpectatorCount(sc);
+    if (isSp !== undefined) setIsSpectator(isSp);
     // Only reset pick mode if we haven't submitted yet OR the server is no longer in PASS_PICK
     if (state.phase !== 'PASS_PICK' || hasSubmittedPickRef.current) {
       setPickMode(false);
@@ -135,13 +139,14 @@ export function GameBoard() {
     useGameStore.setState({ drawPileCount });
   }, []));
 
-  useSocketEvent<{ userId: string; timeoutMs: number }>('game:turn_started', useCallback(({ userId, timeoutMs }) => {
+  useSocketEvent<{ userId: string; timeoutMs: number; spectatorCount?: number }>('game:turn_started', useCallback(({ userId, timeoutMs, spectatorCount: sc }) => {
     useGameStore.setState({ currentTurnUserId: userId, selectedIndices: [] });
     setTimerMs(timeoutMs);
     setTimerKey(k => k + 1);
     setPickMode(false);
     setDrawnCard(null);
     hasSubmittedPickRef.current = false;
+    if (sc !== undefined) setSpectatorCount(sc);
     // Resyncs if hand appears empty mid-game (lost game:your_hand event)
     const { myHand, phase } = useGameStore.getState();
     if (myHand.length === 0 && phase !== 'GAME_OVER' && phase !== 'ROUND_END') {
@@ -149,20 +154,25 @@ export function GameBoard() {
     }
   }, [roomCode]));
 
-  useSocketEvent<{ userId: string; cards: Card[]; isSabor: boolean }>('game:cards_played', useCallback(({ userId, cards, isSabor }) => {
-    applyCardsPlayed(userId, cards, isSabor);
+  useSocketEvent<{ userId: string; cards: Card[]; isSabor: boolean; usedPlates?: Card[]; remainingPlates?: Card[] }>('game:cards_played', useCallback(({ userId, cards, isSabor, usedPlates, remainingPlates }) => {
+    applyCardsPlayed(userId, cards, isSabor, usedPlates, remainingPlates);
+    // If I used plates in this play, update myDuelPlates from the server's remaining plates
+    if (userId === user?.id && usedPlates && usedPlates.length > 0 && remainingPlates !== undefined) {
+      useGameStore.setState({ myDuelPlates: remainingPlates });
+    }
     playSound('play');
     const name = useGameStore.getState().players.find(p => p.userId === userId)?.username ?? userId;
     const cardDesc = cards.length === 1
       ? `${cards[0].value}`
       : `${cards.length}×${cards[0].value}`;
+    const plateNote = usedPlates && usedPlates.length > 0 ? ` (+${usedPlates.length} prato)` : '';
     addLog({
       type: 'play',
       userId,
       username: name,
-      text: `${name} jogou ${cardDesc}${isSabor ? ' 🔥' : ''}`,
+      text: `${name} jogou ${cardDesc}${plateNote}${isSabor ? ' 🔥' : ''}`,
     });
-  }, [applyCardsPlayed, addLog]));
+  }, [applyCardsPlayed, addLog, user?.id]));
 
   useSocketEvent<{ userId: string; drawnCard: Card | null; discardedCard: Card | null; drawPileCount: number }>('game:turn_passed', useCallback(({ userId, drawnCard, discardedCard, drawPileCount }) => {
     applyTurnPassed(userId, drawnCard, drawPileCount);
@@ -172,12 +182,18 @@ export function GameBoard() {
       setPickMode(false);
       setDrawnCard(null);
     }
-    const name = useGameStore.getState().players.find(p => p.userId === userId)?.username ?? userId;
+    const { players: ps, duelPlates: dp } = useGameStore.getState();
+    const name = ps.find(p => p.userId === userId)?.username ?? userId;
+    const inDuel = dp !== null;
     addLog({
       type: 'pass',
       userId,
       username: name,
-      text: drawnCard ? `${name} passou e comprou do monte` : `${name} passou (monte vazio)`,
+      text: inDuel
+        ? `${name} passou`
+        : drawnCard
+          ? `${name} passou e comprou do monte`
+          : `${name} passou (monte vazio)`,
     });
   }, [applyTurnPassed, addToDiscardPile, user?.id, addLog]));
 
@@ -206,7 +222,7 @@ export function GameBoard() {
     playSound('round_end');
     const allPlayers = useGameStore.getState().players;
     const loserNames = loserIds.map(id => allPlayers.find(p => p.userId === id)?.username ?? id);
-    addLog({ type: 'round_end', text: `🏁 Rodada encerrada — ${loserNames.join(', ')} esvaziou a mão e perdeu 1 Prato` });
+    addLog({ type: 'round_end', text: `🏁 Rodada encerrada — ${loserNames.join(', ')} esvaziou a mão e ganhou a rodada` });
   }, [applyRoundEnd, addLog]));
 
   useSocketEvent<{ round: number; drawPileCount: number; cardCounts: Record<string, number>; market: Card[] | null }>('game:round_started', useCallback(({ round, drawPileCount, cardCounts, market }) => {
@@ -273,7 +289,7 @@ export function GameBoard() {
     }));
   }, []));
 
-  useSocketEvent<{ userId: string; plateIndex: number; action: 'insert' | 'discard'; remainingPlates: Card[]; drawnCard: Card | null }>('game:duel_plate_used', useCallback(({ userId, remainingPlates }) => {
+  useSocketEvent<{ userId: string; plateIndex: number; action: 'insert' | 'discard'; remainingPlates: Card[]; drawnCard: Card | null }>('game:duel_plate_used', useCallback(({ userId, action, remainingPlates }) => {
     useGameStore.setState(s => {
       const newDuelPlates = s.duelPlates ? { ...s.duelPlates, [userId]: remainingPlates } : null;
       const isMe = userId === user?.id;
@@ -282,7 +298,17 @@ export function GameBoard() {
         myDuelPlates: isMe ? remainingPlates : s.myDuelPlates,
       };
     });
-  }, [user?.id]));
+    playSound('pass');
+    const name = useGameStore.getState().players.find(p => p.userId === userId)?.username ?? userId;
+    addLog({
+      type: 'pass',
+      userId,
+      username: name,
+      text: action === 'insert'
+        ? `${name} usou um Prato do Dia`
+        : `${name} descartou um Prato do Dia`,
+    });
+  }, [user?.id, addLog]));
 
   useSocketEvent<{ code: string; message: string }>('game:error', useCallback(({ message }) => {
     toast.error(message);
@@ -332,8 +358,10 @@ export function GameBoard() {
   const actionLog = useGameStore(s => s.gameLog).filter(e => e.type !== 'chat');
   const recentActions = actionLog.slice(-2);
 
+  const selectedPlateCards = (myDuelPlates ?? []).filter((_, i) => selectedPlateIndices.includes(i));
   const canPlay = isMyTurn && phase === 'PLAYER_TURN' && selectedIndices.length > 0 && validatePlayIndicesClient(
     myHand, selectedIndices, pile, saborActive, saborMinRequired,
+    selectedPlateCards.length > 0 ? selectedPlateCards : undefined,
   );
 
   const handleTrickTake = (insertAtIndex: number) => {
@@ -354,7 +382,7 @@ export function GameBoard() {
 
   const handlePass = () => {
     if (!isMyTurn || phase !== 'PLAYER_TURN') return;
-    if (drawPileCount === 0) {
+    if (!isDuel && drawPileCount === 0) {
       toast.info('Monte esgotado — passando sem comprar');
     }
     drawCard();
@@ -388,18 +416,19 @@ export function GameBoard() {
 
   const handleSendReaction = useCallback((emoji: string) => {
     if (reactionCooldown) return;
+    const now = Date.now();
+    // Flood: 3 reações em menos de 2 segundos = cooldown de 4 segundos
+    const recent = reactionTimestampsRef.current.filter(t => now - t < 2000);
+    if (recent.length >= 3) {
+      setReactionCooldown(true);
+      toast.info('Calma aí!');
+      setTimeout(() => setReactionCooldown(false), 4000);
+      return;
+    }
+    reactionTimestampsRef.current = [...reactionTimestampsRef.current.filter(t => now - t < 5000), now];
     sendReaction(emoji);
     addReaction(user?.id ?? '', emoji);
-
-    const newCount = reactionCount + 1;
-    if (newCount >= 5) {
-      setReactionCooldown(true);
-      setReactionCount(0);
-      setTimeout(() => setReactionCooldown(false), 3000);
-    } else {
-      setReactionCount(newCount);
-    }
-  }, [reactionCooldown, reactionCount, sendReaction, addReaction, user?.id]);
+  }, [reactionCooldown, sendReaction, addReaction, user?.id]);
 
   const handleLeaveGame = () => setLeaveConfirmOpen(true);
 
@@ -434,6 +463,21 @@ export function GameBoard() {
           {round > 0 && (
             <span className="text-[10px] bg-[var(--color-panel)] border border-[var(--color-border)] text-[var(--color-accent-mid)] rounded-full px-1.5 py-0.5 font-mono">
               R{round}
+            </span>
+          )}
+          {isDuel && (
+            <span className="text-[10px] bg-[var(--color-warning)]/15 border border-[var(--color-warning)]/40 text-[var(--color-warning)] rounded-full px-2 py-0.5 font-semibold uppercase tracking-wider">
+              Duelo
+            </span>
+          )}
+          {isSpectator && (
+            <span className="text-[10px] bg-[var(--color-accent-mid)]/15 border border-[var(--color-accent-mid)]/40 text-[var(--color-accent-mid)] rounded-full px-2 py-0.5 font-semibold uppercase tracking-wider">
+              Espectador
+            </span>
+          )}
+          {!isSpectator && spectatorCount > 0 && (
+            <span className="text-[10px] text-[var(--color-text-muted)] flex items-center gap-0.5" title={`${spectatorCount} espectador${spectatorCount !== 1 ? 'es' : ''}`}>
+              👁 {spectatorCount}
             </span>
           )}
         </div>
@@ -483,6 +527,7 @@ export function GameBoard() {
           saborMinRequired={saborMinRequired}
           consecutivePasses={consecutivePasses}
           pickMode={pickMode}
+          isDuel={isDuel}
         />
 
         {phase === 'TRICK_PICK' && currentTurnUserId !== user?.id && (
@@ -495,16 +540,37 @@ export function GameBoard() {
         {duelPlates && (
           <div className="flex flex-col gap-1 w-full max-w-md">
             <span className="text-[10px] uppercase tracking-widest text-[var(--color-text-muted)] text-center font-medium">Pratos do Dia</span>
+            {isMyTurn && phase === 'PLAYER_TURN' && myDuelPlates && myDuelPlates.length > 0 && (
+              <span className="text-[10px] text-[var(--color-warning)] text-center">
+                Selecione pratos para combinar com cartas da mão
+              </span>
+            )}
             <div className="flex gap-3 justify-center flex-wrap">
               {Object.entries(duelPlates).map(([playerId, plates]) => {
                 const player = players.find(p => p.userId === playerId);
+                const isMe = playerId === user?.id;
                 return (
                   <div key={playerId} className="flex flex-col items-center gap-1">
                     <span className="text-[10px] text-[var(--color-text-muted)]">{player?.username ?? '...'}</span>
                     <div className="flex gap-1">
-                      {plates.length > 0 ? plates.map((card, i) => (
-                        <CardComponent key={card.id ?? i} card={card} small disabled />
-                      )) : (
+                      {plates.length > 0 ? plates.map((card, i) => {
+                        const isSelected = isMe && selectedPlateIndices.includes(i);
+                        const canSelect = isMe && isMyTurn && phase === 'PLAYER_TURN' && !isSpectator;
+                        return (
+                          <button
+                            key={card.id ?? i}
+                            onClick={canSelect ? () => togglePlateSelection(i) : undefined}
+                            disabled={!canSelect}
+                            className={`transition-all rounded-lg ${canSelect ? 'cursor-pointer' : 'cursor-default'} ${
+                              isSelected
+                                ? 'ring-2 ring-[var(--color-warning)] ring-offset-1 ring-offset-[var(--color-surface)] scale-105'
+                                : ''
+                            }`}
+                          >
+                            <CardComponent card={card} small disabled={!canSelect} />
+                          </button>
+                        );
+                      }) : (
                         <span className="text-[10px] text-[var(--color-danger)] italic">sem pratos</span>
                       )}
                     </div>
@@ -623,13 +689,15 @@ export function GameBoard() {
               onPlay={playSelectedCards}
               onPass={handlePass}
               canPlay={canPlay}
+              isDuel={isDuel}
+              myDuelPlatesCount={myDuelPlates?.length ?? 0}
             />
             {isMyTurn && selectedIndices.length > 0 && !canPlay && pile.length > 0 && (
               <p className="text-xs text-center text-[var(--color-warning)]">
                 Jogada inválida — precisa de mais cartas ou valor maior
               </p>
             )}
-            <ReactionBar onReact={handleSendReaction} disabled={reactionCooldown} usesLeft={5 - reactionCount} />
+            <ReactionBar onReact={handleSendReaction} disabled={reactionCooldown} />
           </div>
         )}
 
@@ -699,14 +767,12 @@ export function GameBoard() {
         />
       )}
 
-      {/* Spectator overlay */}
+      {/* Spectator notice — non-blocking, stays at bottom */}
       {isSpectator && (
-        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[var(--color-base)]/85 backdrop-blur-sm pointer-events-none">
-          <div className="flex flex-col items-center gap-3 px-6 py-5 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)]/90">
-            <span className="text-lg font-semibold text-[var(--color-text-primary)]">Modo espectador</span>
-            <span className="text-sm text-[var(--color-text-muted)] text-center max-w-xs">
-              Aguardando a próxima rodada para entrar na partida...
-            </span>
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 pointer-events-none">
+          <div className="flex items-center gap-2 px-4 py-2 rounded-full border border-[var(--color-accent-mid)]/40 bg-[var(--color-surface)]/90 backdrop-blur-sm shadow-lg text-xs text-[var(--color-text-muted)]">
+            <span className="text-[var(--color-accent-mid)]">👁</span>
+            Você está assistindo — aguardando a próxima rodada para entrar
           </div>
         </div>
       )}
