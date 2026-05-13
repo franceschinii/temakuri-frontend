@@ -8,13 +8,14 @@ interface ReactionBarProps {
 
 export function ReactionBar({ onReact, disabled, usesLeft = 5 }: ReactionBarProps) {
   return (
-    <div className="flex flex-col items-center gap-1">
+    <div className="flex flex-col items-center gap-1" data-testid="reaction-bar">
       <div className="flex gap-1.5 justify-center">
         {REACTIONS.map(emoji => (
           <button
             key={emoji}
             onClick={() => onReact(emoji)}
             disabled={disabled}
+            data-testid={`reaction-btn-${emoji}`}
             className="text-lg w-9 h-9 rounded-full bg-[var(--color-panel)] hover:bg-[var(--color-surface)] hover:scale-110 active:scale-95 transition-all border border-[var(--color-border)] disabled:opacity-40 disabled:cursor-not-allowed disabled:scale-100"
           >
             {emoji}

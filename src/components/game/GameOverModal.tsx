@@ -53,6 +53,7 @@ export function GameOverModal({ rankings, myUserId, onPlayAgain }: GameOverModal
 
   return createPortal(
     <motion.div
+      data-testid="game-over-modal"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(6px)' }}
@@ -70,6 +71,7 @@ export function GameOverModal({ rankings, myUserId, onPlayAgain }: GameOverModal
             {rankings.map((r, i) => (
               <div
                 key={r.userId}
+                data-testid={`game-over-ranking-row-${i + 1}`}
                 className={`flex items-center gap-3 px-3 py-2 rounded-lg ${r.userId === myUserId ? 'bg-[var(--color-accent-strong)]/20 ring-1 ring-[var(--color-accent-strong)]' : 'bg-[var(--color-panel)]'}`}
               >
                 <span className="text-xl">{medals[i] ?? `${i + 1}.`}</span>
@@ -85,16 +87,19 @@ export function GameOverModal({ rankings, myUserId, onPlayAgain }: GameOverModal
               <p className="text-[10px] uppercase tracking-widest text-[var(--color-text-muted)] font-medium">Recompensas</p>
               <div className="flex items-center gap-3 flex-wrap">
                 {myReward.xpEarned > 0 && (
-                  <span className="text-xs font-semibold text-[var(--color-accent-mid)]">+{myReward.xpEarned} XP</span>
+                  <span className="text-xs font-semibold text-[var(--color-accent-mid)]" data-testid="game-over-rewards-xp">+{myReward.xpEarned} XP</span>
                 )}
                 {myReward.coinsEarned > 0 && (
-                  <span className="flex items-center gap-0.5 text-xs">
+                  <span className="flex items-center gap-0.5 text-xs" data-testid="game-over-rewards-coins">
                     <span className="font-semibold">+</span>
                     <CoinDisplay amount={myReward.coinsEarned} size="sm" />
                   </span>
                 )}
                 {myReward.pdsChange !== 0 && (
-                  <span className={`text-xs font-semibold ${myReward.pdsChange > 0 ? 'text-[var(--color-accent-mid)]' : 'text-[var(--color-danger)]'}`}>
+                  <span
+                    className={`text-xs font-semibold ${myReward.pdsChange > 0 ? 'text-[var(--color-accent-mid)]' : 'text-[var(--color-danger)]'}`}
+                    data-testid="game-over-rewards-pds"
+                  >
                     {myReward.pdsChange > 0 ? '+' : ''}{myReward.pdsChange} PDS
                   </span>
                 )}
@@ -111,14 +116,14 @@ export function GameOverModal({ rankings, myUserId, onPlayAgain }: GameOverModal
         <AdBanner className="w-full rounded-xl overflow-hidden" slot="9876543210" />
 
         <div className="flex gap-2 flex-wrap">
-          <Button variant="secondary" className="flex-1" onClick={() => navigate('/lobby')}>
+          <Button variant="secondary" className="flex-1" onClick={() => navigate('/lobby')} data-testid="game-over-leave-btn">
             Sair
           </Button>
           <Button variant="outline" onClick={handleShare} disabled={sharing} className="shrink-0">
             <Share2 size={14} /> {sharing ? '...' : 'Compartilhar'}
           </Button>
           {onPlayAgain && (
-            <Button className="flex-1" onClick={onPlayAgain}>
+            <Button className="flex-1" onClick={onPlayAgain} data-testid="game-over-restart-btn">
               Jogar Novamente
             </Button>
           )}

@@ -90,6 +90,7 @@ export function ChatPanel({ onSendMessage, myUserId }: ChatPanelProps) {
         onClick={() => setOpen(v => !v)}
         className="fixed right-0 top-[58%] -translate-y-1/2 z-40 sm:flex hidden flex-col items-center justify-center gap-1 bg-[var(--color-surface)]/80 backdrop-blur-sm border border-r-0 border-[var(--color-border)] rounded-l-xl px-1.5 py-3 shadow-lg hover:bg-[var(--color-panel)] transition-colors"
         title="Chat"
+        data-testid="chat-toggle-btn"
       >
         {unread > 0 && (
           <span className="text-[9px] bg-[var(--color-accent-strong)] text-white rounded-full px-1 py-0.5 font-mono leading-none mb-0.5">
@@ -104,6 +105,7 @@ export function ChatPanel({ onSendMessage, myUserId }: ChatPanelProps) {
         onClick={() => setOpen(v => !v)}
         className="sm:hidden fixed right-4 bottom-20 z-40 w-12 h-12 flex items-center justify-center bg-[var(--color-accent-strong)] rounded-full shadow-xl active:scale-95 transition-transform"
         title="Chat"
+        data-testid="chat-toggle-btn-mobile"
       >
         {unread > 0 && (
           <span className="absolute -top-1 -right-1 text-[9px] bg-[var(--color-danger)] text-white rounded-full w-4 h-4 flex items-center justify-center font-mono leading-none">
@@ -133,6 +135,7 @@ export function ChatPanel({ onSendMessage, myUserId }: ChatPanelProps) {
         {open && (
           <motion.div
             key="chat"
+            data-testid="chat-panel"
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
@@ -153,9 +156,10 @@ export function ChatPanel({ onSendMessage, myUserId }: ChatPanelProps) {
               {chatEntries.length === 0 ? (
                 <p className="text-xs text-[var(--color-text-muted)] text-center py-8">Seja o primeiro a falar!</p>
               ) : (
-                chatEntries.map(entry => (
+                chatEntries.map((entry, idx) => (
                   <motion.div
                     key={entry.id}
+                    data-testid={`chat-message-${idx}`}
                     initial={{ opacity: 0, y: 4 }}
                     animate={{ opacity: 1, y: 0 }}
                     className={cn('flex flex-col gap-0.5', entry.userId === myUserId && 'items-end')}
@@ -189,11 +193,13 @@ export function ChatPanel({ onSendMessage, myUserId }: ChatPanelProps) {
                 placeholder="Mensagem..."
                 disabled={chatCooldown}
                 className="flex-1 bg-[var(--color-panel)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-xs text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] outline-none focus:border-[var(--color-accent-mid)] transition-colors disabled:opacity-50"
+                data-testid="chat-input"
               />
               <button
                 onClick={handleSend}
                 disabled={!input.trim() || chatCooldown}
                 className="p-2 rounded-lg bg-[var(--color-accent-strong)] text-white disabled:opacity-40 hover:opacity-90 transition-all shrink-0"
+                data-testid="chat-send-btn"
               >
                 <Send size={12} />
               </button>

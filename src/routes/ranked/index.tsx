@@ -200,7 +200,7 @@ export default function RankedPage() {
                 </p>
               </div>
             ) : (
-              <div className="flex flex-col gap-1">
+              <div className="flex flex-col gap-1" data-testid="leaderboard-table">
                 {leaderboard.map(entry => {
                   const isMe = user?.id === entry.userId;
                   const rankColor = RANK_COLORS[rankFromPds(entry.pds) as GameRank];
@@ -208,6 +208,7 @@ export default function RankedPage() {
                   return (
                     <div
                       key={entry.userId}
+                      data-testid={`leaderboard-row-${entry.rank}`}
                       className="flex items-center gap-3 px-3 py-2.5 rounded-xl border transition-colors"
                       style={{
                         background: isMe
@@ -235,7 +236,10 @@ export default function RankedPage() {
 
                       {/* Nome + level */}
                       <div className="flex-1 min-w-0 flex items-center gap-2">
-                        <span className="text-sm font-medium text-[var(--color-text-primary)] truncate">
+                        <span
+                          className="text-sm font-medium text-[var(--color-text-primary)] truncate"
+                          data-testid={`leaderboard-username-${entry.rank}`}
+                        >
                           {entry.username}
                         </span>
                         <LevelBadge level={entry.level} size="xs" />
@@ -250,6 +254,7 @@ export default function RankedPage() {
                       <span
                         className="text-sm font-bold tabular-nums shrink-0"
                         style={{ color: rankColor }}
+                        data-testid={`leaderboard-pds-${entry.rank}`}
                       >
                         {entry.pds}
                       </span>

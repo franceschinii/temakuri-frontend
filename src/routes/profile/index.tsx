@@ -175,25 +175,26 @@ export default function ProfilePage() {
 
           {/* Avatar atual + nome */}
           <div className="flex flex-col items-center gap-3 pt-2">
-            <div className="relative">
+            <div className="relative" data-testid="profile-avatar">
               <AvatarWithBorder index={selectedAvatar} level={user?.level ?? 1} size={88} />
               <button
                 onClick={() => setEditingAvatar(v => !v)}
                 className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-[var(--color-accent-strong)] flex items-center justify-center hover:opacity-80 transition-opacity"
+                data-testid="profile-edit-avatar-btn"
               >
                 <Pencil size={11} className="text-white" />
               </button>
             </div>
             <div className="text-center flex flex-col items-center gap-1.5">
               <div className="flex items-center gap-2">
-                <p className="text-lg font-semibold text-[var(--color-text-primary)]">{user?.username}</p>
+                <p className="text-lg font-semibold text-[var(--color-text-primary)]" data-testid="profile-username">{user?.username}</p>
                 {user?.isPremium && (
                   <span title="Premium" className="text-[oklch(75%_0.2_310)]">
                     <Wine size={16} />
                   </span>
                 )}
               </div>
-              <div className="flex items-center gap-2 flex-wrap justify-center">
+              <div className="flex items-center gap-2 flex-wrap justify-center" data-testid="profile-level">
                 <LevelBadge level={user?.level ?? 1} size="sm" />
                 {(user?.level ?? 1) >= 10 && !user?.isGuest && (
                   <RankBadge pds={user?.pds ?? 0} size="sm" />
@@ -326,12 +327,12 @@ export default function ProfilePage() {
               <p className="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">Estatísticas</p>
               <div className="grid grid-cols-2 gap-3">
                 {[
-                  { label: 'Partidas', value: stats.gamesPlayed },
-                  { label: 'Vitórias', value: stats.gamesWon },
-                  { label: 'Sabores', value: stats.saborTriggers },
-                  { label: 'Vazas', value: stats.tricksWon },
-                ].map(({ label, value }) => (
-                  <div key={label} className="rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)] p-4 text-center">
+                  { label: 'Partidas', value: stats.gamesPlayed, testId: 'profile-stats-games-played' },
+                  { label: 'Vitórias', value: stats.gamesWon, testId: 'profile-stats-games-won' },
+                  { label: 'Sabores', value: stats.saborTriggers, testId: 'profile-stats-sabor-triggers' },
+                  { label: 'Vazas', value: stats.tricksWon, testId: 'profile-stats-tricks-won' },
+                ].map(({ label, value, testId }) => (
+                  <div key={label} data-testid={testId} className="rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)] p-4 text-center">
                     <p className="text-2xl font-bold text-[var(--color-accent-soft)]">{value}</p>
                     <p className="text-xs text-[var(--color-text-muted)] mt-0.5">{label}</p>
                   </div>
