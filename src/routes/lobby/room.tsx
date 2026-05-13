@@ -1,7 +1,7 @@
-import { useEffect, useCallback, useState } from 'react';
+import { useEffect, useCallback, useState, useRef } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { Copy, Crown, LogOut, Bot, PlusCircle, X } from 'lucide-react';
+import { Copy, Crown, LogOut, Bot, PlusCircle, X, Lock } from 'lucide-react';
 import { AccessBar } from '@/components/ui/AccessBar';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -24,6 +24,7 @@ import { playSound } from '@/lib/sounds';
 import { RulesDialog } from '@/components/game/RulesDialog';
 import { RoomChat } from '@/components/lobby/RoomChat';
 import { DevFooter } from '@/components/ui/DevFooter';
+import { Input } from '@/components/ui/input';
 
 export default function RoomPage() {
   useEffect(() => {
@@ -39,13 +40,15 @@ export default function RoomPage() {
   const [addingBot, setAddingBot] = useState(false);
 
   const roomPassword = (location.state as any)?.password as string | undefined;
+  const [pendingPassword, setPendingPassword] = useState<string>(roomPassword ?? '');
+  const [showPasswordDialog, setShowPasswordDialog] = useState(false);
+  const [passwordError, setPasswordError] = useState(false);
+  const hasJoinedRef = useRef(false);
 
   const { data: initialRoom, isLoading, isError } = useQuery<RoomPublicState>({
     queryKey: ['room', roomCode],
     queryFn: async () => {
-      const { data } = await api.get(`/rooms/${roomCode}`, {
-        params: roomPassword ? { password: roomPassword } : undefined,
-      });
+      const { data } = await api.get(`/rooms/${roomCode}`);
       return data;
     },
     enabled: !!roomCode,
@@ -63,14 +66,21 @@ export default function RoomPage() {
     }
   }, [isError, navigate]);
 
-  useEffect(() => {
-    if (roomCode) {
-      emitSocketEvent('lobby:join_room', { roomCode, password: roomPassword });
-    }
-    // cleanup intencional omitido: desmontar o componente não é sair da sala.
-    // O botão "Sair" (handleLeave) emite o leave explicitamente.
-    // handleDisconnect no gateway cobre fechamento de aba.
+  const doJoin = useCallback((password?: string) => {
+    hasJoinedRef.current = true;
+    emitSocketEvent('lobby:join_room', { roomCode, password });
   }, [roomCode]);
+
+  // Decide se precisa de senha antes de entrar
+  useEffect(() => {
+    if (!roomCode || !initialRoom || hasJoinedRef.current) return;
+    const alreadyIn = initialRoom.players.some(p => p.userId === user?.id);
+    if (alreadyIn || !initialRoom.hasPassword || roomPassword) {
+      doJoin(roomPassword);
+    } else {
+      setShowPasswordDialog(true);
+    }
+  }, [initialRoom, roomCode, roomPassword, user, doJoin]);
 
   useSocketEvent<{ room: RoomPublicState }>('lobby:room_updated', useCallback(({ room }) => {
     updateRoom(room);
@@ -103,8 +113,14 @@ export default function RoomPage() {
     }, 1000);
   }, [navigate, roomCode]));
 
-  useSocketEvent<{ code: string; message: string }>('lobby:error', useCallback(({ message }) => {
-    toast.error(message);
+  useSocketEvent<{ code: string; message: string }>('lobby:error', useCallback(({ code, message }) => {
+    if (code === 'WRONG_PASSWORD') {
+      hasJoinedRef.current = false;
+      setPasswordError(true);
+      setShowPasswordDialog(true);
+    } else {
+      toast.error(message);
+    }
   }, []));
 
   // Detecta entrada como espectador quando sala está em andamento e redireciona direto para o jogo
@@ -473,6 +489,75 @@ export default function RoomPage() {
       </main>
 
       <DevFooter />
+
+      {/* Password dialog */}
+      <AnimatePresence>
+        {showPasswordDialog && (
+          <>
+            <motion.div
+              key="pw-backdrop"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
+              onClick={() => { navigate('/lobby', { replace: true }); }}
+            />
+            <motion.div
+              key="pw-dialog"
+              initial={{ opacity: 0, scale: 0.95, y: 12 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 12 }}
+              transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+              className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-80 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-2xl shadow-2xl p-6 flex flex-col gap-4"
+            >
+              <div className="flex items-center gap-2">
+                <Lock size={14} className="text-[var(--color-accent-mid)]" />
+                <span className="text-sm font-semibold text-[var(--color-text-primary)]">Sala protegida</span>
+              </div>
+              <p className="text-xs text-[var(--color-text-muted)]">Esta sala requer senha para entrar.</p>
+              <div className="flex flex-col gap-1.5">
+                <Input
+                  type="password"
+                  placeholder="Senha da sala"
+                  value={pendingPassword}
+                  onChange={e => { setPendingPassword(e.target.value); setPasswordError(false); }}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter' && pendingPassword.trim()) {
+                      setShowPasswordDialog(false);
+                      doJoin(pendingPassword.trim());
+                    }
+                  }}
+                  autoFocus
+                  maxLength={32}
+                  className={passwordError ? 'border-[var(--color-danger)]' : ''}
+                />
+                {passwordError && (
+                  <span className="text-[11px] text-[var(--color-danger)]">Senha incorreta. Tente novamente.</span>
+                )}
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => navigate('/lobby', { replace: true })}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  className="flex-1"
+                  disabled={!pendingPassword.trim()}
+                  onClick={() => {
+                    setShowPasswordDialog(false);
+                    doJoin(pendingPassword.trim());
+                  }}
+                >
+                  Entrar
+                </Button>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
       {/* Game starting countdown overlay */}
       <AnimatePresence>

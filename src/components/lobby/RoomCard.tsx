@@ -1,13 +1,9 @@
-import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Users, Swords, Lock } from 'lucide-react';
 import type { RoomPublicState } from '@/types/game';
 import { GAME_MODES } from '@/constants/game';
 import { cn } from '@/lib/utils';
-import api from '@/lib/api';
-import { toast } from 'sonner';
 
 interface RoomCardProps {
   room: RoomPublicState;
@@ -21,9 +17,6 @@ const MODE_COLOR: Record<string, string> = {
 
 export function RoomCard({ room }: RoomCardProps) {
   const navigate = useNavigate();
-  const [entering, setEntering] = useState(false);
-  const [askPassword, setAskPassword] = useState(false);
-  const [passwordInput, setPasswordInput] = useState('');
   const mode = GAME_MODES.find(m => m.value === room.mode);
   const accentColor = MODE_COLOR[room.mode] ?? 'var(--color-accent-strong)';
   const fillRatio = room.players.length / room.maxPlayers;
@@ -31,24 +24,8 @@ export function RoomCard({ room }: RoomCardProps) {
   const isFull = room.players.length >= room.maxPlayers;
 
   const handleEnter = () => {
-    if (room.hasPassword) {
-      setAskPassword(true);
-      return;
-    }
-    setEntering(true);
+    // Senha é tratada pelo dialog em room.tsx — navegar direto
     navigate(`/lobby/${room.code}`, { state: { isMatchmaking: false } });
-  };
-
-  const handlePasswordSubmit = async () => {
-    if (!passwordInput.trim()) return;
-    setEntering(true);
-    try {
-      await api.get(`/rooms/${room.code}`, { params: { password: passwordInput.trim() } });
-      navigate(`/lobby/${room.code}`, { state: { isMatchmaking: false, password: passwordInput.trim() } });
-    } catch {
-      toast.error('Senha incorreta');
-      setEntering(false);
-    }
   };
 
   return (
@@ -124,35 +101,12 @@ export function RoomCard({ room }: RoomCardProps) {
           <Button
             size="sm"
             variant={isInProgress ? 'secondary' : 'primary'}
-            disabled={entering}
             onClick={handleEnter}
           >
-            {entering ? '...' : isInProgress ? 'Assistir' : 'Entrar'}
+            {isInProgress ? 'Assistir' : 'Entrar'}
           </Button>
         )}
       </div>
-
-      {/* Inline password prompt */}
-      {askPassword && (
-        <div className="ml-2 flex gap-1.5">
-          <Input
-            type="password"
-            placeholder="Senha da sala"
-            value={passwordInput}
-            onChange={e => setPasswordInput(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && handlePasswordSubmit()}
-            maxLength={32}
-            autoFocus
-            className="text-xs h-8"
-          />
-          <Button size="sm" onClick={handlePasswordSubmit} disabled={entering || !passwordInput.trim()}>
-            {entering ? '...' : 'OK'}
-          </Button>
-          <Button size="sm" variant="outline" onClick={() => { setAskPassword(false); setPasswordInput(''); }}>
-            ✕
-          </Button>
-        </div>
-      )}
     </div>
   );
 }
