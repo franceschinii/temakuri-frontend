@@ -88,9 +88,9 @@ export function ActionHistoryPanel() {
               transition={{ duration: 0.18 }}
               className="flex items-center gap-0 overflow-hidden"
             >
-              <span className="text-[11px] leading-none shrink-0 w-5 text-center">{TYPE_ICON[entry.type]}</span>
-              <div className="bg-[var(--color-panel)]/80 backdrop-blur-md border border-[var(--color-border)]/50 rounded-lg px-2 py-1 shadow-sm min-w-0">
-                <span className={cn('text-[10px] leading-tight line-clamp-1 block min-w-0', TYPE_COLOR[entry.type])}>
+              <span className="text-sm leading-none shrink-0 w-6 text-center">{TYPE_ICON[entry.type]}</span>
+              <div className="bg-[var(--color-panel)]/80 backdrop-blur-md border border-[var(--color-border)]/50 rounded-lg px-2.5 py-1.5 shadow-sm min-w-0">
+                <span className={cn('text-xs leading-tight line-clamp-1 block min-w-0 font-medium', TYPE_COLOR[entry.type])}>
                   {entry.text}
                 </span>
               </div>
@@ -99,7 +99,7 @@ export function ActionHistoryPanel() {
         </AnimatePresence>
 
         {actionLog.length > 4 && (
-          <div className="text-[9px] text-[var(--color-text-muted)] text-center opacity-60">
+          <div className="text-[11px] text-[var(--color-text-muted)] text-center opacity-60">
             + {actionLog.length - 4} anteriores
           </div>
         )}

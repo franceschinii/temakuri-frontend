@@ -51,6 +51,19 @@ button, a, [role="button"], label {
   }
 }
 
+/* Fonte base aumentada de 16px (padrao) para 17px = todos os rem/em escalam.
+   Mantem inputs em 16px para evitar auto-zoom no iOS (regra acima). */
+html {
+  font-size: 17px;
+}
+
+/* Bump global em fontes minusculas arbitrarias do Tailwind (text-[9px]/[10px]/[11px]).
+   Mantem hierarquia visual mas aumenta legibilidade. */
+.text-\[9px\]  { font-size: 11px !important; }
+.text-\[10px\] { font-size: 12px !important; }
+.text-\[11px\] { font-size: 13px !important; }
+.text-\[8px\]  { font-size: 10px !important; }
+
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
