@@ -14,6 +14,25 @@ export interface ChangelogEntry {
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: '2026-05-13',
+    version: '0.4.1',
+    title: 'Menu de topo agora é igual em todas as telas',
+    category: 'qol',
+    highlights: [
+      'Moedas, loja e ajuda acessíveis de qualquer tela',
+      'Avisos de quem ganhou rodada e vaza no topo da mesa',
+      'Logos maiores nas telas de login/cadastro',
+    ],
+    details: `Vários ajustes de navegação e visual:
+
+• A barra superior do jogo agora é a mesma em todas as telas (lobby, sala, partida, perfil, ranqueada, admin). Você tem acesso direto a moedas, loja, ajuda, perfil, configurações de som e sair de qualquer lugar.
+• Banner de eventos importantes (vez de fulano, ganhou a vaza, venceu a rodada, Sabor ativo) agora aparece no topo da área da mesa, em destaque. Antes ficava em cima dos avatares dos jogadores.
+• Notificações de "fulano desconectou / fulano voltou" agora só aparecem se a queda for real (>5 segundos). Pequenas instabilidades de rede não geram mais spam.
+• Logos das telas de login/cadastro maiores e mais bonitos.
+• Notícias e Changelog do lobby ficaram numa coluna lateral mais larga, dando destaque às salas no centro.
+• Tela "Como funciona" (ranks, moedas, bordas, ícones) com SVGs reais dos ranks e ícones consistentes. Recompensas de moedas mostradas com os valores corretos por modo de jogo.`,
+  },
+  {
+    date: '2026-05-13',
     version: '0.4.0',
     title: 'Partida mais clara e fluida',
     category: 'qol',

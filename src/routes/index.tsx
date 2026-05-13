@@ -208,7 +208,7 @@ export default function LandingPage() {
             寿司 · 拉麺 · 餃子
           </span>
           <div className="flex items-center gap-3 flex-wrap justify-center">
-            <span className="text-[10px] text-[var(--color-text-muted)] opacity-25 font-mono">v0.4.0-beta</span>
+            <span className="text-[10px] text-[var(--color-text-muted)] opacity-25 font-mono">v0.4.1-beta</span>
             <span className="text-[10px] text-[var(--color-text-muted)] opacity-40">
               Desenvolvido por{' '}
               <a
