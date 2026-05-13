@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import { emitSocketEvent } from '../lib/socket';
 import { useGameStore } from '../stores/gameStore';
+import { useAuthStore } from '../stores/authStore';
 
 export function useGame(roomCode: string) {
   const selectedIndices = useGameStore(s => s.selectedIndices);
@@ -10,10 +11,15 @@ export function useGame(roomCode: string) {
   const phase = useGameStore(s => s.phase);
   const currentTurnUserId = useGameStore(s => s.currentTurnUserId);
   const clearSelection = useGameStore(s => s.clearSelection);
+  const userId = useAuthStore(s => s.user?.id);
 
   const playSelectedCards = useCallback(() => {
     if (selectedIndices.length === 0) return;
     if (phase !== 'PLAYER_TURN') return;
+    // Fix #6: guard contra race condition — se entre render e click o turno
+    // virou de outro jogador, não enviar (backend rejeitaria com "Not the
+    // right phase" e o toast confundiria o usuário).
+    if (!userId || currentTurnUserId !== userId) return;
     const payload: { roomCode: string; cardIndices: number[]; plateIndices?: number[] } = {
       roomCode,
       cardIndices: selectedIndices,
@@ -23,12 +29,14 @@ export function useGame(roomCode: string) {
     }
     emitSocketEvent('game:play_cards', payload);
     clearSelection();
-  }, [roomCode, selectedIndices, selectedPlateIndices, phase, clearSelection]);
+  }, [roomCode, selectedIndices, selectedPlateIndices, phase, currentTurnUserId, userId, clearSelection]);
 
   const drawCard = useCallback(() => {
     if (phase !== 'PLAYER_TURN') return;
+    // Fix #6: mesmo guard pra Passar (que internamente faz drawCard).
+    if (!userId || currentTurnUserId !== userId) return;
     emitSocketEvent('game:draw_card', { roomCode });
-  }, [roomCode, phase]);
+  }, [roomCode, phase, currentTurnUserId, userId]);
 
   const insertDrawnCard = useCallback((insertAtIndex: number, action: 'insert' | 'discard' = 'insert') => {
     emitSocketEvent('game:insert_drawn_card', { roomCode, insertAtIndex, action });

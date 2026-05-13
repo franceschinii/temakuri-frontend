@@ -140,7 +140,14 @@ export function GameBoard() {
   }, []));
 
   useSocketEvent<{ userId: string; timeoutMs: number; spectatorCount?: number }>('game:turn_started', useCallback(({ userId, timeoutMs, spectatorCount: sc }) => {
-    useGameStore.setState({ currentTurnUserId: userId, selectedIndices: [] });
+    // Fix #7: forçar phase=PLAYER_TURN em turn_started. Sem isso, após
+    // round_ended o phase fica stale (ROUND_END), e handlePass/playCards
+    // ficam silenciosamente bloqueados até o user dar F5.
+    useGameStore.setState((s) => ({
+      currentTurnUserId: userId,
+      selectedIndices: [],
+      phase: s.phase === 'GAME_OVER' ? s.phase : 'PLAYER_TURN',
+    }));
     setTimerMs(timeoutMs);
     setTimerKey(k => k + 1);
     setPickMode(false);
@@ -235,6 +242,10 @@ export function GameBoard() {
       saborTriggeredBy: null,
       consecutivePasses: 0,
       market: market ?? s.market,
+      // Fix #7: limpa roundSummaryData ao iniciar nova rodada — o modal não
+      // deve bloquear interações do user no novo turno (caso ele tenha deixado
+      // aberto).
+      roundSummaryData: null,
       players: s.players.map(p => ({
         ...p,
         cardCount: cardCounts[p.userId] ?? p.cardCount,

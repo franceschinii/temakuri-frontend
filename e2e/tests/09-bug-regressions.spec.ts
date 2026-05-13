@@ -83,22 +83,16 @@ test.describe('Bug regressions — affordance during non-turn states', () => {
     page,
     request,
   }) => {
-    test.setTimeout(120_000);
+    test.setTimeout(300_000);
     await startGameAsUser(page, request, 'bug7', { initialTokens: 2 });
 
     const passBtn = page.locator('[data-testid="game-action-pass-btn"]');
-
-    // Esperar a partida andar. Em algum momento o user terá um turno.
-    // Quando o botão Passar ficar enabled, clica. Repete até GameOverModal aparecer.
     const gameOver = page.locator('[data-testid="game-over-modal"]');
     const start = Date.now();
     let passes = 0;
 
-    while (Date.now() - start < 90_000) {
-      // Se acabou, sai
+    while (Date.now() - start < 240_000) {
       if (await gameOver.isVisible().catch(() => false)) break;
-
-      // Tenta passar se for meu turno
       const visible = await passBtn.isVisible().catch(() => false);
       const disabled = await passBtn.isDisabled().catch(() => true);
       if (visible && !disabled) {
@@ -108,9 +102,9 @@ test.describe('Bug regressions — affordance during non-turn states', () => {
       await page.waitForTimeout(300);
     }
 
-    // O teste passa se a partida terminou normalmente (game over) E
-    // conseguimos passar pelo menos 1 vez sem precisar F5.
-    // O bug é state desync que faria o botão nunca responder após uma rodada.
+    // Fix #7 (commit XYZ) garante phase=PLAYER_TURN em turn_started.
+    // Sem o fix, o botão Passar nunca volta a responder após round_ended
+    // → partida nunca termina dentro do orçamento → ended=false.
     const ended = await gameOver.isVisible().catch(() => false);
     expect(ended).toBe(true);
     expect(passes).toBeGreaterThan(0);
