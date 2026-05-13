@@ -177,6 +177,7 @@ export default function RoomPage() {
 
   const handleToggleReady = () => {
     const current = readyMap[user?.id ?? ''] ?? false;
+    playSound(current ? 'unready' : 'ready');
     emitSocketEvent('lobby:set_ready', { roomCode, ready: !current });
   };
 
