@@ -518,7 +518,7 @@ export function GameBoard() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 16, scale: 0.9 }}
             transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-            className="fixed top-14 left-1/2 -translate-x-1/2 z-40 pointer-events-none"
+            className="fixed top-32 left-1/2 -translate-x-1/2 z-40 pointer-events-none"
           >
             <div className={`px-4 py-1.5 rounded-full text-sm font-semibold shadow-lg border ${
               turnBanner.isMe
@@ -582,17 +582,22 @@ export function GameBoard() {
         )}
       </div>
 
-      {/* Center area */}
-      <div className="flex-1 min-h-0 flex flex-col items-center justify-center gap-2 px-2 py-3 sm:px-4 overflow-y-auto">
-        <AnimatePresence>
-          {saborActive && (
-            <SaborIndicator
-              active={saborActive}
-              minRequired={saborMinRequired}
-              triggeredBy={saborTriggeredBy ?? undefined}
-            />
-          )}
-        </AnimatePresence>
+      {/* Center area — mantem layout flex, mas com altura reservada para overlays
+          e sem overflow-y-auto que causava layout shift. Conteudo opcional usa
+          min-h reservado em vez de entrar/sair do DOM. */}
+      <div className="flex-1 min-h-0 flex flex-col items-center justify-center gap-2 px-2 py-3 sm:px-4">
+        {/* Slot reservado para SaborIndicator: ocupa 28px mesmo quando vazio */}
+        <div className="h-7 flex items-center justify-center w-full">
+          <AnimatePresence>
+            {saborActive && (
+              <SaborIndicator
+                active={saborActive}
+                minRequired={saborMinRequired}
+                triggeredBy={saborTriggeredBy ?? undefined}
+              />
+            )}
+          </AnimatePresence>
+        </div>
 
         <PlayArea
           pile={pile}
@@ -605,11 +610,14 @@ export function GameBoard() {
           isDuel={isDuel}
         />
 
-        {phase === 'TRICK_PICK' && currentTurnUserId !== user?.id && (
-          <div className="text-xs text-center text-[var(--color-text-muted)] animate-pulse">
-            {players.find(p => p.userId === currentTurnUserId)?.username ?? '...'} está escolhendo...
-          </div>
-        )}
+        {/* Slot reservado para mensagem de pick: 20px mesmo quando vazio */}
+        <div className="h-5 flex items-center justify-center w-full">
+          {phase === 'TRICK_PICK' && currentTurnUserId !== user?.id && (
+            <div className="text-xs text-center text-[var(--color-text-muted)] animate-pulse">
+              {players.find(p => p.userId === currentTurnUserId)?.username ?? '...'} está escolhendo...
+            </div>
+          )}
+        </div>
 
         {/* Duelo: Pratos do Dia */}
         {duelPlates && (
@@ -675,22 +683,21 @@ export function GameBoard() {
       </div>
 
       {/* My area */}
-      <div className="shrink-0 border-t border-[var(--color-border)] bg-[var(--color-surface)] px-2 pt-1.5 pb-2 sm:px-4 sm:pt-2 sm:pb-3 flex flex-col">
-        {/* Mini-histórico — mobile only, acima da info bar */}
-        {recentActions.length > 0 && (
-          <div className="sm:hidden flex flex-col gap-0.5 mb-1.5 pb-1.5 border-b border-[var(--color-border)]/40">
-            {recentActions.map(entry => (
-              <span key={entry.id} className="text-[10px] text-[var(--color-text-muted)] truncate leading-tight">
-                {entry.text}
-              </span>
-            ))}
-          </div>
-        )}
+      <div className="relative shrink-0 border-t border-[var(--color-border)] bg-[var(--color-surface)] px-2 pt-1.5 pb-2 sm:px-4 sm:pt-2 sm:pb-3 flex flex-col">
+        {/* Mini-historico — mobile only, altura reservada de 2 linhas para nao
+            empurrar o resto quando ha 0/1/2 acoes recentes. */}
+        <div className="sm:hidden flex flex-col gap-0.5 mb-1.5 pb-1.5 border-b border-[var(--color-border)]/40 min-h-[28px]">
+          {recentActions.map(entry => (
+            <span key={entry.id} className="text-[10px] text-[var(--color-text-muted)] truncate leading-tight">
+              {entry.text}
+            </span>
+          ))}
+        </div>
         {/* Info bar */}
         <div className="flex items-center justify-between mb-1.5">
           <div className="flex items-center gap-2">
-            <AvatarWithBorder index={me?.avatarIndex ?? 0} level={me?.level ?? 1} size={24} />
-            <span className="text-sm font-semibold text-[var(--color-text-primary)]">
+            <AvatarWithBorder index={me?.avatarIndex ?? 0} level={me?.level ?? 1} size={36} />
+            <span className="text-base font-semibold text-[var(--color-text-primary)]">
               {me?.username ?? 'Você'}
             </span>
             <LevelBadge level={me?.level ?? 1} size="xs" />
@@ -707,15 +714,15 @@ export function GameBoard() {
           </div>
         </div>
 
-        {/* Drawn card reveal + insertion prompt */}
+        {/* Drawn card prompt — overlay flutuante absoluto, nao empurra Hand/ActionBar */}
         <AnimatePresence>
           {pickMode && (
             <motion.div
               initial={{ opacity: 0, y: -8, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -8, scale: 0.95 }}
-              transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-              className="self-center flex items-center gap-3 mb-2 px-3 py-2 rounded-xl bg-[var(--color-panel)] border border-[var(--color-warning)]/40 w-fit"
+              transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+              className="pointer-events-auto absolute left-1/2 -translate-x-1/2 -top-2 -translate-y-full z-30 flex items-center gap-3 px-3 py-2 rounded-xl bg-[var(--color-panel)] border border-[var(--color-warning)]/40 w-fit shadow-lg"
             >
               {drawnCard ? (
                 <>
@@ -738,19 +745,16 @@ export function GameBoard() {
           )}
         </AnimatePresence>
 
-        {/* Hand — oculta para espectadores */}
+        {/* Hand — oculta para espectadores. Sempre renderiza o mesmo
+            componente para evitar remount/flick quando entra/sai pickMode. */}
         {!isSpectator && (
           <div className="pb-3 pt-2 overflow-visible">
-            {pickMode ? (
-              <PlayerHand
-                hand={myHand}
-                isMyTurn={isMyTurn}
-                pickMode={true}
-                onPickInsert={handleInsertAtIndex}
-              />
-            ) : (
-              <PlayerHand hand={myHand} isMyTurn={isMyTurn} />
-            )}
+            <PlayerHand
+              hand={myHand}
+              isMyTurn={isMyTurn}
+              pickMode={pickMode}
+              onPickInsert={pickMode ? handleInsertAtIndex : undefined}
+            />
           </div>
         )}
 
