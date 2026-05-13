@@ -3,6 +3,7 @@ import { Send } from 'lucide-react';
 import { useSocketEvent, emitSocketEvent } from '@/hooks/useSocket';
 import { useAuthStore } from '@/stores/authStore';
 import { formatTimestamp } from '@/lib/formatTime';
+import { playSound } from '@/lib/sounds';
 
 interface ChatMessage {
   userId: string;
@@ -23,7 +24,8 @@ export function RoomChat({ roomCode }: RoomChatProps) {
 
   useSocketEvent<ChatMessage>('lobby:chat_message', useCallback((msg) => {
     setMessages(prev => [...prev.slice(-99), msg]);
-  }, []));
+    if (msg.userId !== user?.id) playSound('chat_receive');
+  }, [user?.id]));
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -32,6 +34,7 @@ export function RoomChat({ roomCode }: RoomChatProps) {
   const send = () => {
     const text = input.trim();
     if (!text || text.length > 200) return;
+    playSound('chat_send');
     emitSocketEvent('lobby:chat_send', { roomCode, text });
     setInput('');
   };

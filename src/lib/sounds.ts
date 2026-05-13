@@ -1,4 +1,4 @@
-export type SoundName = 'play' | 'pass' | 'wipe' | 'sabor' | 'round_end' | 'game_over' | 'your_turn' | 'countdown_tick' | 'countdown_go' | 'ready' | 'unready';
+export type SoundName = 'play' | 'pass' | 'wipe' | 'sabor' | 'round_end' | 'game_over' | 'your_turn' | 'countdown_tick' | 'countdown_go' | 'ready' | 'unready' | 'chat_send' | 'chat_receive' | 'player_join' | 'player_leave' | 'reaction';
 
 // Initialize muted state from localStorage on module load
 let muted = localStorage.getItem('soundEnabled') === 'false';
@@ -95,6 +95,17 @@ const sounds: Record<SoundName, () => void> = {
     beep(440, 0.08, 0.1);
     setTimeout(() => beep(330, 0.12, 0.1), 90);
   },
+  chat_send: () => beep(880, 0.06, 0.07),
+  chat_receive: () => beep(660, 0.07, 0.08, 'triangle'),
+  player_join: () => {
+    beep(440, 0.06, 0.08);
+    setTimeout(() => beep(554, 0.08, 0.08), 70);
+  },
+  player_leave: () => {
+    beep(554, 0.06, 0.07);
+    setTimeout(() => beep(440, 0.08, 0.07), 70);
+  },
+  reaction: () => beep(740, 0.07, 0.09, 'triangle'),
 };
 
 export function playSound(name: SoundName) {
