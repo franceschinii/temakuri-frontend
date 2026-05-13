@@ -38,10 +38,14 @@ export default function RoomPage() {
   const { currentRoom, setCurrentRoom, updateRoom, readyMap, setPlayerReady } = useLobbyStore();
   const [addingBot, setAddingBot] = useState(false);
 
+  const roomPassword = (location.state as any)?.password as string | undefined;
+
   const { data: initialRoom, isLoading, isError } = useQuery<RoomPublicState>({
     queryKey: ['room', roomCode],
     queryFn: async () => {
-      const { data } = await api.get(`/rooms/${roomCode}`);
+      const { data } = await api.get(`/rooms/${roomCode}`, {
+        params: roomPassword ? { password: roomPassword } : undefined,
+      });
       return data;
     },
     enabled: !!roomCode,
@@ -61,7 +65,7 @@ export default function RoomPage() {
 
   useEffect(() => {
     if (roomCode) {
-      emitSocketEvent('lobby:join_room', { roomCode });
+      emitSocketEvent('lobby:join_room', { roomCode, password: roomPassword });
     }
     // cleanup intencional omitido: desmontar o componente não é sair da sala.
     // O botão "Sair" (handleLeave) emite o leave explicitamente.

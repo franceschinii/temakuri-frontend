@@ -81,7 +81,7 @@ export function CreateRoomModal({ open, onClose }: CreateRoomModalProps) {
         password: password.trim() || undefined,
       });
       onClose();
-      navigate(`/lobby/${data.code}`, { state: { isMatchmaking: false } });
+      navigate(`/lobby/${data.code}`, { state: { isMatchmaking: false, password: password.trim() || undefined } });
     } catch (e: any) {
       const detail = e?.response?.data?.message;
       const msg = Array.isArray(detail) ? detail.join(', ') : detail ?? e?.message ?? 'Erro ao criar sala';
