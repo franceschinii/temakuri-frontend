@@ -14,29 +14,19 @@ export const NEWS: NewsItem[] = [
   {
     date: '2026-05-13',
     pinned: true,
-    title: 'Em breve: Diamantes, Premium e novos visuais',
-    summary: 'Pagamento real via PIX/Cartão, assinatura Premium R$ 7,90/mês e itens cosméticos exclusivos.',
-    body: `Estamos preparando uma grande atualização com 3 frentes:
+    title: 'Novos avatares, temas e bordas chegando',
+    summary: 'Em breve: visuais exclusivos para você personalizar sua mesa e seu perfil.',
+    body: `Estamos preparando uma atualização visual grande pro Temakuri:
 
-**Diamantes — Moeda Premium**
-Comprados com dinheiro real via Mercado Pago (PIX, cartão de crédito, débito). Pacotes a partir de R$ 4,90:
+**Avatares novos**
+Mais 6 personagens estilizados pra escolher: Yokai, Kitsune, Tanuki, Geisha, Samurai e Dragão Dourado. Cada um com paleta de cores única.
 
-• 100 diamantes — R$ 4,90
-• 500 diamantes — R$ 19,90
-• 1.200 diamantes — R$ 39,90 (bônus +22%)
-• 3.000 diamantes — R$ 89,90 (bônus +50%)
+**Temas de mesa**
+3 visuais para a partida — Bambu, Sakura e Oni. Você escolhe o clima da sua jogatina.
 
-**Premium — R$ 7,90/mês**
-Assinatura mensal com benefícios exclusivos:
+**Plano Premium opcional**
+Quem quiser apoiar o desenvolvimento do jogo vai poder assinar um plano mensal que dá visual exclusivo, remove os anúncios e libera todos os modos de jogo. Continua tudo jogável de graça, sempre.
 
-• 50 diamantes gratuitos todo mês
-• Sem anúncios em nenhuma tela
-• Todos os modos de jogo desbloqueados (Mercado, Rodízio, Degustação) enquanto a assinatura estiver ativa
-• Badge exclusiva no perfil
-
-**Novos Avatares e Temas**
-Catálogo expandido com 6 avatares premium (Yokai, Kitsune, Tanuki, Geisha, Samurai, Dragão Dourado) e 3 temas de mesa (Bambu, Sakura, Oni). Comprados com diamantes.
-
-**Quando?** Trabalhando ativamente nesse momento. Acompanhe o changelog para o lançamento.`,
+**Quando?** Estou trabalhando ativamente. Vou postar no changelog assim que cada peça ficar pronta. Obrigado por jogar.`,
   },
 ];

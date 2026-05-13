@@ -9,155 +9,156 @@ export interface ChangelogEntry {
 
 /**
  * Changelog do Temakuri. Adicionar entradas no TOPO (mais recentes primeiro).
- * Histórico inicial reflete commits reais do projeto.
+ * Linguagem para o jogador — sem termos técnicos.
  */
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: '2026-05-13',
-    version: '0.4.0-beta',
-    title: 'Sincronia em tempo real e layout estável',
+    version: '0.4.0',
+    title: 'Partida mais clara e fluida',
+    category: 'qol',
+    highlights: [
+      'Pausa de 1,8 segundo para ver cada jogada',
+      'Cartas maiores e mais legíveis',
+      '"SUA VEZ" agora aparece bem destacado',
+    ],
+    details: `Várias melhorias na experiência durante a partida:
+
+• Agora há uma pequena pausa entre as jogadas — dá tempo de ver o que aconteceu antes de já passar a vez. Chega de "teleporte" de turno.
+• As cartas ficaram maiores na mesa, na sua mão e no descarte. Mais fácil de ler os valores.
+• Quando é a sua vez, o aviso ficou bem visível: borda verde brilhante embaixo, contorno pulsante no seu avatar e badge "SUA VEZ" em destaque.
+• Avatares dos oponentes maiores também — fica mais fácil identificar quem é quem.
+• Nome dos jogadores agora aparece com cor legível (antes tava muito escuro).
+• Recompensas no fim da partida com destaque grande pro XP e moedas ganhos.`,
+  },
+  {
+    date: '2026-05-13',
+    version: '0.4.0',
+    title: 'Quem ganha a partida não é mais expulso na hora',
     category: 'fix',
     highlights: [
-      'Turno agora avança em tempo real sem precisar dar F5',
-      'Layout do jogo não pula mais quando overlays aparecem',
-      'Mesa não fica vazia ao trocar de vez',
+      'Vencedor consegue ficar e jogar de novo na mesma sala',
+      'Sala continua aberta por 5 minutos após o fim',
     ],
-    details: `Foram corrigidos múltiplos bugs de sincronização in-game:
+    details: `Um bug chato: quem ganhava a partida era expulso da sala instantaneamente, sem chance de jogar de novo.
 
-• Sinalização de fase TRICK_PICK (regra A2) agora é broadcast para todos os jogadores, eliminando travamento de turno após Sabor ativar.
-• Novo evento "phase heartbeat" detecta dessincronização e força resync automático.
-• Layout reservou espaços fixos para overlays (SaborIndicator, drawn card prompt, mensagens), evitando flick quando entram e saem.
-• Texto do nome dos jogadores corrigido (antes aparecia escuro sobre fundo escuro).
-• Avatares dos oponentes aumentados de 28 para 36px, fontes mais legíveis.
-• Timer de pick aumentado para 30s, dando tempo para escolher posição da carta.`,
+Agora a sala fica disponível por 5 minutos após o fim do jogo. Tempo suficiente para todos verem o placar, conversarem no chat, e o anfitrião clicar "Jogar de novo" pra reiniciar a partida com a mesma galera.`,
   },
   {
     date: '2026-05-13',
-    version: '0.4.0-beta',
-    title: 'Matchmaking estilo LoL',
-    category: 'feature',
-    highlights: [
-      'Janela de aceitação de 20s em Partida Rápida (era 120s)',
-      'Botão Recusar cancela o match imediatamente',
-      'Mínimo de 2 humanos confirmados; bots completam o resto',
-    ],
-    details: `O fluxo de matchmaking foi totalmente repensado:
-
-• Reduzido o timeout de confirmação de 120s para 20s em Partida Rápida.
-• Adicionado botão "Recusar" ao lado de "Confirmar" — cancela o match na hora.
-• Mínimo de 2 humanos confirmando para iniciar; quem não confirmar é removido do match.
-• Bots preenchem os slots vazios automaticamente após o timeout.
-• Avatares dos jogadores que confirmaram ficam verdes em todas as telas (antes só você se via verde).
-• Race conditions de match duplicado eliminadas via mutex no servidor.
-
-Ranqueada mantém 120s e exige 4 humanos (sem bots) por design.`,
-  },
-  {
-    date: '2026-05-13',
-    version: '0.4.0-beta',
-    title: 'Regras oficiais Nanatoridori implementadas',
-    category: 'feature',
-    highlights: [
-      'Regra A2: escolher pegar ou descartar pilha anterior após jogar',
-      'Wipe (todos passam) descarta automaticamente, sem escolha',
-      'Invariante de 63 cartas únicas validado no servidor',
-    ],
-    details: `O engine de jogo foi alinhado com as regras oficiais do Nanatoridori:
-
-• Após jogar uma combinação superior em cima de pilha não-vazia, jogador entra em fase TRICK_PICK e escolhe pegar a pilha anterior para a mão OU descartá-la.
-• Quando todos passam em sequência, a pilha vai para o descarte automaticamente e o último que jogou inicia nova rodada com mesa vazia (sem escolha).
-• Adicionado invariante de integridade: 9 cartas de cada valor 1-7, total 63 únicas. Validado em cada operação do engine.
-• Cartas não somem mais entre rodadas — você pode contar cartas com segurança.`,
-  },
-  {
-    date: '2026-05-13',
-    version: '0.3.0',
-    title: 'Ranked refinado',
+    version: '0.4.0',
+    title: 'Sala não fica fantasma quando o dono sai',
     category: 'fix',
     highlights: [
-      'Race condition no PDS corrigida (transação Prisma)',
-      'Bots não entram mais em partidas ranqueadas',
-      'Sistema de demoção entre tiers funciona corretamente',
+      'Quando o anfitrião sai, outro jogador assume',
+      'Sala só fecha quando não houver mais ninguém',
     ],
-    details: `O sistema de Ranked teve correções importantes:
+    details: `Antes, se o dono da sala saísse, ela ficava aparecendo no lobby com "4/4 jogadores" e ninguém conseguia entrar.
 
-• markFinished agora roda em transação Prisma por usuário, evitando race condition que fazia PDS calculado com streaks desatualizadas.
-• Idempotência via GameResult @unique — se webhook retentar, PDS não dobra.
-• clampPds reescrito: permite demoção legítima para o tier anterior (antes ficava preso no floor do tier atual).
-• fillWithBots bloqueado em sala ranqueada — bots não descaracterizam partidas competitivas.
-• 22 testes unitários novos cobrindo rankFromPds, clampPds e calcPdsChange.`,
+Agora: quando o anfitrião sai e ainda tem outras pessoas na sala, alguém assume automaticamente como novo anfitrião. A sala continua aberta normalmente. Só fecha quando o último humano sair.
+
+Também limpamos automaticamente salas abandonadas e finalizadas para o lobby não ficar poluído.`,
+  },
+  {
+    date: '2026-05-13',
+    version: '0.4.0',
+    title: 'Busca rápida de partida totalmente nova',
+    category: 'feature',
+    highlights: [
+      'Tempo de aceitar reduzido para 20 segundos',
+      'Botão "Recusar" cancela o match na hora',
+      'Verde aparece pra todo mundo que confirmou',
+    ],
+    details: `O fluxo de busca de partida foi todo repensado:
+
+• Quando encontramos um match, você tem 20 segundos para aceitar (era 2 minutos). Mais ágil.
+• Adicionamos o botão "Recusar" ao lado do "Confirmar". Se você não quiser jogar com aquele grupo, recusa e o match é cancelado para todos.
+• Quando alguém confirma, o avatar dele fica verde — e isso aparece em todas as telas, não só na dele. Antes você não via os outros aceitarem.
+• Mínimo de 2 pessoas confirmando para a partida começar. Se faltar gente, completamos com bots automaticamente.`,
+  },
+  {
+    date: '2026-05-13',
+    version: '0.4.0',
+    title: 'Mesa de jogo sincronizada corretamente',
+    category: 'fix',
+    highlights: [
+      'Turno avança em tempo real, sem precisar atualizar a página',
+      'Mesa não fica vazia quando muda a vez',
+      'Cartas não somem do jogo',
+    ],
+    details: `Vários problemas chatos de sincronização foram corrigidos:
+
+• Quando alguém ativava o "Sabor" (combo especial), o turno às vezes travava na tela e a única forma de ver quem era a próxima vez era recarregar a página. Resolvido.
+• A mesa às vezes mostrava "vazia" no meio de uma jogada quando trocava de vez. Resolvido.
+• A pilha de cartas agora vai certinho para o descarte quando alguém joga em cima — ninguém perde mais o controle de quais cartas já saíram.
+• Adicionamos uma verificação automática: as 63 cartas únicas do baralho ficam sempre rastreadas, sem nenhuma sumir.`,
   },
   {
     date: '2026-05-12',
     version: '0.3.0',
-    title: 'Sala não fecha mais quando host sai',
+    title: 'Ranqueada mais justa',
     category: 'fix',
     highlights: [
-      'Host saindo promove próximo humano automaticamente',
-      'Sala não vira fantasma na listagem',
-      'Cleanup automático de salas mortas',
+      'PDS calculado corretamente em partidas seguidas',
+      'Só humanos jogam ranqueada (sem bots)',
+      'Você consegue descer de rank quando merecer',
     ],
-    details: `Bugs de ciclo de vida de sala foram resolvidos:
+    details: `O sistema de Ranqueada teve vários ajustes:
 
-• Quando o host sai, o próximo humano (não-bot, não-banido) vira host automaticamente. Sala só morre se não houver humano para promover.
-• leaveRoom agora é atômico (transação Prisma) — previne salas fantasma quando 2 jogadores saem simultaneamente.
-• Cleanup automático: salas FINISHED >24h são deletadas, salas WAITING vazias e bots/guests órfãos são removidos a cada 1h.
-• Salas presas em IN_PROGRESS após restart do servidor viram FINISHED no boot do gateway.
-• Espectadores não podem mais marcar "pronto" (poluía o readyMap).`,
+• PDS (Pontos de Skill) era calculado errado se você terminasse duas partidas muito próximas no tempo. Agora cada vitória/derrota é processada certinho.
+• Partidas ranqueadas agora exigem 4 pessoas reais. Sem bots completando.
+• Quando você perde muito, agora desce de rank corretamente para o tier anterior. Antes ficava preso no mínimo do tier atual.
+• Pontos não duplicam mais se houver instabilidade de conexão.`,
   },
   {
     date: '2026-05-12',
     version: '0.2.0',
-    title: 'Espectadores funcionando',
+    title: 'Espectadores assistindo de verdade',
     category: 'feature',
     highlights: [
-      'Botão Assistir entra em sala IN_PROGRESS como espectador',
-      'Espectador vê o jogo em tempo real',
-      'Promoção automática quando vaga abrir',
+      'Botão "Assistir" em salas que já começaram',
+      'Você vê a partida em tempo real',
+      'Quando alguém sair, você pode virar jogador',
     ],
-    details: `Espectadores agora têm experiência completa:
+    details: `Agora você pode acompanhar uma partida que já começou:
 
-• Sala em andamento aparece com botão "Assistir" em vez de "Entrar".
-• Espectador entra direto na tela do jogo, sem hand visível e com badge "Espectador".
-• Vê pile, descarte, ações em tempo real.
-• Quando uma vaga abre (jogador sai em WAITING), o primeiro espectador é promovido a jogador.
-• Bug crítico do useEffect com deps stale corrigido — espectadores eram redirecionados de volta ao lobby.`,
+• No lobby, salas em andamento têm botão "Assistir" no lugar do "Entrar".
+• Você entra direto na tela de jogo, vê a mesa, as ações, o placar — só não joga.
+• Se um dos jogadores sair, você é automaticamente promovido a jogador e entra na próxima rodada.`,
   },
   {
     date: '2026-05-11',
     version: '0.2.0',
-    title: 'Som, chat e reações',
+    title: 'Som, chat e emojis',
     category: 'feature',
     highlights: [
-      'Efeitos sonoros para todas ações principais',
-      'Chat in-game e lobby com som',
-      'Sistema de reações com emojis',
+      'Efeitos sonoros pra cada ação',
+      'Chat dentro da partida e no lobby',
+      'Reações com emojis flutuantes',
     ],
-    details: `Áudio e comunicação chegaram ao jogo:
+    details: `O jogo ganhou áudio e canais de comunicação:
 
-• Sons: play, pass, wipe, sabor, round_end, game_over, your_turn, countdown, ready/unready, chat send/receive, player join/leave, reaction.
-• Chat in-game com painel deslizante, preview de mensagem, e indicador de não-lidas.
-• Chat de lobby antes da partida começar.
-• Sistema de reações (emojis flutuantes) com cooldown anti-spam (3 em 2s = 4s lockout).
-• Mute persiste em localStorage.`,
+• Sons para tudo: jogar carta, passar a vez, ativar Sabor, ganhar a vaza, fim de rodada, fim de jogo, sua vez de jogar, contagem regressiva, chat enviado/recebido, alguém entra/sai da sala.
+• Chat in-game com painel lateral. Bolinha de notificação quando tem mensagem nova.
+• Chat também funciona no lobby antes da partida começar.
+• Reações: clique nos emojis pra mandar pra galera. Tem cooldown anti-spam.
+• Tudo isso pode ser silenciado nas configurações.`,
   },
   {
     date: '2026-05-10',
     version: '0.2.0',
-    title: 'Resiliência de conexão',
+    title: 'Conexão mais resistente',
     category: 'fix',
     highlights: [
-      'Ping/pong client-side detecta socket zombie',
-      'Reconexão automática com state resync',
-      'Listeners não vazam mais entre reconexões',
+      'Mudar de aba não derruba mais seu jogo',
+      'Reconexão automática se cair internet',
+      'Estado da partida recupera sozinho',
     ],
-    details: `Conexão WebSocket muito mais robusta:
+    details: `Várias melhorias nos bastidores para o jogo aguentar instabilidade:
 
-• Ping a cada 15s do cliente; se 45s sem resposta, força reconexão.
-• visibilitychange dispara request_state ao voltar de aba em segundo plano (alt+tab não quebra mais).
-• disconnectSocket sempre limpa listeners (antes acumulava em reconexões).
-• hasJoinedRef/navigatedRef resetam ao trocar de sala — bug de não conseguir entrar em segunda sala resolvido.
-• Cleanup do countdownInterval no unmount.`,
+• Antes, alt+tab por alguns segundos podia te derrubar da partida. Agora a conexão é mantida em segundo plano.
+• Se sua internet cair, o jogo tenta reconectar automaticamente. Quando voltar, ele se sincroniza com o estado real da partida.
+• Não precisa mais recarregar a página depois de uma queda — o jogo se recupera sozinho.`,
   },
   {
     date: '2026-05-09',
@@ -165,36 +166,36 @@ Ranqueada mantém 120s e exige 4 humanos (sem bots) por design.`,
     title: 'Modos de jogo',
     category: 'feature',
     highlights: [
-      'Tradicional, Duelo (2P), Mercado, Rodízio',
-      'Modos pagos desbloqueáveis na loja',
-      'Sistema de Sabor (combo de mesmo naipe)',
+      'Tradicional, Duelo, Mercado, Rodízio',
+      'Combo "Sabor" para jogadas especiais',
     ],
-    details: `Lançamento dos modos de jogo:
+    details: `Quatro jeitos diferentes de jogar:
 
-• TRADICIONAL: 3-6 jogadores, regras clássicas Nanatoridori.
-• DUELO: 2 jogadores, 11 cartas + 2 Pratos do Dia. Combine pratos com a mão. 3 passes = derrota.
-• MERCADO: o wiper troca uma carta da mão com o mercado (3 cartas viradas).
-• RODÍZIO: mãos rotacionam entre jogadores ao fim de cada rodada.
-• Sabor: jogar 2+ cartas da mesma categoria ativa o Sabor — próximas jogadas precisam superar o número mínimo.
-• Modos pagos (Mercado, Rodízio, Degustação) custam moedas na loja.`,
+• **Tradicional**: 3 a 6 jogadores, regras clássicas. Receba 8 cartas, jogue conjuntos do mesmo valor, ganhe vazas, perca pratos.
+• **Duelo**: só para 2 pessoas. Cada um recebe 11 cartas + 2 cartas viradas pra cima. Combine cartas da mão com as cartas viradas pra fazer jogadas mais fortes. Passou 3 vezes? Perdeu.
+• **Mercado**: igual ao tradicional, mas quem ganhar a vaza pode trocar uma carta da mão com o mercado central.
+• **Rodízio**: a cada rodada, as mãos rotacionam entre os jogadores. Você precisa se adaptar rápido.
+
+E o **Sabor**: se você jogar 2 ou mais cartas da mesma categoria (todas sushi, todas ramen, etc.), ativa o combo. Próximas jogadas precisam ter no mínimo aquele número de cartas, ou alguém quebra o combo com categorias misturadas.
+
+Modos Mercado, Rodízio e Degustação são desbloqueáveis com moedas na loja.`,
   },
   {
     date: '2026-05-08',
     version: '0.1.0',
-    title: 'Sistema de progressão',
+    title: 'Progressão: XP, níveis e ranks',
     category: 'feature',
     highlights: [
-      'XP, níveis e bordas de avatar',
-      'Ranks de Bronze a SuperSabor (ranqueada)',
-      'Loja de avatares e modos com moedas',
+      'Suba de nível jogando partidas',
+      '7 ranks na ranqueada, do Bronze ao SuperSabor',
+      'Loja com avatares e modos desbloqueáveis',
     ],
-    details: `Fundação de progressão lançada:
+    details: `Sistema completo de evolução de jogador:
 
-• 100 níveis com curva de XP balanceada.
-• Bordas de avatar mudam de cor a cada tier: Nível 10 (Bronze), 25 (Prata), 50 (Ouro), 75 (Platina), 100 (gradient animado).
-• Ranqueada com PDS (Pontos de Skill) divididos em 7 ranks: Bronze, Prata, Ouro, Platina, Diamante, Esmeralda, SuperSabor.
-• Loja com avatares (8 disponíveis), modos pagos.
-• XP e moedas ganhos no fim de cada partida proporcional à colocação.`,
+• Toda partida finalizada dá XP e moedas, baseado na sua colocação. Acumule XP para subir de nível (até 100).
+• Sua borda de avatar muda conforme você sobe: nível 10 vira Bronze, 25 vira Prata, 50 vira Ouro, 75 vira Platina, e 100 desbloqueia uma borda lendária animada.
+• Ranqueada usa PDS (Pontos de Skill) — vence ganha, perde tira. Sobe de rank conforme acumula: Bronze, Prata, Ouro, Platina, Diamante, Esmeralda e SuperSabor (4000+ PDS).
+• Loja com avatares iniciais e modos pagos. Tudo pode ser comprado com moedas ganhas no jogo.`,
   },
 ];
 
@@ -202,5 +203,5 @@ export const CATEGORY_LABELS: Record<ChangelogEntry['category'], { label: string
   feature: { label: 'Novidade', color: 'oklch(68% 0.15 145)' },
   fix: { label: 'Correção', color: 'oklch(78% 0.18 80)' },
   perf: { label: 'Performance', color: 'oklch(72% 0.2 240)' },
-  qol: { label: 'Qualidade de vida', color: 'oklch(70% 0.15 280)' },
+  qol: { label: 'Melhoria', color: 'oklch(70% 0.15 280)' },
 };

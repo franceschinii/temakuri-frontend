@@ -169,7 +169,17 @@ export default function LobbyPage() {
       </header>
 
       <main className="flex-1 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        <div className="max-w-4xl mx-auto w-full p-4 sm:p-6 flex flex-col gap-5 sm:gap-6">
+        <div className="max-w-6xl mx-auto w-full p-4 sm:p-6 grid grid-cols-1 lg:grid-cols-[260px_1fr] gap-5 sm:gap-6">
+
+        {/* Sidebar esquerda: Noticias + Changelog (so visivel em lg+; abaixo, fica embaixo) */}
+        <aside className="flex flex-col gap-3 order-2 lg:order-1">
+          <NewsCard />
+          <ChangelogCard />
+        </aside>
+
+        {/* Coluna principal: acoes + salas abertas */}
+        <section className="flex flex-col gap-5 sm:gap-6 order-1 lg:order-2 min-w-0">
+
         {/* Join or Create */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
@@ -219,12 +229,6 @@ export default function LobbyPage() {
           )}
         </motion.div>
 
-        {/* Notícias (em destaque) + Changelog */}
-        <div className="flex flex-col gap-3">
-          <NewsCard />
-          <ChangelogCard />
-        </div>
-
         {/* Room list */}
         <div>
           <div className="flex items-center gap-3 mb-4">
@@ -273,6 +277,7 @@ export default function LobbyPage() {
           )}
         </div>
           <AdBanner className="w-full" />
+        </section>
         </div>
       </main>
 
