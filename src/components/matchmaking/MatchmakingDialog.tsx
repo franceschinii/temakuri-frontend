@@ -129,12 +129,23 @@ export function MatchmakingDialog({ open, onClose }: Props) {
     resetState();
   }, [resetState]));
 
-  useSocketEvent<{ userId: string; ready: boolean }>('lobby:player_ready', useCallback((data) => {
+  useSocketEvent<{ userId: string; ready: boolean }>('lobby:player_ready', useCallback(() => {
+    // Apenas placeholder — confirmedCount agora vem de lobby:ready_snapshot
+  }, []));
+
+  useSocketEvent<{ ready: string[] }>('lobby:ready_snapshot', useCallback((data) => {
     if (status !== 'found') return;
-    if (data.ready) {
-      setConfirmedCount(c => c + 1);
-    }
+    setConfirmedCount(data.ready.length);
   }, [status]));
+
+  useSocketEvent<{ reason: string }>('matchmaking:cancelled', useCallback((data) => {
+    toast.info(data.reason);
+    // Volta para o estado 'queued' — backend ja recolocou na fila
+    setMatchData(null);
+    setMyConfirmed(false);
+    setConfirmedCount(0);
+    setStatus('queued');
+  }, []));
 
   const handleSearch = () => {
     if (!user) return;
@@ -155,7 +166,7 @@ export function MatchmakingDialog({ open, onClose }: Props) {
     if (!matchData || myConfirmed) return;
     emitSocketEvent('lobby:set_ready', { roomCode: matchData.roomCode, ready: true });
     setMyConfirmed(true);
-    setConfirmedCount(c => c + 1);
+    // confirmedCount sera atualizado via lobby:ready_snapshot
   };
 
   if (!open) return null;
