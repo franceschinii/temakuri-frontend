@@ -22,10 +22,10 @@ export function CardComponent({ card, selected, onClick, faceDown, small, disabl
         data-testid={testId}
         className={cn(
           'rounded-lg border border-[var(--color-border)] bg-[var(--color-panel)] flex items-center justify-center',
-          small ? 'w-8 h-11' : 'w-14 h-20',
+          small ? 'w-10 h-14' : 'w-16 h-24',
         )}
       >
-        <EyeOff size={small ? 12 : 18} className="text-[var(--color-text-muted)]" />
+        <EyeOff size={small ? 14 : 22} className="text-[var(--color-text-muted)]" />
       </div>
     );
   }
@@ -43,7 +43,7 @@ export function CardComponent({ card, selected, onClick, faceDown, small, disabl
       whileTap={!disabled ? { scale: 0.97 } : {}}
       className={cn(
         'relative rounded-lg border-2 flex flex-col items-center justify-between cursor-pointer transition-all duration-150 select-none',
-        small ? 'w-10 h-14 p-1 text-xs' : 'w-16 h-24 p-2 text-sm',
+        small ? 'w-12 h-16 p-1 text-xs' : 'w-20 h-28 p-2 text-base',
         selected
           ? 'border-[var(--color-accent-glow)] shadow-[0_0_12px_var(--color-accent-glow)] -translate-y-2'
           : 'border-[var(--color-border)] hover:border-[var(--color-accent-mid)]',
