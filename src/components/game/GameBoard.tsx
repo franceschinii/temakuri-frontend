@@ -9,7 +9,7 @@ import { startMusic, stopMusic } from '@/lib/music';
 import { useGameStore } from '@/stores/gameStore';
 import { useAuthStore } from '@/stores/authStore';
 import { useSocketEvent, emitSocketEvent } from '@/hooks/useSocket';
-import { onReconnect } from '@/lib/socket';
+import { onReconnect, isSocketConnected } from '@/lib/socket';
 import { useGame } from '@/hooks/useGame';
 import { PlayerHand } from './PlayerHand';
 import { PlayArea } from './PlayArea';
@@ -99,6 +99,23 @@ export function GameBoard() {
     return onReconnect(() => {
       emitSocketEvent('game:request_state', { roomCode });
     });
+  }, [roomCode]);
+
+  // Ao voltar de alt+tab/background, verifica se o socket ainda está vivo.
+  // Browsers suspendem abas em background e podem silenciosamente matar o WS
+  // sem disparar o evento close — o socket fica zumbi com readyState OPEN mas morto.
+  // Força um ping via request_state; se o socket estiver morto, o send falha e
+  // o close event dispara normalmente iniciando a reconexão.
+  useEffect(() => {
+    if (!roomCode) return;
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible' && isSocketConnected()) {
+        emitSocketEvent('game:request_state', { roomCode });
+      }
+      // se socket morto, onReconnect ja dispara request_state apos reconectar
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => document.removeEventListener('visibilitychange', handleVisibility);
   }, [roomCode]);
 
   // Turn banner + sound for own turn
@@ -237,6 +254,9 @@ export function GameBoard() {
       round,
       drawPileCount,
       pile: [],
+      discardPile: [],
+      duelPlates: null,
+      myDuelPlates: null,
       saborActive: false,
       saborMinRequired: 0,
       saborTriggeredBy: null,
@@ -339,7 +359,8 @@ export function GameBoard() {
 
   useSocketEvent<{ userId: string; emoji: string }>('game:reaction', useCallback(({ userId, emoji }) => {
     addReaction(userId, emoji);
-  }, [addReaction]));
+    if (userId !== user?.id) playSound('reaction');
+  }, [addReaction, user?.id]));
 
   useSocketEvent<{ userId: string; username: string; text: string }>('game:message', useCallback(({ userId, username, text }) => {
     addLog({ type: 'chat', userId, username, text });

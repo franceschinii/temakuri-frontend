@@ -82,8 +82,15 @@ export default function RoomPage() {
     }
   }, [initialRoom, roomCode, roomPassword, user, doJoin]);
 
-  useSocketEvent<{ room: RoomPublicState }>('lobby:room_updated', useCallback(({ room }) => {
-    updateRoom(room);
+  useSocketEvent<{ room: RoomPublicState }>('lobby:room_updated', useCallback(({ room: updated }) => {
+    const prev = useLobbyStore.getState().currentRoom;
+    if (prev) {
+      const prevHumans = prev.players.filter(p => !p.isBot && !p.isSpectator).length;
+      const nextHumans = updated.players.filter(p => !p.isBot && !p.isSpectator).length;
+      if (nextHumans > prevHumans) playSound('player_join');
+      else if (nextHumans < prevHumans) playSound('player_leave');
+    }
+    updateRoom(updated);
   }, [updateRoom]));
 
   useSocketEvent<{ userId: string; ready: boolean }>('lobby:player_ready', useCallback(({ userId, ready }) => {
@@ -93,25 +100,40 @@ export default function RoomPage() {
   const [countdown, setCountdown] = useState<number | null>(null);
   const [isSpectator, setIsSpectator] = useState(false);
   const room = currentRoom ?? initialRoom;
+  const countdownIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const navigatedRef = useRef(false);
+
+  const navigateToGame = useCallback(() => {
+    if (navigatedRef.current) return;
+    navigatedRef.current = true;
+    if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
+    navigate(`/game/${roomCode}`, { replace: true });
+  }, [navigate, roomCode]);
 
   useSocketEvent<{ countdown: number }>('lobby:game_starting', useCallback(({ countdown: ms }) => {
     const totalSeconds = Math.round(ms / 1000);
     setCountdown(totalSeconds);
     playSound('countdown_tick');
     let current = totalSeconds;
-    const interval = setInterval(() => {
+    if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
+    countdownIntervalRef.current = setInterval(() => {
       current--;
       if (current <= 0) {
-        clearInterval(interval);
+        clearInterval(countdownIntervalRef.current!);
         setCountdown(0);
         playSound('countdown_go');
-        setTimeout(() => navigate(`/game/${roomCode}`), 700);
+        setTimeout(navigateToGame, 700);
       } else {
         setCountdown(current);
         playSound('countdown_tick');
       }
     }, 1000);
-  }, [navigate, roomCode]));
+  }, [navigateToGame]));
+
+  // Sinal autoritativo do backend: jogo iniciou, navega independente do timer local
+  useSocketEvent<any>('game:state_sync', useCallback(() => {
+    if (countdown !== null) navigateToGame();
+  }, [countdown, navigateToGame]));
 
   useSocketEvent<{ code: string; message: string }>('lobby:error', useCallback(({ code, message }) => {
     if (code === 'WRONG_PASSWORD') {

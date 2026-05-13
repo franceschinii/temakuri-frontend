@@ -3,6 +3,8 @@ let currentToken: string | null = null;
 let intentionalClose = false;
 let reconnectAttempts = 0;
 let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+let lastPongAt = 0;
+let pingTimer: ReturnType<typeof setInterval> | null = null;
 
 const listeners = new Map<string, Set<(data: unknown) => void>>();
 const reconnectCallbacks = new Set<() => void>();
@@ -25,6 +27,26 @@ function scheduleReconnect() {
 
 function clearReconnectTimer() {
   if (reconnectTimer) { clearTimeout(reconnectTimer); reconnectTimer = null; }
+}
+
+function startPing() {
+  if (pingTimer) clearInterval(pingTimer);
+  lastPongAt = Date.now();
+  pingTimer = setInterval(() => {
+    if (!socket || intentionalClose) return;
+    if (socket.readyState === WebSocket.OPEN) {
+      // Se não recebemos nada há mais de 45s, o socket está morto silenciosamente
+      if (Date.now() - lastPongAt > 45_000) {
+        socket.close();
+        return;
+      }
+      try { socket.send(JSON.stringify({ event: 'ping', data: {} })); } catch { socket.close(); }
+    }
+  }, 15_000);
+}
+
+function stopPing() {
+  if (pingTimer) { clearInterval(pingTimer); pingTimer = null; }
 }
 
 export function isSocketConnected(): boolean {
@@ -66,6 +88,7 @@ export function connectSocket(token: string): WebSocket {
   socket.addEventListener('open', () => {
     reconnectAttempts = 0;
     clearReconnectTimer();
+    startPing();
 
     // Descarta eventos de jogo obsoletos do outbox — eles chegam fora de ordem
     // e causam erros no servidor (ex: game:pass_turn antes de game:request_state).
@@ -87,8 +110,10 @@ export function connectSocket(token: string): WebSocket {
   });
 
   socket.addEventListener('message', (event) => {
+    lastPongAt = Date.now();
     try {
       const { event: eventName, data } = JSON.parse(event.data as string);
+      if (eventName === 'pong') return;
       const handlers = listeners.get(eventName);
       if (handlers) handlers.forEach(fn => fn(data));
     } catch {
@@ -102,6 +127,7 @@ export function connectSocket(token: string): WebSocket {
 
   socket.addEventListener('close', () => {
     socket = null;
+    stopPing();
     if (!intentionalClose) scheduleReconnect();
   });
 
@@ -111,6 +137,7 @@ export function connectSocket(token: string): WebSocket {
 export function disconnectSocket(intentional = true) {
   intentionalClose = intentional;
   clearReconnectTimer();
+  stopPing();
   socket?.close();
   socket = null;
   outbox.length = 0;

@@ -56,7 +56,7 @@ export function GameOverModal({ rankings, myUserId, onPlayAgain }: GameOverModal
       data-testid="game-over-modal"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(6px)' }}
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md"
     >
       <motion.div
         initial={{ scale: 0.9, opacity: 0 }}

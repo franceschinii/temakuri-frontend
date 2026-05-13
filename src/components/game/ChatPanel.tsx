@@ -4,6 +4,7 @@ import { MessageSquare, X, Send } from 'lucide-react';
 import { useGameStore } from '@/stores/gameStore';
 import { cn } from '@/lib/utils';
 import { formatTimestamp } from '@/lib/formatTime';
+import { playSound } from '@/lib/sounds';
 
 interface ChatPanelProps {
   onSendMessage: (text: string) => void;
@@ -31,6 +32,7 @@ export function ChatPanel({ onSendMessage, myUserId }: ChatPanelProps) {
         // Show preview for the newest incoming message (not own)
         const newest = chatEntries[chatEntries.length - 1];
         if (newest && newest.userId !== myUserId) {
+          playSound('chat_receive');
           setMsgPreview({ username: newest.username ?? '...', text: newest.text });
           if (previewTimerRef.current) clearTimeout(previewTimerRef.current);
           previewTimerRef.current = setTimeout(() => setMsgPreview(null), 3500);
@@ -55,6 +57,7 @@ export function ChatPanel({ onSendMessage, myUserId }: ChatPanelProps) {
   const handleSend = useCallback(() => {
     const text = input.trim();
     if (!text || chatCooldown) return;
+    playSound('chat_send');
     onSendMessage(text);
     setInput('');
     setChatCooldown(true);
