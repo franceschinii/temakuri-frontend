@@ -14,6 +14,25 @@ export interface ChangelogEntry {
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: '2026-05-14',
+    version: '0.6.1',
+    title: 'Loja aberta: diamantes 💎 e Premium disponíveis',
+    category: 'feature',
+    highlights: [
+      'Compra de diamantes via Pix e cartão',
+      'Assinatura Premium mensal (R$ 7,90)',
+      'Cancelar Premium direto pela loja',
+    ],
+    details: `A loja saiu do "em breve":
+
+• Você já pode comprar pacotes de diamantes pagando com Pix ou cartão. Pacotes de 100, 500, 1200 e 3000 diamantes, com bônus crescente nos maiores.
+• Premium mensal por R$ 7,90: sem anúncios, todos os modos liberados, 50 diamantes de bônus por mês e badge especial no perfil.
+• Cancelamento direto: na aba Premium da loja, basta clicar em Cancelar assinatura. Você continua com os benefícios até o fim do período já pago.
+• Tudo via Mercado Pago, que cuida do pagamento com segurança.
+
+Continua tudo jogável de graça, sempre. Diamantes são opcionais para quem quer apoiar o desenvolvimento e personalizar visual.`,
+  },
+  {
+    date: '2026-05-14',
     version: '0.6.0',
     title: 'Diamantes 💎, novos avatares, temas de mesa e mais',
     category: 'feature',

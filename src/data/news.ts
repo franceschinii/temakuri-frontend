@@ -12,21 +12,24 @@ export interface NewsItem {
  */
 export const NEWS: NewsItem[] = [
   {
-    date: '2026-05-13',
+    date: '2026-05-14',
     pinned: true,
-    title: 'Novos avatares, temas e bordas chegando',
-    summary: 'Em breve: visuais exclusivos para você personalizar sua mesa e seu perfil.',
-    body: `Estamos preparando uma atualização visual grande pro Temakuri:
+    title: 'O que vem a seguir',
+    summary: 'Animações mais vivas, novos temas, mais avatares e melhor qualidade visual.',
+    body: `Próximas atualizações que estão sendo trabalhadas:
 
-**Avatares novos**
-Mais 6 personagens estilizados pra escolher: Yokai, Kitsune, Tanuki, Geisha, Samurai e Dragão Dourado. Cada um com paleta de cores única.
+**Animações mais vivas**
+Cartas, transições de turno e efeitos da mesa vão ganhar movimento. A mesa vai parecer mais respirando, menos estática.
 
-**Temas de mesa**
-3 visuais para a partida — Bambu, Sakura e Oni. Você escolhe o clima da sua jogatina.
+**Mais temas de mesa**
+Além de Bambu, Sakura e Oni, novos visuais entram em produção. Foco em ambientes mais distintos entre si.
 
-**Plano Premium opcional**
-Quem quiser apoiar o desenvolvimento do jogo vai poder assinar um plano mensal que dá visual exclusivo, remove os anúncios e libera todos os modos de jogo. Continua tudo jogável de graça, sempre.
+**Mais avatares**
+Novos personagens em fase de desenho. A galera atual continua, mas a coleção vai crescer.
 
-**Quando?** Estou trabalhando ativamente. Vou postar no changelog assim que cada peça ficar pronta. Obrigado por jogar.`,
+**Qualidade visual mais alta**
+Os avatares e ícones existentes vão receber retoques — paleta mais rica, traços mais limpos, mais expressão.
+
+Sem data fechada — cada peça vai pro changelog assim que ficar pronta. Obrigado por jogar.`,
   },
 ];
