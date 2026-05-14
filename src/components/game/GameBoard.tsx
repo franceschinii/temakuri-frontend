@@ -116,6 +116,17 @@ export function GameBoard() {
     };
   }, []);
 
+  // Aplica tema de mesa do user (via styles/themes.css). data-theme no body
+  // afeta apenas a rota /game/:code; removido no unmount.
+  useEffect(() => {
+    if (user?.activeTheme) {
+      document.body.setAttribute('data-theme', user.activeTheme);
+    }
+    return () => {
+      document.body.removeAttribute('data-theme');
+    };
+  }, [user?.activeTheme]);
+
   useEffect(() => {
     if (musicEnabled) startMusic('game');
     else stopMusic();
@@ -309,6 +320,14 @@ export function GameBoard() {
     const isMe = user?.id ? loserIds.includes(user.id) : false;
     setTurnBanner({ name: isMe ? 'Você venceu a rodada!' : `${loserNames.join(', ')} venceu a rodada`, isMe });
     setTimeout(() => setTurnBanner(null), 2600);
+    // Auto-close do RoundSummary depois de 6s. Antes o modal sumia
+    // instantaneamente porque game:round_started chegava em seguida e
+    // sobrescrevia roundSummaryData=null — agora a proxima rodada nao mexe
+    // mais nesse campo (so o usuario fecha clicando Continuar ou o timeout).
+    setTimeout(() => {
+      const state = useGameStore.getState();
+      if (state.roundSummaryData) state.clearRoundSummary();
+    }, 6000);
   }, [applyRoundEnd, addLog, user?.id]));
 
   useSocketEvent<{ round: number; drawPileCount: number; cardCounts: Record<string, number>; market: Card[] | null }>('game:round_started', useCallback(({ round, drawPileCount, cardCounts, market }) => {
@@ -324,10 +343,8 @@ export function GameBoard() {
       saborTriggeredBy: null,
       consecutivePasses: 0,
       market: market ?? s.market,
-      // Fix #7: limpa roundSummaryData ao iniciar nova rodada — o modal não
-      // deve bloquear interações do user no novo turno (caso ele tenha deixado
-      // aberto).
-      roundSummaryData: null,
+      // NAO limpa roundSummaryData aqui: deixa o modal aberto ate o usuario
+      // clicar Continuar ou o timeout de 6s no game:round_ended encerrar.
       players: s.players.map(p => ({
         ...p,
         cardCount: cardCounts[p.userId] ?? p.cardCount,
@@ -343,6 +360,13 @@ export function GameBoard() {
   useSocketEvent<{ hand: Card[] }>('game:your_hand', useCallback(({ hand }) => {
     setMyHand(hand);
   }, [setMyHand]));
+
+  // Kick por admin: mostra toast e redireciona para o lobby. A conexao
+  // websocket sera fechada pelo backend logo apos receber este evento.
+  useSocketEvent<{ message: string }>('admin:kicked', useCallback(({ message }) => {
+    toast.error(message ?? 'Você foi removido da sala pelo admin.');
+    navigate('/lobby');
+  }, [navigate]));
 
   useSocketEvent<{ market: Card[] }>('game:market_updated', useCallback(({ market }) => {
     updateMarket(market);
@@ -596,6 +620,7 @@ export function GameBoard() {
       <AppNavbar
         back={handleLeaveGame}
         mobileMinimal
+        onHowToPlay={() => setRulesOpen(true)}
         mobileExtraActions={
           <>
             <button

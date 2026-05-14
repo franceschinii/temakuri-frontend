@@ -527,9 +527,300 @@ const AVATARS = [
       <path d="M36 57 Q40 60 44 57" stroke="oklch(20% 0.02 260)" strokeWidth="2" strokeLinecap="round" fill="none" />
     </svg>
   ),
+
+  // 9 — Yokai (mascara oni vermelha) — 30 diamantes
+  (size: number, u: string) => (
+    <svg width={size} height={size} viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id={`bg9-${u}`} cx="0.3" cy="0.25" r="0.9">
+          <stop offset="0%" stopColor="oklch(30% 0.05 25)" />
+          <stop offset="100%" stopColor="oklch(15% 0.04 25)" />
+        </radialGradient>
+        <linearGradient id={`mask9-${u}`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="oklch(72% 0.22 25)" />
+          <stop offset="100%" stopColor="oklch(48% 0.22 25)" />
+        </linearGradient>
+      </defs>
+      <circle cx="40" cy="40" r="40" fill={`url(#bg9-${u})`} />
+      {/* face shape */}
+      <path d="M22 28 Q22 18 28 16 Q30 14 32 16 Q40 14 48 16 Q50 14 52 16 Q58 18 58 28 L58 50 Q58 64 40 66 Q22 64 22 50 Z" fill={`url(#mask9-${u})`} />
+      {/* horns */}
+      <path d="M28 16 L24 8 L30 14 Z" fill="oklch(85% 0.05 60)" />
+      <path d="M52 16 L56 8 L50 14 Z" fill="oklch(85% 0.05 60)" />
+      {/* hair tuft top */}
+      <path d="M30 16 Q35 12 40 14 Q45 12 50 16 Q45 18 40 17 Q35 18 30 16 Z" fill="oklch(20% 0.02 25)" />
+      {/* eyebrows angry */}
+      <path d="M28 32 L35 30 L34 33 Z" fill="oklch(15% 0.02 25)" />
+      <path d="M52 32 L45 30 L46 33 Z" fill="oklch(15% 0.02 25)" />
+      {/* eyes */}
+      <ellipse cx="32" cy="38" rx="3.2" ry="3" fill="oklch(98% 0.08 80)" />
+      <ellipse cx="48" cy="38" rx="3.2" ry="3" fill="oklch(98% 0.08 80)" />
+      <circle cx="32" cy="38" r="1.5" fill="oklch(18% 0.02 25)" />
+      <circle cx="48" cy="38" r="1.5" fill="oklch(18% 0.02 25)" />
+      {/* fangs / mouth */}
+      <path d="M30 50 Q40 56 50 50 Q47 54 40 55 Q33 54 30 50 Z" fill="oklch(15% 0.02 25)" />
+      <path d="M35 52 L36 56 L37 52 Z" fill="white" />
+      <path d="M43 52 L44 56 L45 52 Z" fill="white" />
+      {/* tattoo dots */}
+      <circle cx="40" cy="26" r="1" fill="oklch(98% 0.1 80)" />
+    </svg>
+  ),
+
+  // 10 — Kitsune (raposa branca de 9 caudas) — 30 diamantes
+  (size: number, u: string) => (
+    <svg width={size} height={size} viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id={`bg10-${u}`} cx="0.3" cy="0.25" r="0.9">
+          <stop offset="0%" stopColor="oklch(30% 0.04 280)" />
+          <stop offset="100%" stopColor="oklch(15% 0.03 280)" />
+        </radialGradient>
+        <linearGradient id={`fur10-${u}`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="oklch(98% 0.02 60)" />
+          <stop offset="100%" stopColor="oklch(82% 0.05 60)" />
+        </linearGradient>
+      </defs>
+      <circle cx="40" cy="40" r="40" fill={`url(#bg10-${u})`} />
+      {/* tails fanning behind (9 stylized) */}
+      <g opacity="0.85">
+        <path d="M20 50 Q12 38 18 28" stroke="oklch(96% 0.04 60)" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+        <path d="M14 46 Q8 36 16 24" stroke="oklch(96% 0.04 60)" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+        <path d="M22 56 Q14 48 14 38" stroke="oklch(96% 0.04 60)" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+        <path d="M60 50 Q68 38 62 28" stroke="oklch(96% 0.04 60)" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+        <path d="M66 46 Q72 36 64 24" stroke="oklch(96% 0.04 60)" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+        <path d="M58 56 Q66 48 66 38" stroke="oklch(96% 0.04 60)" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+        <path d="M30 62 Q22 56 18 48" stroke="oklch(96% 0.04 60)" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+        <path d="M50 62 Q58 56 62 48" stroke="oklch(96% 0.04 60)" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+        <path d="M40 64 L40 58" stroke="oklch(96% 0.04 60)" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+      </g>
+      {/* face */}
+      <path d="M26 30 Q26 22 32 20 Q40 18 48 20 Q54 22 54 30 L54 46 Q50 56 40 58 Q30 56 26 46 Z" fill={`url(#fur10-${u})`} />
+      {/* ears */}
+      <path d="M26 28 L22 18 L32 24 Z" fill={`url(#fur10-${u})`} stroke="oklch(60% 0.15 25)" strokeWidth="0.5" />
+      <path d="M54 28 L58 18 L48 24 Z" fill={`url(#fur10-${u})`} stroke="oklch(60% 0.15 25)" strokeWidth="0.5" />
+      <path d="M27 26 L24 21 L29 24 Z" fill="oklch(70% 0.16 25)" />
+      <path d="M53 26 L56 21 L51 24 Z" fill="oklch(70% 0.16 25)" />
+      {/* eyes */}
+      <ellipse cx="33" cy="36" rx="2.8" ry="3.2" fill="oklch(72% 0.18 65)" />
+      <ellipse cx="47" cy="36" rx="2.8" ry="3.2" fill="oklch(72% 0.18 65)" />
+      <ellipse cx="33" cy="36" rx="1" ry="2.5" fill="oklch(15% 0.02 280)" />
+      <ellipse cx="47" cy="36" rx="1" ry="2.5" fill="oklch(15% 0.02 280)" />
+      <circle cx="33.5" cy="35" r="0.7" fill="white" />
+      <circle cx="47.5" cy="35" r="0.7" fill="white" />
+      {/* nose */}
+      <path d="M40 44 L38 46 L42 46 Z" fill="oklch(50% 0.12 25)" />
+      {/* mouth */}
+      <path d="M38 48 Q40 50 42 48" stroke="oklch(20% 0.02 280)" strokeWidth="1.4" fill="none" strokeLinecap="round" />
+      {/* whiskers */}
+      <path d="M28 44 L20 42" stroke="oklch(70% 0.05 280)" strokeWidth="0.5" opacity="0.6" />
+      <path d="M28 46 L20 48" stroke="oklch(70% 0.05 280)" strokeWidth="0.5" opacity="0.6" />
+      <path d="M52 44 L60 42" stroke="oklch(70% 0.05 280)" strokeWidth="0.5" opacity="0.6" />
+      <path d="M52 46 L60 48" stroke="oklch(70% 0.05 280)" strokeWidth="0.5" opacity="0.6" />
+    </svg>
+  ),
+
+  // 11 — Tanuki (texugo japones) — 30 diamantes
+  (size: number, u: string) => (
+    <svg width={size} height={size} viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id={`bg11-${u}`} cx="0.3" cy="0.25" r="0.9">
+          <stop offset="0%" stopColor="oklch(30% 0.04 80)" />
+          <stop offset="100%" stopColor="oklch(15% 0.03 80)" />
+        </radialGradient>
+        <linearGradient id={`fur11-${u}`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="oklch(60% 0.06 60)" />
+          <stop offset="100%" stopColor="oklch(38% 0.07 50)" />
+        </linearGradient>
+      </defs>
+      <circle cx="40" cy="40" r="40" fill={`url(#bg11-${u})`} />
+      {/* leaf on head */}
+      <path d="M38 12 Q34 6 30 10 Q34 14 40 14 Q46 14 50 10 Q46 6 42 12 L40 18 Z" fill="oklch(55% 0.18 145)" />
+      <path d="M40 14 L40 20" stroke="oklch(45% 0.15 145)" strokeWidth="0.6" />
+      {/* face round */}
+      <ellipse cx="40" cy="44" rx="22" ry="20" fill={`url(#fur11-${u})`} />
+      {/* ears */}
+      <path d="M22 32 L18 22 L28 28 Z" fill={`url(#fur11-${u})`} />
+      <path d="M58 32 L62 22 L52 28 Z" fill={`url(#fur11-${u})`} />
+      <path d="M22 30 L20 24 L26 28 Z" fill="oklch(80% 0.06 50)" />
+      <path d="M58 30 L60 24 L54 28 Z" fill="oklch(80% 0.06 50)" />
+      {/* belly cream */}
+      <ellipse cx="40" cy="52" rx="12" ry="8" fill="oklch(85% 0.06 60)" />
+      {/* face mask (dark band over eyes) */}
+      <path d="M22 38 Q30 32 40 32 Q50 32 58 38 Q58 46 50 46 Q40 48 30 46 Q22 46 22 38 Z" fill="oklch(22% 0.04 60)" opacity="0.85" />
+      {/* eyes */}
+      <circle cx="33" cy="40" r="2.6" fill="white" />
+      <circle cx="47" cy="40" r="2.6" fill="white" />
+      <circle cx="33.4" cy="40.4" r="1.3" fill="oklch(18% 0.02 60)" />
+      <circle cx="47.4" cy="40.4" r="1.3" fill="oklch(18% 0.02 60)" />
+      <circle cx="33.8" cy="39.6" r="0.6" fill="white" />
+      <circle cx="47.8" cy="39.6" r="0.6" fill="white" />
+      {/* nose */}
+      <ellipse cx="40" cy="46" rx="2" ry="1.5" fill="oklch(20% 0.02 60)" />
+      {/* mouth */}
+      <path d="M37 50 Q40 53 43 50" stroke="oklch(20% 0.02 260)" strokeWidth="1.6" fill="none" strokeLinecap="round" />
+      {/* blush */}
+      <ellipse cx="28" cy="48" rx="2.5" ry="1.3" fill="oklch(75% 0.18 15)" opacity="0.6" />
+      <ellipse cx="52" cy="48" rx="2.5" ry="1.3" fill="oklch(75% 0.18 15)" opacity="0.6" />
+    </svg>
+  ),
+
+  // 12 — Geisha (perfil com leque) — 80 diamantes
+  (size: number, u: string) => (
+    <svg width={size} height={size} viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id={`bg12-${u}`} cx="0.3" cy="0.25" r="0.9">
+          <stop offset="0%" stopColor="oklch(30% 0.04 350)" />
+          <stop offset="100%" stopColor="oklch(15% 0.03 350)" />
+        </radialGradient>
+        <linearGradient id={`skin12-${u}`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="oklch(96% 0.03 50)" />
+          <stop offset="100%" stopColor="oklch(88% 0.04 45)" />
+        </linearGradient>
+        <linearGradient id={`hair12-${u}`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="oklch(22% 0.03 280)" />
+          <stop offset="100%" stopColor="oklch(10% 0.02 280)" />
+        </linearGradient>
+        <linearGradient id={`fan12-${u}`} x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="oklch(85% 0.15 15)" />
+          <stop offset="100%" stopColor="oklch(60% 0.2 15)" />
+        </linearGradient>
+      </defs>
+      <circle cx="40" cy="40" r="40" fill={`url(#bg12-${u})`} />
+      {/* fan behind */}
+      <path d="M52 18 L72 32 L72 38 L46 26 Z" fill={`url(#fan12-${u})`} />
+      <path d="M58 22 L70 30" stroke="oklch(40% 0.15 15)" strokeWidth="0.6" />
+      <path d="M62 25 L70 32" stroke="oklch(40% 0.15 15)" strokeWidth="0.6" />
+      <path d="M66 28 L70 34" stroke="oklch(40% 0.15 15)" strokeWidth="0.6" />
+      {/* hair back */}
+      <path d="M18 32 Q18 22 28 18 Q40 14 50 20 Q56 24 56 36 L56 60 Q50 64 40 64 Q30 64 24 60 Q18 56 18 50 Z" fill={`url(#hair12-${u})`} />
+      {/* hair ornament (kanzashi) */}
+      <circle cx="50" cy="22" r="2.2" fill="oklch(85% 0.18 15)" />
+      <path d="M50 22 L50 16" stroke="oklch(85% 0.05 80)" strokeWidth="0.8" />
+      <circle cx="50" cy="15" r="1.2" fill="oklch(85% 0.18 80)" />
+      {/* face (3/4 profile) */}
+      <path d="M30 36 Q30 28 36 26 Q44 26 48 32 Q50 38 48 46 Q46 54 40 56 Q34 56 32 52 Q30 46 30 36 Z" fill={`url(#skin12-${u})`} />
+      {/* hair front bang */}
+      <path d="M32 30 Q36 26 42 28 L40 32 Q36 30 32 32 Z" fill={`url(#hair12-${u})`} />
+      {/* eye (one visible from 3/4) */}
+      <path d="M38 38 Q40 36 42 38 Q40 40 38 38 Z" fill="oklch(20% 0.02 280)" />
+      <path d="M37 36 Q40 34 43 36" stroke="oklch(20% 0.02 280)" strokeWidth="0.8" fill="none" />
+      {/* blush */}
+      <ellipse cx="34" cy="44" rx="2" ry="1.2" fill="oklch(75% 0.18 15)" opacity="0.55" />
+      {/* lips */}
+      <path d="M38 46 Q40 47 42 46" stroke="oklch(55% 0.22 15)" strokeWidth="1.8" strokeLinecap="round" fill="none" />
+      {/* kimono collar */}
+      <path d="M22 62 L40 56 L58 62 L58 70 L22 70 Z" fill="oklch(60% 0.18 350)" />
+      <path d="M40 56 L40 70" stroke="oklch(98% 0.02 60)" strokeWidth="1.4" />
+    </svg>
+  ),
+
+  // 13 — Samurai (capacete kabuto com chifres) — 80 diamantes
+  (size: number, u: string) => (
+    <svg width={size} height={size} viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id={`bg13-${u}`} cx="0.3" cy="0.25" r="0.9">
+          <stop offset="0%" stopColor="oklch(28% 0.04 250)" />
+          <stop offset="100%" stopColor="oklch(13% 0.03 250)" />
+        </radialGradient>
+        <linearGradient id={`helm13-${u}`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="oklch(40% 0.06 250)" />
+          <stop offset="100%" stopColor="oklch(22% 0.04 250)" />
+        </linearGradient>
+        <linearGradient id={`gold13-${u}`} x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="oklch(92% 0.16 85)" />
+          <stop offset="100%" stopColor="oklch(60% 0.18 65)" />
+        </linearGradient>
+      </defs>
+      <circle cx="40" cy="40" r="40" fill={`url(#bg13-${u})`} />
+      {/* helmet dome */}
+      <path d="M22 36 Q22 18 40 18 Q58 18 58 36 L58 46 L22 46 Z" fill={`url(#helm13-${u})`} />
+      {/* gold front plate */}
+      <path d="M30 22 Q40 18 50 22 Q52 28 50 32 Q40 30 30 32 Q28 28 30 22 Z" fill={`url(#gold13-${u})`} />
+      {/* central diamond ornament */}
+      <path d="M40 22 L43 26 L40 30 L37 26 Z" fill="oklch(28% 0.05 250)" />
+      {/* horns (kuwagata) */}
+      <path d="M22 26 Q14 18 12 8 Q18 18 24 22 Z" fill={`url(#gold13-${u})`} stroke="oklch(40% 0.1 60)" strokeWidth="0.6" />
+      <path d="M58 26 Q66 18 68 8 Q62 18 56 22 Z" fill={`url(#gold13-${u})`} stroke="oklch(40% 0.1 60)" strokeWidth="0.6" />
+      {/* side plates (fukigaeshi) */}
+      <path d="M18 36 L14 50 Q22 50 24 46 Z" fill={`url(#helm13-${u})`} />
+      <path d="M62 36 L66 50 Q58 50 56 46 Z" fill={`url(#helm13-${u})`} />
+      <path d="M16 38 L18 46" stroke="oklch(85% 0.18 80)" strokeWidth="1" />
+      <path d="M64 38 L62 46" stroke="oklch(85% 0.18 80)" strokeWidth="1" />
+      {/* face (menpou — mascara facial) */}
+      <path d="M28 44 Q28 56 40 60 Q52 56 52 44 L52 52 Q48 58 40 60 Q32 58 28 52 Z" fill="oklch(30% 0.05 30)" />
+      {/* eyes peeking */}
+      <rect x="30" y="40" width="6" height="3" rx="1" fill="oklch(15% 0.02 250)" />
+      <rect x="44" y="40" width="6" height="3" rx="1" fill="oklch(15% 0.02 250)" />
+      <circle cx="33" cy="41.5" r="0.8" fill="oklch(95% 0.1 60)" />
+      <circle cx="47" cy="41.5" r="0.8" fill="oklch(95% 0.1 60)" />
+      {/* neck guard layers (shikoro) */}
+      <path d="M24 56 Q40 64 56 56 L56 68 Q40 72 24 68 Z" fill={`url(#helm13-${u})`} />
+      <path d="M26 60 Q40 66 54 60" stroke="oklch(85% 0.18 80)" strokeWidth="0.8" opacity="0.7" />
+      <path d="M28 64 Q40 70 52 64" stroke="oklch(85% 0.18 80)" strokeWidth="0.8" opacity="0.7" />
+    </svg>
+  ),
+
+  // 14 — Dragao Dourado — 300 diamantes (TOP TIER)
+  (size: number, u: string) => (
+    <svg width={size} height={size} viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id={`bg14-${u}`} cx="0.3" cy="0.25" r="0.95">
+          <stop offset="0%" stopColor="oklch(40% 0.1 30)" />
+          <stop offset="60%" stopColor="oklch(20% 0.05 30)" />
+          <stop offset="100%" stopColor="oklch(12% 0.03 30)" />
+        </radialGradient>
+        <linearGradient id={`dragGold14-${u}`} x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="oklch(96% 0.18 88)" />
+          <stop offset="40%" stopColor="oklch(80% 0.22 75)" />
+          <stop offset="100%" stopColor="oklch(50% 0.2 60)" />
+        </linearGradient>
+        <linearGradient id={`scale14-${u}`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="oklch(86% 0.2 80)" />
+          <stop offset="100%" stopColor="oklch(58% 0.22 65)" />
+        </linearGradient>
+      </defs>
+      <circle cx="40" cy="40" r="40" fill={`url(#bg14-${u})`} />
+      {/* outer gold ring */}
+      <circle cx="40" cy="40" r="38" fill="none" stroke={`url(#dragGold14-${u})`} strokeWidth="1.4" opacity="0.9" />
+      {/* sparkles */}
+      <g opacity="0.9">
+        <path d="M14 18 L15 21 L18 22 L15 23 L14 26 L13 23 L10 22 L13 21 Z" fill="oklch(94% 0.18 85)" />
+        <path d="M66 16 L66.5 18 L68.5 18.5 L66.5 19 L66 21 L65.5 19 L63.5 18.5 L65.5 18 Z" fill="oklch(94% 0.18 85)" opacity="0.85" />
+        <path d="M14 60 L14.5 62 L16.5 62.5 L14.5 63 L14 65 L13.5 63 L11.5 62.5 L13.5 62 Z" fill="oklch(94% 0.18 85)" opacity="0.8" />
+        <path d="M66 60 L66.5 62 L68.5 62.5 L66.5 63 L66 65 L65.5 63 L63.5 62.5 L65.5 62 Z" fill="oklch(94% 0.18 85)" opacity="0.8" />
+      </g>
+      {/* dragon head — top-down view */}
+      <path d="M26 30 Q28 18 40 16 Q52 18 54 30 Q56 40 50 48 Q40 56 30 48 Q24 40 26 30 Z" fill={`url(#scale14-${u})`} />
+      {/* horns */}
+      <path d="M26 26 Q20 16 24 8 Q26 18 30 22 Z" fill={`url(#dragGold14-${u})`} stroke="oklch(40% 0.15 60)" strokeWidth="0.5" />
+      <path d="M54 26 Q60 16 56 8 Q54 18 50 22 Z" fill={`url(#dragGold14-${u})`} stroke="oklch(40% 0.15 60)" strokeWidth="0.5" />
+      {/* whiskers / barbels */}
+      <path d="M28 44 Q22 50 18 60" stroke={`url(#dragGold14-${u})`} strokeWidth="1.5" fill="none" strokeLinecap="round" />
+      <path d="M52 44 Q58 50 62 60" stroke={`url(#dragGold14-${u})`} strokeWidth="1.5" fill="none" strokeLinecap="round" />
+      {/* nostrils */}
+      <circle cx="36" cy="38" r="1" fill="oklch(30% 0.1 30)" />
+      <circle cx="44" cy="38" r="1" fill="oklch(30% 0.1 30)" />
+      {/* eyes with star sparkle */}
+      <ellipse cx="33" cy="32" rx="3.5" ry="3" fill="oklch(28% 0.05 30)" />
+      <ellipse cx="47" cy="32" rx="3.5" ry="3" fill="oklch(28% 0.05 30)" />
+      <ellipse cx="33" cy="32" rx="2.2" ry="2" fill="oklch(72% 0.22 30)" />
+      <ellipse cx="47" cy="32" rx="2.2" ry="2" fill="oklch(72% 0.22 30)" />
+      <circle cx="33" cy="32" r="1" fill="oklch(15% 0.02 30)" />
+      <circle cx="47" cy="32" r="1" fill="oklch(15% 0.02 30)" />
+      <path d="M33 31 L33.3 31.6 L34 31.8 L33.3 32 L33 32.6 L32.7 32 L32 31.8 L32.7 31.6 Z" fill="white" />
+      <path d="M47 31 L47.3 31.6 L48 31.8 L47.3 32 L47 32.6 L46.7 32 L46 31.8 L46.7 31.6 Z" fill="white" />
+      {/* scale details on top of head */}
+      <circle cx="35" cy="24" r="1" fill="oklch(96% 0.18 80)" opacity="0.6" />
+      <circle cx="40" cy="22" r="1.2" fill="oklch(96% 0.18 80)" opacity="0.7" />
+      <circle cx="45" cy="24" r="1" fill="oklch(96% 0.18 80)" opacity="0.6" />
+      {/* mouth fang slightly visible */}
+      <path d="M34 48 Q40 54 46 48 L44 50 L42 49 L40 51 L38 49 L36 50 Z" fill="oklch(25% 0.04 30)" />
+      <path d="M37 50 L38 53 L39 50 Z" fill="white" />
+      <path d="M41 50 L42 53 L43 50 Z" fill="white" />
+    </svg>
+  ),
 ];
 
-export const AVATAR_NAMES = ['Temaki', 'Ramen', 'Onigiri', 'Gyoza', 'Sashimi', 'Takoyaki', 'Miso', 'Udon', 'Udon Gold'];
+export const AVATAR_NAMES = ['Temaki', 'Ramen', 'Onigiri', 'Gyoza', 'Sashimi', 'Takoyaki', 'Miso', 'Udon', 'Udon Gold', 'Yokai', 'Kitsune', 'Tanuki', 'Geisha', 'Samurai', 'Dragão Dourado'];
 
 export function AvatarImage({ index, size = 80, className }: AvatarProps) {
   // useId garante sufixo unico por instancia. Sem isso, varios avatares com

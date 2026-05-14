@@ -1,6 +1,8 @@
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { AppNavbar } from '@/components/ui/AppNavbar';
 import { DevFooter } from '@/components/ui/DevFooter';
+import { RulesModal } from '@/components/ui/RulesModal';
 import { AvatarImage } from '@/components/ui/Avatar';
 import { LevelBadge } from '@/components/ui/LevelBadge';
 import { RankBadge } from '@/components/ui/RankBadge';
@@ -69,11 +71,13 @@ export default function RankedPage() {
   });
 
   const userRank = user ? rankFromPds(user.pds) as GameRank : null;
+  const [rulesOpen, setRulesOpen] = useState(false);
 
   return (
     <div className="min-h-dvh bg-[var(--color-base)] flex flex-col">
       <AppNavbar
         back="/lobby"
+        onHowToPlay={() => setRulesOpen(true)}
         center={
           <span
             className="text-lg font-semibold tracking-wide hidden sm:inline"
@@ -257,6 +261,7 @@ export default function RankedPage() {
         </div>
       </main>
 
+      <RulesModal open={rulesOpen} onClose={() => setRulesOpen(false)} />
       <DevFooter />
     </div>
   );

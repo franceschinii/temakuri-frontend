@@ -9,12 +9,15 @@ export interface User {
   xp: number;
   level: number;
   coins: number;
+  diamonds: number;
   pds: number;
   winStreak: number;
   lossStreak: number;
   rankedWarnings: number;
   rankedSuspendedUntil: string | null;
   isPremium: boolean;
+  premiumExpiresAt: string | null;
+  activeTheme: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -94,6 +97,7 @@ export interface ShopCatalogAvatar {
   index: number;
   name: string;
   price: number;
+  currency: 'coins' | 'diamonds';
   owned: boolean;
   free: boolean;
 }
@@ -103,13 +107,44 @@ export interface ShopCatalogMode {
   mode: string;
   name: string;
   price: number;
+  currency: 'coins';
   owned: boolean;
+}
+
+export interface ShopCatalogTheme {
+  type: 'theme';
+  key: string;
+  name: string;
+  price: number;
+  currency: 'diamonds';
+  owned: boolean;
+}
+
+export interface ShopCatalogCoinPack {
+  type: 'coin_pack';
+  sku: string;
+  coins: number;
+  price: number;
+  currency: 'diamonds';
+}
+
+export interface ShopCatalogUtility {
+  type: 'utility';
+  sku: 'RESET_RANKED_WARNINGS' | 'RESET_LOSS_STREAK';
+  name: string;
+  price: number;
+  currency: 'diamonds';
 }
 
 export interface ShopCatalog {
   avatars: ShopCatalogAvatar[];
   modes: ShopCatalogMode[];
+  themes: ShopCatalogTheme[];
+  coinPacks: ShopCatalogCoinPack[];
+  utilities: ShopCatalogUtility[];
   coins: number;
+  diamonds: number;
+  isPremium: boolean;
 }
 
 export interface AuthResponse {

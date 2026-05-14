@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Pencil, KeyRound, Trash2, BarChart2, Search, X, Ban, Clock, ShieldCheck, Users, DoorOpen, UserX, RefreshCw, TrendingUp, Wine } from 'lucide-react';
 import { AppNavbar } from '@/components/ui/AppNavbar';
+import { RulesModal } from '@/components/ui/RulesModal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Modal } from '@/components/ui/modal';
@@ -27,10 +28,13 @@ interface AdminUser {
   xp: number;
   level: number;
   coins: number;
+  diamonds: number;
   pds: number;
   rankedWarnings: number;
   rankedSuspendedUntil: string | null;
   isPremium: boolean;
+  premiumExpiresAt: string | null;
+  activeTheme: string | null;
   stats: {
     gamesPlayed: number;
     gamesWon: number;
@@ -40,6 +44,7 @@ interface AdminUser {
   inventory: {
     unlockedAvatars: number[];
     unlockedModes: string[];
+    unlockedThemes: string[];
   } | null;
 }
 
@@ -129,6 +134,7 @@ export default function AdminPage() {
   useEffect(() => { window.localStorage.setItem('admin:filter', filter); }, [filter]);
   const [playerDialogUserId, setPlayerDialogUserId] = useState<string | null>(null);
   const [playerDialogSnapshot, setPlayerDialogSnapshot] = useState<PlayerSnapshot | null>(null);
+  const [rulesOpen, setRulesOpen] = useState(false);
   const openPlayerDialog = (snapshot: PlayerSnapshot) => {
     setPlayerDialogSnapshot(snapshot);
     setPlayerDialogUserId(snapshot.userId);
@@ -347,7 +353,7 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-dvh bg-[var(--color-base)] flex flex-col">
-      <AppNavbar back="/lobby" hideUsername />
+      <AppNavbar back="/lobby" hideUsername onHowToPlay={() => setRulesOpen(true)} />
 
       <main className="flex-1 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <div className="max-w-5xl mx-auto w-full p-4 sm:p-6 flex flex-col gap-4">
@@ -653,6 +659,7 @@ export default function AdminPage() {
         userId={playerDialogUserId}
         snapshot={playerDialogSnapshot}
       />
+      <RulesModal open={rulesOpen} onClose={() => setRulesOpen(false)} />
       <DevFooter />
     </div>
   );
@@ -799,6 +806,8 @@ function EditProgressionModal({ open, user, onClose, onSuccess }: { open: boolea
   const [revokeAvatars, setRevokeAvatars] = useState('');
   const [grantModes, setGrantModes] = useState<string[]>([]);
   const [revokeModes, setRevokeModes] = useState<string[]>([]);
+  const [diamondDelta, setDiamondDelta] = useState('');
+  const [diamondReason, setDiamondReason] = useState('');
 
   useEffect(() => {
     if (open && user) {
@@ -813,8 +822,28 @@ function EditProgressionModal({ open, user, onClose, onSuccess }: { open: boolea
       setRevokeAvatars('');
       setGrantModes([]);
       setRevokeModes([]);
+      setDiamondDelta('');
+      setDiamondReason('');
     }
   }, [open, user]);
+
+  const creditDiamondsMutation = useMutation({
+    mutationFn: async () => {
+      const amount = Number(diamondDelta);
+      if (!Number.isFinite(amount) || amount === 0) throw new Error('Quantidade invalida');
+      await api.post(`/admin/users/${user!.id}/credit-diamonds`, {
+        amount,
+        reason: diamondReason || undefined,
+      });
+    },
+    onSuccess: () => {
+      toast.success(`Diamantes ${Number(diamondDelta) > 0 ? 'creditados' : 'debitados'}`);
+      setDiamondDelta('');
+      setDiamondReason('');
+      onSuccess();
+    },
+    onError: (e: any) => toast.error(e?.response?.data?.message ?? 'Erro ao alterar diamantes'),
+  });
 
   const mutation = useMutation({
     mutationFn: async () => {
@@ -873,6 +902,29 @@ function EditProgressionModal({ open, user, onClose, onSuccess }: { open: boolea
             <span className="text-xs text-[var(--color-danger)]">(até {formatDate(user.rankedSuspendedUntil)})</span>
           )}
         </label>
+
+        {/* Creditar/debitar diamantes — separado pra ter audit trail proprio
+            via DiamondTransaction. Endpoint dedicado, nao mistura com
+            updateUserProgression. */}
+        <div className="flex flex-col gap-2 rounded-xl border border-[var(--color-border)] p-3 bg-[var(--color-panel)]/40">
+          <p className="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">
+            Diamantes <span className="font-mono text-[oklch(80%_0.16_220)]">(saldo: {user?.diamonds ?? 0})</span>
+          </p>
+          <div className="grid grid-cols-2 gap-2">
+            <Input label="Quantidade (+ ou -)" type="number" value={diamondDelta} onChange={e => setDiamondDelta(e.target.value)} placeholder="ex: 100 ou -50" />
+            <Input label="Motivo (opcional)" value={diamondReason} onChange={e => setDiamondReason(e.target.value)} placeholder="ex: compensacao bug" />
+          </div>
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            onClick={() => creditDiamondsMutation.mutate()}
+            disabled={creditDiamondsMutation.isPending || !diamondDelta || Number(diamondDelta) === 0}
+            className="self-start"
+          >
+            {creditDiamondsMutation.isPending ? 'Aplicando...' : `Aplicar (${diamondDelta || 0} 💎)`}
+          </Button>
+        </div>
 
         <div className="flex flex-col gap-2">
           <p className="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">Modos desbloqueados</p>

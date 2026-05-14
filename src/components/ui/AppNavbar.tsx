@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Wine, ShoppingBag, HelpCircle, Info, User, LogOut, ArrowLeft, ShieldCheck } from 'lucide-react';
 import { Logo } from '@/components/ui/Logo';
 import { CoinDisplay } from '@/components/ui/CoinDisplay';
+import { DiamondDisplay } from '@/components/ui/DiamondDisplay';
 import { AccessBar } from '@/components/ui/AccessBar';
 import { ShopModal } from '@/components/shop/ShopModal';
 import { HelpModal } from '@/components/lobby/HelpModal';
@@ -120,12 +121,18 @@ export function AppNavbar({ center, back, hideUsername, onHowToPlay, mobileMinim
           {onHowToPlay && (
             <button
               onClick={onHowToPlay}
-              className="p-1.5 rounded-lg transition-colors hover:bg-[var(--color-panel)] flex items-center gap-1.5"
+              className={cn(
+                'p-1.5 rounded-lg transition-colors hover:bg-[var(--color-panel)]',
+                // In-game mobile (mobileMinimal=true) ja tem HelpCircle nos
+                // mobileExtraActions. Esconder o botao ao lado do logo no
+                // mobile pra nao duplicar; desktop sempre visivel.
+                mobileMinimal ? 'hidden sm:block' : 'block',
+              )}
               style={{ color: 'var(--color-text-muted)' }}
               title="Como jogar"
+              aria-label="Como jogar"
             >
               <HelpCircle size={16} />
-              <span className="text-xs hidden md:inline">Como jogar</span>
             </button>
           )}
         </div>
@@ -156,6 +163,12 @@ export function AppNavbar({ center, back, hideUsername, onHowToPlay, mobileMinim
             {!user?.isGuest && (
               <span className="px-1.5" data-testid="access-bar-coins">
                 <CoinDisplay amount={user?.coins ?? 0} size="sm" />
+              </span>
+            )}
+            {/* Diamantes (moeda premium) */}
+            {!user?.isGuest && (
+              <span className="px-1.5" data-testid="access-bar-diamonds">
+                <DiamondDisplay amount={user?.diamonds ?? 0} size="sm" />
               </span>
             )}
             {/* Premium badge */}

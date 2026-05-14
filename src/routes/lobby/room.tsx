@@ -24,6 +24,7 @@ import { RoomChat } from '@/components/lobby/RoomChat';
 import { DevFooter } from '@/components/ui/DevFooter';
 import { Input } from '@/components/ui/input';
 import { PlayerDetailsDialog, type PlayerSnapshot } from '@/components/ui/PlayerDetailsDialog';
+import { RulesModal } from '@/components/ui/RulesModal';
 
 export default function RoomPage() {
   useEffect(() => {
@@ -104,6 +105,7 @@ export default function RoomPage() {
   const [isSpectator, setIsSpectator] = useState(false);
   const [playerDialogUserId, setPlayerDialogUserId] = useState<string | null>(null);
   const [playerDialogSnapshot, setPlayerDialogSnapshot] = useState<PlayerSnapshot | null>(null);
+  const [rulesOpen, setRulesOpen] = useState(false);
   const openPlayerDialog = useCallback((snapshot: PlayerSnapshot) => {
     setPlayerDialogSnapshot(snapshot);
     setPlayerDialogUserId(snapshot.userId);
@@ -167,6 +169,12 @@ export default function RoomPage() {
       toast.error(message);
     }
   }, []));
+
+  // Admin removeu o jogador da sala — toast + volta pro lobby.
+  useSocketEvent<{ message: string }>('admin:kicked', useCallback(({ message }) => {
+    toast.error(message ?? 'Você foi removido da sala pelo admin.');
+    navigate('/lobby');
+  }, [navigate]));
 
   // Detecta entrada como espectador quando sala está em andamento e redireciona direto para o jogo.
   // Depende de room.players/status diretamente para reagir tanto ao initialRoom (GET) quanto ao
@@ -264,6 +272,7 @@ export default function RoomPage() {
     <div className="h-dvh bg-[var(--color-base)] flex flex-col overflow-hidden">
       <AppNavbar
         back={handleLeave}
+        onHowToPlay={() => setRulesOpen(true)}
         center={
           <span
             className="text-base font-semibold tracking-wide hidden sm:inline"
@@ -667,6 +676,7 @@ export default function RoomPage() {
         userId={playerDialogUserId}
         snapshot={playerDialogSnapshot}
       />
+      <RulesModal open={rulesOpen} onClose={() => setRulesOpen(false)} />
     </div>
   );
 }

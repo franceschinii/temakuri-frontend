@@ -14,6 +14,27 @@ export interface ChangelogEntry {
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: '2026-05-14',
+    version: '0.6.0',
+    title: 'Diamantes 💎, novos avatares, temas de mesa e mais',
+    category: 'feature',
+    highlights: [
+      'Saldo de diamantes aparece no topo da tela',
+      '6 avatares novos e 3 temas de mesa pra escolher',
+      'Botão "Como jogar" agora aparece em todas as telas no PC',
+    ],
+    details: `Várias novidades chegaram:
+
+• Agora tem uma moeda nova chamada **diamantes 💎**. Em breve você poderá comprar e usar pra desbloquear coisas legais — por enquanto fica como prévia.
+• Seis avatares novos disponíveis: Yokai, Kitsune (raposa de 9 caudas), Tanuki (texugo com folha), Geisha, Samurai (capacete com chifres dourados) e Dragão Dourado.
+• Três temas de mesa: Bambu Verde, Sakura e Oni. Aplicam um fundo bonito enquanto você joga.
+• O botão "Como jogar" agora aparece em todas as telas pelo computador, não só no lobby.
+• Algumas correções importantes:
+  - As cartas não embaralham mais durante uma jogada com mão grande.
+  - Quando o admin remove alguém da sala, a pessoa é desconectada de verdade.
+  - O diálogo de fim de rodada não fecha mais sozinho no celular.`,
+  },
+  {
+    date: '2026-05-14',
     version: '0.5.5',
     title: 'Ajustes de visual no celular e no PC',
     category: 'fix',

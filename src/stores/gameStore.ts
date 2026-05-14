@@ -156,6 +156,10 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       const updates: Partial<GameStoreState> = {
         pile: cards,
         consecutivePasses: 0,
+        // Limpa seleção sempre que alguém joga — protege contra indices stale
+        // quando o servidor reordena/atualiza a mão fora do setMyHand normal.
+        selectedIndices: [],
+        selectedPlateIndices: [],
         players: s.players.map(p =>
           p.userId === userId ? { ...p, cardCount: Math.max(0, p.cardCount - handCardCount) } : p,
         ),
@@ -174,6 +178,10 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     set((s) => ({
       drawPileCount,
       consecutivePasses: s.consecutivePasses + 1,
+      // Limpa seleção: pass implica mudança de turno e novo state, indices
+      // anteriores podem nao corresponder mais a mao atual.
+      selectedIndices: [],
+      selectedPlateIndices: [],
       players: s.players.map(p =>
         p.userId === userId ? { ...p, cardCount: drawnCard ? p.cardCount + 1 : p.cardCount } : p,
       ),

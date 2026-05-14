@@ -8,6 +8,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { isSocketConnected, reconnectSocket } from '@/lib/socket';
 import App from './App';
 import './styles/globals.css';
+import './styles/themes.css';
 
 // Reconectar socket ao recuperar conexão de rede ou voltar do background.
 // refreshUser primeiro para garantir token válido antes de abrir o socket.
