@@ -12,6 +12,8 @@ import { RankBadge } from '@/components/ui/RankBadge';
 import { useAuthStore } from '@/stores/authStore';
 import { useLobbyStore } from '@/stores/lobbyStore';
 import { useSocketEvent, emitSocketEvent } from '@/hooks/useSocket';
+import { useGameStore } from '@/stores/gameStore';
+import type { ClientGameState } from '@/types/game';
 import { MedalBadge } from '@/components/ui/MedalBadge';
 import { GAME_MODES, INITIAL_TOKENS } from '@/constants/game';
 import api from '@/lib/api';
@@ -85,8 +87,8 @@ export default function RoomPage() {
   useSocketEvent<{ room: RoomPublicState }>('lobby:room_updated', useCallback(({ room: updated }) => {
     const prev = useLobbyStore.getState().currentRoom;
     if (prev) {
-      const prevHumans = prev.players.filter(p => !p.isBot && !p.isSpectator).length;
-      const nextHumans = updated.players.filter(p => !p.isBot && !p.isSpectator).length;
+      const prevHumans = prev.players.filter(p => !p.isBot).length;
+      const nextHumans = updated.players.filter(p => !p.isBot).length;
       if (nextHumans > prevHumans) playSound('player_join');
       else if (nextHumans < prevHumans) playSound('player_leave');
     }
@@ -102,7 +104,6 @@ export default function RoomPage() {
   }, [setReadySnapshot]));
 
   const [countdown, setCountdown] = useState<number | null>(null);
-  const [isSpectator, setIsSpectator] = useState(false);
   const [playerDialogUserId, setPlayerDialogUserId] = useState<string | null>(null);
   const [playerDialogSnapshot, setPlayerDialogSnapshot] = useState<PlayerSnapshot | null>(null);
   const [rulesOpen, setRulesOpen] = useState(false);
@@ -155,8 +156,13 @@ export default function RoomPage() {
     }, 1000);
   }, [navigateToGame]));
 
-  // Sinal autoritativo do backend: jogo iniciou, navega independente do timer local
-  useSocketEvent<any>('game:state_sync', useCallback(() => {
+  // Sinal autoritativo do backend: jogo iniciou.
+  // Pre-popula gameStore aqui antes de navegar para que o GameBoard ja
+  // renderize com estado completo no primeiro mount, sem "tela vazia".
+  useSocketEvent<{ state: ClientGameState }>('game:state_sync', useCallback((payload) => {
+    if (payload?.state) {
+      useGameStore.getState().syncState(payload.state);
+    }
     if (countdown !== null) navigateToGame();
   }, [countdown, navigateToGame]));
 
@@ -165,10 +171,13 @@ export default function RoomPage() {
       hasJoinedRef.current = false;
       setPasswordError(true);
       setShowPasswordDialog(true);
+    } else if (code === 'ROOM_FULL' || code === 'ROOM_IN_PROGRESS' || code === 'ALREADY_IN_ROOM') {
+      toast.error(message);
+      navigate('/lobby', { replace: true });
     } else {
       toast.error(message);
     }
-  }, []));
+  }, [navigate]));
 
   // Admin removeu o jogador da sala — toast + volta pro lobby.
   useSocketEvent<{ message: string }>('admin:kicked', useCallback(({ message }) => {
@@ -176,34 +185,6 @@ export default function RoomPage() {
     navigate('/lobby');
   }, [navigate]));
 
-  // Detecta entrada como espectador quando sala está em andamento e redireciona direto para o jogo.
-  // Depende de room.players/status diretamente para reagir tanto ao initialRoom (GET) quanto ao
-  // currentRoom (socket lobby:room_updated), evitando ficar preso no lobby quando o flag isSpectator
-  // chega via socket depois do GET.
-  useEffect(() => {
-    if (!user || !room) return;
-    const me = room.players.find(p => p.userId === user.id);
-    if (me?.isSpectator && room.status === 'IN_PROGRESS') {
-      setIsSpectator(true);
-      navigate(`/game/${roomCode}`, { replace: true });
-    } else if (!me?.isSpectator) {
-      setIsSpectator(false);
-    }
-  }, [room?.players, room?.status, user, roomCode, navigate]);
-
-  // Quando sala volta ao estado WAITING (após reset), sai do modo espectador
-  useSocketEvent<{ room: RoomPublicState }>('lobby:room_updated', useCallback(({ room: updatedRoom }) => {
-    if (updatedRoom.status === 'WAITING') {
-      const me = updatedRoom.players.find(p => p.userId === user?.id);
-      if (!me?.isSpectator) setIsSpectator(false);
-    }
-  }, [user]));
-
-  // Promovido de espectador para jogador ativo
-  useSocketEvent<{ roomCode: string }>('lobby:promoted_to_player', useCallback(() => {
-    setIsSpectator(false);
-    toast.success('Você entrou como jogador!');
-  }, []));
 
   if (isError) return null;
 
@@ -220,7 +201,7 @@ export default function RoomPage() {
   // Sala de matchmaking = veio via navigate com state.isMatchmaking (MatchmakingDialog)
   const isMatchmakingRoom = !!(location.state as any)?.isMatchmaking;
   const mode = GAME_MODES.find(m => m.value === room.mode);
-  const activePlayers = room.players.filter(p => !p.isSpectator);
+  const activePlayers = room.players;
   const allSlotsReady = activePlayers.filter(p => !p.isBot).every(p => readyMap[p.userId]);
   const humanPlayers = activePlayers.filter(p => !p.isBot);
 
@@ -475,22 +456,6 @@ export default function RoomPage() {
         {/* Chat */}
         <RoomChat roomCode={roomCode!} />
 
-        {/* Spectator waiting banner */}
-        {isSpectator && room.status === 'WAITING' && (
-          <motion.div
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)] px-4 py-3 text-center"
-          >
-            <p className="text-sm text-[var(--color-text-muted)]">
-              Sala lotada — você está na <strong className="text-[var(--color-text-primary)]">fila de espera</strong>.
-            </p>
-            <p className="text-xs text-[var(--color-text-muted)] mt-0.5 opacity-70">
-              Entrará automaticamente quando uma vaga abrir.
-            </p>
-          </motion.div>
-        )}
-
         {/* Actions */}
         <motion.div
           initial={{ opacity: 0, y: 8 }}
@@ -498,7 +463,7 @@ export default function RoomPage() {
           transition={{ delay: 0.2 }}
           className="flex flex-wrap gap-2"
         >
-          {!isHost && !isSpectator && (
+          {!isHost && (
             <Button
               variant={readyMap[user?.id ?? ''] ? 'secondary' : 'primary'}
               className="flex-1"

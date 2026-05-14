@@ -1,6 +1,6 @@
 import { useEffect, useCallback, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Eye, HelpCircle, History, MessageSquare } from 'lucide-react';
+import { HelpCircle, History, MessageSquare } from 'lucide-react';
 import { AppNavbar } from '@/components/ui/AppNavbar';
 import { Modal } from '@/components/ui/modal';
 import { Button } from '@/components/ui/button';
@@ -97,8 +97,6 @@ export function GameBoard() {
   const [trickPile, setTrickPile] = useState<Card[]>([]);
   const [duelPickOpen, setDuelPickOpen] = useState(false);
   const prevTurnRef = useRef<string>('');
-  const [isSpectator, setIsSpectator] = useState(false);
-  const [spectatorCount, setSpectatorCount] = useState(0);
   const [roomHostId, setRoomHostId] = useState<string | null>(null);
 
   const isMyTurn = user?.id === currentTurnUserId;
@@ -165,10 +163,8 @@ export function GameBoard() {
     }
   }, [isMyTurn, currentTurnUserId, players]);
 
-  useSocketEvent<{ state: ClientGameState; spectatorCount?: number; isSpectator?: boolean }>('game:state_sync', useCallback(({ state, spectatorCount: sc, isSpectator: isSp }) => {
+  useSocketEvent<{ state: ClientGameState }>('game:state_sync', useCallback(({ state }) => {
     syncState(state);
-    if (sc !== undefined) setSpectatorCount(sc);
-    if (isSp !== undefined) setIsSpectator(isSp);
     // Servidor é fonte de verdade — sempre zera refs locais e fecha UIs incompatíveis com a fase
     hasSubmittedPickRef.current = false;
     if (state.phase !== 'PASS_PICK') {
@@ -192,7 +188,7 @@ export function GameBoard() {
     useGameStore.setState({ drawPileCount });
   }, []));
 
-  useSocketEvent<{ userId: string; timeoutMs: number; spectatorCount?: number }>('game:turn_started', useCallback(({ userId, timeoutMs, spectatorCount: sc }) => {
+  useSocketEvent<{ userId: string; timeoutMs: number }>('game:turn_started', useCallback(({ userId, timeoutMs }) => {
     // Aplica a mudanca de turno. Se houve uma jogada recente (cards_played,
     // turn_passed, wipe), segura por ACTION_VIEW_DELAY para dar tempo de ver
     // o que aconteceu antes do "vez de fulano" mudar.
@@ -208,7 +204,6 @@ export function GameBoard() {
       setPickMode(false);
       setDrawnCard(null);
       hasSubmittedPickRef.current = false;
-      if (sc !== undefined) setSpectatorCount(sc);
       const { myHand, phase } = useGameStore.getState();
       if (myHand.length === 0 && phase !== 'GAME_OVER' && phase !== 'ROUND_END') {
         emitSocketEvent('game:request_state', { roomCode });
@@ -485,10 +480,6 @@ export function GameBoard() {
     addLog({ type: 'chat', userId, username, text });
   }, [addLog]));
 
-  useSocketEvent<{ roomCode: string }>('game:spectator_mode', useCallback(() => {
-    setIsSpectator(true);
-  }, []));
-
   // Sala foi resetada (host clicou "Jogar de novo"). Volta para o lobby da sala.
   useSocketEvent<{ roomCode: string }>('lobby:room_reset', useCallback(({ roomCode: rc }) => {
     toast.info('A sala foi resetada. Voltando ao lobby...');
@@ -564,12 +555,9 @@ export function GameBoard() {
   };
 
   const handleInsertAtIndex = (insertAtIndex: number) => {
+    // Sem otimismo: aguarda o servidor confirmar via game:your_hand.
+    // Evita acumulo de mao stale se eventos chegam fora de ordem.
     hasSubmittedPickRef.current = true;
-    if (drawnCard) {
-      const optimistic = [...myHand];
-      optimistic.splice(insertAtIndex, 0, drawnCard);
-      setMyHand(optimistic);
-    }
     setDrawnCard(null);
     setPickMode(false);
     insertDrawnCard(insertAtIndex, 'insert');
@@ -643,16 +631,6 @@ export function GameBoard() {
             {isDuel && (
               <span className="hidden sm:inline-flex text-[10px] border rounded-full px-2 py-0.5 font-semibold uppercase tracking-wider shrink-0" style={{ background: 'oklch(78% 0.18 80 / 0.15)', borderColor: 'oklch(78% 0.18 80 / 0.4)', color: 'var(--color-warning)' }}>
                 Duelo
-              </span>
-            )}
-            {isSpectator && (
-              <span className="hidden sm:inline-flex text-[10px] border rounded-full px-2 py-0.5 font-semibold uppercase tracking-wider shrink-0" style={{ background: 'oklch(68% 0.15 145 / 0.15)', borderColor: 'oklch(68% 0.15 145 / 0.4)', color: 'var(--color-accent-mid)' }}>
-                Espectador
-              </span>
-            )}
-            {!isSpectator && spectatorCount > 0 && (
-              <span className="hidden sm:flex text-[10px] items-center gap-0.5 shrink-0" style={{ color: 'var(--color-text-muted)' }} title={`${spectatorCount} espectador${spectatorCount !== 1 ? 'es' : ''}`}>
-                <Eye size={12} /> {spectatorCount}
               </span>
             )}
             <div className="shrink min-w-0 w-32 sm:w-44">
@@ -780,7 +758,7 @@ export function GameBoard() {
                     <div className="flex gap-1">
                       {plates.length > 0 ? plates.map((card, i) => {
                         const isSelected = isMe && selectedPlateIndices.includes(i);
-                        const canSelect = isMe && isMyTurn && phase === 'PLAYER_TURN' && !isSpectator;
+                        const canSelect = isMe && isMyTurn && phase === 'PLAYER_TURN';
                         return (
                           <button
                             key={card.id ?? i}
@@ -922,21 +900,18 @@ export function GameBoard() {
           )}
         </AnimatePresence>
 
-        {/* Hand — oculta para espectadores. Sempre renderiza o mesmo
-            componente para evitar remount/flick quando entra/sai pickMode. */}
-        {!isSpectator && (
-          <div className="pb-3 pt-2 overflow-visible">
-            <PlayerHand
-              hand={myHand}
-              isMyTurn={isMyTurn}
-              pickMode={pickMode}
-              onPickInsert={pickMode ? handleInsertAtIndex : undefined}
-            />
-          </div>
-        )}
+        {/* Hand — sempre renderiza o mesmo componente para evitar remount/flick
+            quando entra/sai pickMode. */}
+        <div className="pb-3 pt-2 overflow-visible">
+          <PlayerHand
+            hand={myHand}
+            isMyTurn={isMyTurn}
+            pickMode={pickMode}
+            onPickInsert={pickMode ? handleInsertAtIndex : undefined}
+          />
+        </div>
 
-        {/* Actions — ocultas para espectadores */}
-        {!isSpectator && !pickMode && !marketSwapMode && (
+        {!pickMode && !marketSwapMode && (
           <div className="mt-1.5 flex flex-col gap-1.5">
             <ActionBar
               isMyTurn={isMyTurn}
@@ -1050,16 +1025,6 @@ export function GameBoard() {
           players={players}
           onClose={clearRoundSummary}
         />
-      )}
-
-      {/* Spectator notice — non-blocking, stays at bottom */}
-      {isSpectator && (
-        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 pointer-events-none">
-          <div className="flex items-center gap-2 px-4 py-2 rounded-full border border-[var(--color-accent-mid)]/40 bg-[var(--color-surface)]/90 backdrop-blur-sm shadow-lg text-xs text-[var(--color-text-muted)]">
-            <span className="text-[var(--color-accent-mid)]">👁</span>
-            Você está assistindo — aguardando a próxima rodada para entrar
-          </div>
-        </div>
       )}
 
       {gameOverData && (

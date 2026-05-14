@@ -14,6 +14,25 @@ export interface ChangelogEntry {
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: '2026-05-14',
+    version: '0.6.4',
+    title: 'Partidas mais estáveis e novos temas na loja',
+    category: 'fix',
+    highlights: [
+      'Mão não buga mais ao trocar de turno',
+      'Sem tela vazia ao iniciar partida',
+      'Tema Oceano (azul) chegou na loja',
+      'Bambu Verde agora é o tema padrão grátis',
+    ],
+    details: `Várias melhorias nesta atualização:
+
+• A **mão de cartas** estava aparecendo errada em algumas trocas de turno (com cartas a mais ou estranhas) e só voltava ao normal quando você passava. Agora o servidor reenvia a mão correta a cada início de turno — sem mais essa.
+• Ao iniciar uma partida em sala normal, alguns jogadores caíam em tela vazia e precisavam dar F5. Foi corrigido: a tela do jogo já carrega completa.
+• Salas cheias ou em andamento agora dão um aviso claro em vez de deixar você preso em estado estranho.
+• Novo **tema Oceano** (azul profundo) na loja por 50 diamantes. **Bambu Verde** virou o tema padrão gratuito que todos têm.
+• Loja: pequenos ajustes visuais em temas — sem mais detalhes verdes vazando quando você usa Oni ou Sakura.`,
+  },
+  {
+    date: '2026-05-14',
     version: '0.6.3',
     title: 'Histórico de partidas e contador de jogadores online',
     category: 'feature',
