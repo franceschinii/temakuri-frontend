@@ -6,6 +6,7 @@ import { LevelBadge } from '@/components/ui/LevelBadge';
 import { RankBadge } from '@/components/ui/RankBadge';
 import { MedalBadge } from '@/components/ui/MedalBadge';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { MatchHistoryList } from '@/components/profile/MatchHistoryList';
 import api from '@/lib/api';
 import { cn } from '@/lib/utils';
 
@@ -181,6 +182,15 @@ export function PlayerDetailsDialog({ open, onClose, userId, snapshot }: PlayerD
               <div className="flex items-center gap-1.5 text-[10px] text-[var(--color-text-muted)] justify-center">
                 <Calendar size={11} />
                 Jogador desde {formatDate(data.createdAt)}
+              </div>
+            )}
+
+            {!isGuest && !isBot && userId && (
+              <div className="flex flex-col gap-2">
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">
+                  Últimas partidas
+                </p>
+                <MatchHistoryList userId={userId} compact />
               </div>
             )}
           </>

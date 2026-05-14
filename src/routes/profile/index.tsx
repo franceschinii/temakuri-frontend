@@ -15,6 +15,7 @@ import { AppNavbar } from '@/components/ui/AppNavbar';
 import { RulesModal } from '@/components/ui/RulesModal';
 import { DevFooter } from '@/components/ui/DevFooter';
 import { AdBanner } from '@/components/ui/AdBanner';
+import { MatchHistoryList } from '@/components/profile/MatchHistoryList';
 import { useAuthStore } from '@/stores/authStore';
 import api from '@/lib/api';
 import { toast } from 'sonner';
@@ -306,6 +307,16 @@ export default function ProfilePage() {
                   </div>
                 ))}
               </div>
+            </section>
+          )}
+
+          {/* Historico de partidas */}
+          {user?.id && (
+            <section className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 flex flex-col gap-3">
+              <p className="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">
+                Histórico de partidas
+              </p>
+              <MatchHistoryList userId={user.id} />
             </section>
           )}
 

@@ -14,6 +14,22 @@ export interface ChangelogEntry {
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: '2026-05-14',
+    version: '0.6.3',
+    title: 'Histórico de partidas e contador de jogadores online',
+    category: 'feature',
+    highlights: [
+      'Veja suas últimas partidas no perfil',
+      'Aparece também no perfil dos outros jogadores',
+      'Lobby mostra quantos jogadores estão online agora',
+    ],
+    details: `Duas novidades:
+
+• Seu **histórico de partidas** agora aparece no perfil — modo, colocação, XP e moedas ganhos, duração, oponentes e quando aconteceu.
+• O histórico também é visível ao clicar em qualquer jogador (oponente na partida, lista de salas, ranking). Você vê as últimas 5 partidas dele.
+• No lobby, ao lado de "Salas abertas", um indicador discreto mostra **quantos jogadores estão online agora no mundo todo**. Atualiza em tempo real.`,
+  },
+  {
+    date: '2026-05-14',
     version: '0.6.2',
     title: 'Quem ganha a rodada começa a próxima — e o início é sorteado',
     category: 'fix',

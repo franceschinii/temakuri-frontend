@@ -17,6 +17,7 @@ import { ChangelogCard } from '@/components/lobby/ChangelogCard';
 import { MatchmakingDialog } from '@/components/matchmaking/MatchmakingDialog';
 import { useAuthStore } from '@/stores/authStore';
 import { useSocketEvent } from '@/hooks/useSocket';
+import { useOnlineCount } from '@/hooks/useOnlineCount';
 import api from '@/lib/api';
 import type { RoomPublicState } from '@/types/game';
 import { toast } from 'sonner';
@@ -31,6 +32,7 @@ export default function LobbyPage() {
   const user = useAuthStore(s => s.user);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const onlineCount = useOnlineCount();
   const [createOpen, setCreateOpen] = useState(false);
   const [rulesOpen, setRulesOpen] = useState(false);
   const [matchOpen, setMatchOpen] = useState(false);
@@ -153,13 +155,22 @@ export default function LobbyPage() {
 
         {/* Room list */}
         <div>
-          <div className="flex items-center gap-3 mb-4">
+          <div className="flex items-center gap-2 sm:gap-3 mb-4 flex-wrap">
             <span className="text-xs uppercase tracking-[0.15em] font-medium text-[var(--color-text-muted)]">
               Salas abertas
             </span>
             {rooms.length > 0 && (
               <span className="text-xs bg-[var(--color-panel)] border border-[var(--color-border)] text-[var(--color-accent-mid)] rounded-full px-2 py-0.5 font-mono">
                 {rooms.length}
+              </span>
+            )}
+            {onlineCount !== null && onlineCount > 0 && (
+              <span
+                className="inline-flex items-center gap-1 text-[10px] sm:text-xs text-[var(--color-text-muted)] tabular-nums"
+                title="Jogadores online agora"
+              >
+                <span className="inline-block w-1.5 h-1.5 rounded-full bg-[var(--color-accent-mid)] animate-pulse" />
+                {onlineCount} online
               </span>
             )}
             <div className="flex-1 h-px bg-[var(--color-border)]" />
