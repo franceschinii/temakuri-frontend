@@ -15,38 +15,13 @@
  */
 
 /* ============================================================
- * BAMBU VERDE — tema padrao gratuito (hue 145)
+ * BAMBU VERDE — tema padrao gratuito
+ *
+ * Nenhum override aqui. Bambu e visualmente identico ao tema default
+ * definido em theme.css (verde, sem listras, sem background especial).
+ * O atributo data-theme="bambu" e setado no body apenas para que a UI
+ * mostre o tema como "Em uso" na loja; os tokens permanecem os do :root.
  * ============================================================ */
-[data-theme="bambu"] {
-  --color-base:          oklch(22% 0.06 145);
-  --color-surface:       oklch(28% 0.05 148);
-  --color-panel:         oklch(35% 0.06 150);
-  --color-accent-strong: oklch(52% 0.18 145);
-  --color-accent-mid:    oklch(68% 0.15 145);
-  --color-accent-soft:   oklch(82% 0.10 145);
-  --color-accent-glow:   oklch(88% 0.12 140);
-  --color-border:        oklch(38% 0.06 148);
-  --color-text-primary:  oklch(96% 0.02 145);
-  --color-text-muted:    oklch(72% 0.05 145);
-}
-[data-theme="bambu"] body,
-[data-theme="bambu"] .min-h-dvh,
-[data-theme="bambu"] .h-dvh {
-  background-image:
-    linear-gradient(
-      to bottom,
-      oklch(22% 0.06 145),
-      oklch(18% 0.05 140)
-    ),
-    repeating-linear-gradient(
-      90deg,
-      transparent 0,
-      transparent 38px,
-      oklch(35% 0.1 140 / 0.18) 38px,
-      oklch(35% 0.1 140 / 0.18) 40px
-    );
-  background-blend-mode: multiply;
-}
 
 /* ============================================================
  * OCEANO — azul profundo (hue 240)
