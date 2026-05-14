@@ -102,7 +102,7 @@ export function ChatPanel({ onSendMessage, myUserId, hideTriggers, externalToggl
             animate={{ opacity: 1, x: 0, scale: 1 }}
             exit={{ opacity: 0, x: 20, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="fixed right-20 bottom-[5.5rem] z-40 pointer-events-none sm:right-12 sm:bottom-auto sm:top-[calc(58%-32px)]"
+            className="fixed left-1/2 -translate-x-1/2 top-[calc(env(safe-area-inset-top,0px)+72px)] z-40 pointer-events-none sm:left-auto sm:translate-x-0 sm:right-12 sm:top-[calc(58%-32px)]"
           >
             <div className="bg-[var(--color-panel)] border border-[var(--color-border)] rounded-xl px-3 py-2 shadow-xl max-w-[180px]">
               <span className="text-[9px] font-semibold text-[var(--color-accent-mid)] uppercase tracking-wider block">

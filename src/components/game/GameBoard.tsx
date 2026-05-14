@@ -36,6 +36,7 @@ import { LevelBadge } from '@/components/ui/LevelBadge';
 import type { Card, ClientGameState, GameRanking, GameStats, RoomPublicState } from '@/types/game';
 import { validatePlayIndicesClient } from '@/lib/gameRules';
 import { playSound } from '@/lib/sounds';
+import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
 export function GameBoard() {
@@ -838,8 +839,17 @@ export function GameBoard() {
               title="Ver detalhes"
               aria-label="Ver detalhes do jogador"
             >
-              <div className={isMyTurn && phase === 'PLAYER_TURN' ? 'ring-2 ring-[var(--color-accent-strong)] ring-offset-2 ring-offset-[var(--color-surface)] rounded-full animate-pulse' : ''}>
+              <div className={cn(
+                'sm:hidden',
+                isMyTurn && phase === 'PLAYER_TURN' ? 'ring-2 ring-[var(--color-accent-strong)] ring-offset-2 ring-offset-[var(--color-surface)] rounded-full animate-pulse' : '',
+              )}>
                 <AvatarWithBorder index={me?.avatarIndex ?? 0} level={me?.level ?? 1} size={36} />
+              </div>
+              <div className={cn(
+                'hidden sm:block',
+                isMyTurn && phase === 'PLAYER_TURN' ? 'ring-2 ring-[var(--color-accent-strong)] ring-offset-2 ring-offset-[var(--color-surface)] rounded-full animate-pulse' : '',
+              )}>
+                <AvatarWithBorder index={me?.avatarIndex ?? 0} level={me?.level ?? 1} size={52} />
               </div>
               <span className="text-base font-semibold" style={{ color: 'var(--color-text-primary)' }}>
                 {me?.username ?? 'Você'}
@@ -867,14 +877,14 @@ export function GameBoard() {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -8, scale: 0.95 }}
               transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
-              className="pointer-events-auto absolute left-1/2 -translate-x-1/2 -top-2 -translate-y-full z-30 flex items-center gap-3 px-3 py-2 rounded-xl bg-[var(--color-panel)] border border-[var(--color-warning)]/40 w-fit shadow-lg"
+              className="pointer-events-auto absolute left-1/2 -translate-x-1/2 -top-2 -translate-y-full z-30 flex items-center gap-2 sm:gap-3 px-2.5 sm:px-3 py-2 rounded-xl bg-[var(--color-panel)] border border-[var(--color-warning)]/40 max-w-[calc(100vw-16px)] sm:w-fit shadow-lg"
             >
               {drawnCard ? (
                 <>
                   <CardComponent card={drawnCard} small />
-                  <div className="flex flex-col gap-0.5">
-                    <span className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wider">Carta do monte</span>
-                    <span className="text-xs text-[var(--color-warning)] font-medium">Clique numa barra para inserir</span>
+                  <div className="flex flex-col gap-0.5 min-w-0">
+                    <span className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wider whitespace-nowrap">Carta do monte</span>
+                    <span className="text-[11px] sm:text-xs text-[var(--color-warning)] font-medium whitespace-nowrap">Clique numa barra ↓</span>
                   </div>
                   <button
                     onClick={handleDiscardDrawn}

@@ -59,7 +59,7 @@ export function CardComponent({ card, selected, onClick, faceDown, small, respon
             ? 'w-12 h-16 p-1 text-xs sm:w-20 sm:h-28 sm:p-2 sm:text-base'
             : 'w-20 h-28 p-2 text-base',
         selected
-          ? 'border-[var(--color-accent-glow)] shadow-[0_0_12px_var(--color-accent-glow)] -translate-y-2'
+          ? 'border-[var(--color-accent-glow)] shadow-[0_0_12px_var(--color-accent-glow)] sm:-translate-y-2'
           : 'border-[var(--color-border)] hover:border-[var(--color-accent-mid)]',
         disabled ? 'cursor-default' : 'cursor-pointer',
         insertTarget && 'border-dashed border-[var(--color-warning)] opacity-60',

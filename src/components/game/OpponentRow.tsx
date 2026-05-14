@@ -96,7 +96,7 @@ export function OpponentRow({ player, isCurrentTurn, compact, onClick }: Opponen
         onClick && 'cursor-pointer hover:bg-[var(--color-panel)] active:scale-[0.98]',
         player.isEliminated && 'opacity-30',
       )}
-      style={{ width: 180 }}
+      style={{ width: 200 }}
     >
       {isCurrentTurn && (
         <span
@@ -112,7 +112,7 @@ export function OpponentRow({ player, isCurrentTurn, compact, onClick }: Opponen
           'shrink-0',
           isCurrentTurn && 'ring-2 ring-[var(--color-accent-soft)] rounded-full',
         )}>
-          <AvatarWithBorder index={player.avatarIndex ?? 0} level={player.level ?? 1} size={36} />
+          <AvatarWithBorder index={player.avatarIndex ?? 0} level={player.level ?? 1} size={52} />
         </div>
         <div className="flex flex-col items-start min-w-0">
           <div className="flex items-center gap-1">

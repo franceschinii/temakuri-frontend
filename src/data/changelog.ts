@@ -14,6 +14,24 @@ export interface ChangelogEntry {
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: '2026-05-14',
+    version: '0.5.5',
+    title: 'Ajustes de visual no celular e no PC',
+    category: 'fix',
+    highlights: [
+      'Avatares voltam a aparecer com fundo no PC',
+      'Avatares maiores na partida pelo PC',
+      'Carta selecionada no celular não corta mais no topo',
+    ],
+    details: `Várias correções visuais:
+
+• Os avatares no PC estavam ficando sem fundo quando dois ou mais jogadores usavam o mesmo. Resolvido.
+• Os avatares dos jogadores na partida ficaram maiores no PC, mais fáceis de ver.
+• No celular, ao escolher uma carta da mão ela não sobe mais — antes ela cortava no topo da área. O brilho e a borda continuam indicando a seleção.
+• O balão de mensagem nova do chat parou de cobrir as cartas no celular — agora aparece no topo da tela.
+• A caixinha "Carta do monte / Clique numa barra" estava espremida em 4 linhas no celular. Layout ajustado.`,
+  },
+  {
+    date: '2026-05-14',
     version: '0.5.4',
     title: 'Correções rápidas na partida',
     category: 'fix',
