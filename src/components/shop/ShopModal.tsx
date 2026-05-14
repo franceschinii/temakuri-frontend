@@ -30,8 +30,8 @@ interface ConfirmState {
 
 const PAYMENTS_ENABLED = import.meta.env.VITE_PAYMENTS_ENABLED === 'true';
 
-// Pacotes de diamantes — exibidos na tab "Diamantes". Apenas visual nessa
-// Fase A; a compra real (Stripe Checkout) entra no Commit 4.
+// Pacotes de diamantes — exibidos na tab "Diamantes". Quando
+// PAYMENTS_ENABLED=true, dispara Checkout Pro do Mercado Pago.
 const DIAMOND_PACKS: { sku: string; diamonds: number; priceBrl: number; bonus: number }[] = [
   { sku: 'DIAMONDS_100',  diamonds: 100,  priceBrl: 4.90,  bonus: 0  },
   { sku: 'DIAMONDS_500',  diamonds: 500,  priceBrl: 19.90, bonus: 2  },
@@ -48,7 +48,7 @@ export function ShopModal({ open, onClose }: ShopModalProps) {
     catalog, isLoading, isPurchasing,
     fetchCatalog, purchaseAvatar, purchaseMode, purchaseTheme,
     setActiveTheme, purchaseCoinPack, useUtility,
-    startDiamondCheckout, startPremiumCheckout, openCustomerPortal,
+    startDiamondCheckout, startPremiumCheckout, cancelPremium,
   } = useShopStore();
   const user = useAuthStore(s => s.user);
   const userBalance = confirmItem?.currency === 'diamonds' ? (user?.diamonds ?? 0) : (user?.coins ?? 0);
@@ -75,11 +75,11 @@ export function ShopModal({ open, onClose }: ShopModalProps) {
   };
 
   /**
-   * Dispara checkout do Stripe (compra de diamantes ou premium). Redireciona
-   * pra URL retornada pelo backend. Em Fase A (PAYMENTS_ENABLED=false), o
-   * backend retorna 503 e o toast informa "Em breve".
+   * Dispara checkout do Mercado Pago (compra de diamantes ou premium).
+   * Redireciona pra init_point retornado pelo backend. Em Fase A
+   * (PAYMENTS_ENABLED=false), o backend retorna 503 e mostramos "Em breve".
    */
-  const handleStripeCheckout = async (kind: 'diamonds' | 'premium', sku?: string) => {
+  const handleCheckout = async (kind: 'diamonds' | 'premium', sku?: string) => {
     try {
       const url = kind === 'diamonds'
         ? await startDiamondCheckout(sku!)
@@ -96,17 +96,17 @@ export function ShopModal({ open, onClose }: ShopModalProps) {
     }
   };
 
-  const handleManageSubscription = async () => {
+  const handleCancelSubscription = async () => {
+    if (!window.confirm('Cancelar a assinatura Premium? Você continua com os benefícios até o final do período pago.')) return;
     try {
-      const url = await openCustomerPortal();
-      if (!url) throw new Error('URL vazia');
-      window.location.href = url;
+      await cancelPremium();
+      toast.success('Assinatura cancelada. Premium ativo até o fim do período.');
     } catch (e: any) {
       const status = e?.response?.status;
       if (status === 503) {
-        toast.info('Pagamentos ainda não estão disponíveis.');
+        toast.info('Pagamentos indisponíveis no momento.');
       } else {
-        toast.error(e?.response?.data?.message ?? 'Erro ao abrir portal');
+        toast.error(e?.response?.data?.message ?? 'Erro ao cancelar assinatura');
       }
     }
   };
@@ -385,7 +385,7 @@ export function ShopModal({ open, onClose }: ShopModalProps) {
                         size="sm"
                         className="w-full mt-auto"
                         disabled={!PAYMENTS_ENABLED}
-                        onClick={() => handleStripeCheckout('diamonds', pack.sku)}
+                        onClick={() => handleCheckout('diamonds', pack.sku)}
                       >
                         {PAYMENTS_ENABLED ? 'Comprar' : 'Em breve'}
                       </Button>
@@ -498,15 +498,15 @@ export function ShopModal({ open, onClose }: ShopModalProps) {
                         )}
                       </div>
                       {PAYMENTS_ENABLED && (
-                        <Button variant="secondary" size="sm" onClick={handleManageSubscription}>
-                          Gerenciar assinatura
+                        <Button variant="secondary" size="sm" onClick={handleCancelSubscription}>
+                          Cancelar assinatura
                         </Button>
                       )}
                     </div>
                   ) : (
                     <Button
                       disabled={!PAYMENTS_ENABLED}
-                      onClick={() => handleStripeCheckout('premium')}
+                      onClick={() => handleCheckout('premium')}
                       style={!PAYMENTS_ENABLED ? {} : { background: 'oklch(75% 0.2 310)' }}
                     >
                       {PAYMENTS_ENABLED ? 'Assinar Premium' : 'Em breve'}
