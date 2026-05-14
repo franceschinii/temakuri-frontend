@@ -14,6 +14,24 @@ export interface ChangelogEntry {
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: '2026-05-14',
+    version: '0.6.2',
+    title: 'Quem ganha a rodada começa a próxima — e o início é sorteado',
+    category: 'fix',
+    highlights: [
+      'Vencedor da rodada inicia a próxima rodada',
+      'Primeiro jogador da partida agora é sorteado',
+      'Regra adicionada ao "Como jogar"',
+    ],
+    details: `Duas regras importantes foram corrigidas:
+
+• Quem **ganha a rodada** (esvazia a mão primeiro) agora começa a rodada seguinte. Antes a partida sempre voltava pra um jogador fixo, deixando o vencedor sem a vantagem.
+• Na primeira rodada da partida, o jogador inicial é **sorteado** entre todos. Antes começava sempre o primeiro da lista, o que era injusto.
+• A explicação da regra apareceu no diálogo "Como jogar".
+
+Dentro da rodada, quem ganha a vaza continua iniciando a próxima vaza — isso já estava certo.`,
+  },
+  {
+    date: '2026-05-14',
     version: '0.6.1',
     title: 'Loja aberta: diamantes 💎 e Premium disponíveis',
     category: 'feature',

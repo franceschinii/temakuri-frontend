@@ -559,7 +559,15 @@ export function GameBoard() {
   };
 
   const handlePass = () => {
-    if (!isMyTurn || phase !== 'PLAYER_TURN') return;
+    // Se o cliente acha que nao pode passar mas o botao apareceu ativo,
+    // o estado provavelmente esta dessincronizado com o servidor. Em vez
+    // de falhar mudo (sintoma: "botao nao responde"), pedimos resync e
+    // avisamos o jogador.
+    if (!isMyTurn || phase !== 'PLAYER_TURN') {
+      toast.info('Sincronizando o jogo...');
+      requestState();
+      return;
+    }
     if (!isDuel && drawPileCount === 0) {
       toast.info('Monte esgotado — passando sem comprar');
     }
