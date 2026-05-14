@@ -9,12 +9,15 @@ export interface User {
   xp: number;
   level: number;
   coins: number;
+  diamonds: number;
   pds: number;
   winStreak: number;
   lossStreak: number;
   rankedWarnings: number;
   rankedSuspendedUntil: string | null;
   isPremium: boolean;
+  premiumExpiresAt: string | null;
+  activeTheme: string | null;
   createdAt: string;
   updatedAt: string;
 }

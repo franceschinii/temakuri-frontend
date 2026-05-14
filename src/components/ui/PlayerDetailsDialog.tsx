@@ -22,6 +22,7 @@ interface PublicProfileResponse {
   isGuest: boolean;
   isPremium: boolean;
   isBanned: boolean;
+  premiumExpiresAt: string | null;
   createdAt: string;
   stats: {
     gamesPlayed: number;
@@ -166,6 +167,13 @@ export function PlayerDetailsDialog({ open, onClose, userId, snapshot }: PlayerD
                     {winRate(ranked.rankedWins + ranked.rankedLosses, ranked.rankedWins)}
                   </span>
                 </div>
+              </div>
+            )}
+
+            {isPremium && data?.premiumExpiresAt && (
+              <div className="flex items-center gap-1.5 text-[11px] justify-center font-medium" style={{ color: 'oklch(75% 0.2 310)' }}>
+                <Wine size={12} />
+                Premium ativo até {formatDate(data.premiumExpiresAt)}
               </div>
             )}
 

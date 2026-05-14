@@ -28,10 +28,13 @@ interface AdminUser {
   xp: number;
   level: number;
   coins: number;
+  diamonds: number;
   pds: number;
   rankedWarnings: number;
   rankedSuspendedUntil: string | null;
   isPremium: boolean;
+  premiumExpiresAt: string | null;
+  activeTheme: string | null;
   stats: {
     gamesPlayed: number;
     gamesWon: number;
@@ -41,6 +44,7 @@ interface AdminUser {
   inventory: {
     unlockedAvatars: number[];
     unlockedModes: string[];
+    unlockedThemes: string[];
   } | null;
 }
 
@@ -802,6 +806,8 @@ function EditProgressionModal({ open, user, onClose, onSuccess }: { open: boolea
   const [revokeAvatars, setRevokeAvatars] = useState('');
   const [grantModes, setGrantModes] = useState<string[]>([]);
   const [revokeModes, setRevokeModes] = useState<string[]>([]);
+  const [diamondDelta, setDiamondDelta] = useState('');
+  const [diamondReason, setDiamondReason] = useState('');
 
   useEffect(() => {
     if (open && user) {
@@ -816,8 +822,28 @@ function EditProgressionModal({ open, user, onClose, onSuccess }: { open: boolea
       setRevokeAvatars('');
       setGrantModes([]);
       setRevokeModes([]);
+      setDiamondDelta('');
+      setDiamondReason('');
     }
   }, [open, user]);
+
+  const creditDiamondsMutation = useMutation({
+    mutationFn: async () => {
+      const amount = Number(diamondDelta);
+      if (!Number.isFinite(amount) || amount === 0) throw new Error('Quantidade invalida');
+      await api.post(`/admin/users/${user!.id}/credit-diamonds`, {
+        amount,
+        reason: diamondReason || undefined,
+      });
+    },
+    onSuccess: () => {
+      toast.success(`Diamantes ${Number(diamondDelta) > 0 ? 'creditados' : 'debitados'}`);
+      setDiamondDelta('');
+      setDiamondReason('');
+      onSuccess();
+    },
+    onError: (e: any) => toast.error(e?.response?.data?.message ?? 'Erro ao alterar diamantes'),
+  });
 
   const mutation = useMutation({
     mutationFn: async () => {
@@ -876,6 +902,29 @@ function EditProgressionModal({ open, user, onClose, onSuccess }: { open: boolea
             <span className="text-xs text-[var(--color-danger)]">(até {formatDate(user.rankedSuspendedUntil)})</span>
           )}
         </label>
+
+        {/* Creditar/debitar diamantes — separado pra ter audit trail proprio
+            via DiamondTransaction. Endpoint dedicado, nao mistura com
+            updateUserProgression. */}
+        <div className="flex flex-col gap-2 rounded-xl border border-[var(--color-border)] p-3 bg-[var(--color-panel)]/40">
+          <p className="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">
+            Diamantes <span className="font-mono text-[oklch(80%_0.16_220)]">(saldo: {user?.diamonds ?? 0})</span>
+          </p>
+          <div className="grid grid-cols-2 gap-2">
+            <Input label="Quantidade (+ ou -)" type="number" value={diamondDelta} onChange={e => setDiamondDelta(e.target.value)} placeholder="ex: 100 ou -50" />
+            <Input label="Motivo (opcional)" value={diamondReason} onChange={e => setDiamondReason(e.target.value)} placeholder="ex: compensacao bug" />
+          </div>
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            onClick={() => creditDiamondsMutation.mutate()}
+            disabled={creditDiamondsMutation.isPending || !diamondDelta || Number(diamondDelta) === 0}
+            className="self-start"
+          >
+            {creditDiamondsMutation.isPending ? 'Aplicando...' : `Aplicar (${diamondDelta || 0} 💎)`}
+          </Button>
+        </div>
 
         <div className="flex flex-col gap-2">
           <p className="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">Modos desbloqueados</p>
