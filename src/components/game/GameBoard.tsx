@@ -909,11 +909,11 @@ export function GameBoard() {
             pickMode={pickMode}
             onPickInsert={pickMode ? handleInsertAtIndex : undefined}
           />
-          {/* Overlay flutuante: aviso de jogada inválida sobre a mão.
+          {/* Overlay flutuante: aviso de jogada inválida acima da mão.
               Absolute para não empurrar o ActionBar e não causar resize
-              da mesa quando aparece/desaparece. */}
+              da mesa. Posicionado acima do container da mão. */}
           {isMyTurn && selectedIndices.length > 0 && !canPlay && pile.length > 0 && (
-            <div className="pointer-events-none absolute left-1/2 -translate-x-1/2 -top-1 z-20">
+            <div className="pointer-events-none absolute left-1/2 -translate-x-1/2 -top-3 -translate-y-full z-20">
               <span className="inline-flex items-center text-[11px] font-semibold px-2.5 py-1 rounded-full bg-[var(--color-surface)]/95 backdrop-blur-sm border border-[var(--color-warning)]/50 text-[var(--color-warning)] shadow-lg whitespace-nowrap">
                 Jogada inválida — precisa de mais cartas ou valor maior
               </span>
