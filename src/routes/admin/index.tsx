@@ -216,67 +216,142 @@ export default function AdminPage() {
               </div>
             ) : (
               <div className="flex flex-col gap-2">
-                {rooms.map(room => (
-                  <div key={room.id} className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4 flex flex-col gap-3">
-                    <div className="flex items-center justify-between flex-wrap gap-2">
-                      <div className="flex items-center gap-3">
-                        <span className="font-mono text-base font-bold tracking-widest" style={{ color: 'var(--color-text-primary)' }}>{room.code ?? '—'}</span>
-                        <span className={cn(
-                          'text-[10px] px-2 py-0.5 rounded-full border font-medium',
-                          room.status === 'WAITING' && 'text-[var(--color-accent-mid)] border-[var(--color-accent-mid)]/30 bg-[var(--color-accent-mid)]/10',
-                          room.status === 'IN_PROGRESS' && 'text-[var(--color-warning)] border-[var(--color-warning)]/30 bg-[var(--color-warning)]/10',
-                          room.status === 'FINISHED' && 'text-[var(--color-text-muted)] border-[var(--color-border)] bg-[var(--color-panel)]',
-                        )}>{room.status}</span>
-                        <span className="text-[10px] text-[var(--color-text-muted)]">{room.mode}</span>
-                        <span className="text-[10px] text-[var(--color-text-muted)]">{room.players.length}/{room.maxPlayers} jogadores</span>
-                        {room.isPrivate && <span className="text-[10px] text-[var(--color-text-muted)]">privada</span>}
-                      </div>
-                      {confirmDeleteRoom === room.code ? (
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-xs text-[var(--color-text-muted)]">Remover {room.code}?</span>
-                          <button
-                            onClick={() => { deleteRoomMutation.mutate(room.code); setConfirmDeleteRoom(null); }}
-                            className="px-2 py-1 rounded-lg text-xs text-white bg-[var(--color-danger)] hover:opacity-90 transition-all"
-                          >
-                            Confirmar
-                          </button>
-                          <button
-                            onClick={() => setConfirmDeleteRoom(null)}
-                            className="px-2 py-1 rounded-lg text-xs text-[var(--color-text-muted)] hover:bg-[var(--color-panel)] transition-all"
-                          >
-                            Cancelar
-                          </button>
+                {rooms.map(room => {
+                  const statusClass = cn(
+                    'text-[10px] px-2 py-0.5 rounded-full border font-medium shrink-0',
+                    room.status === 'WAITING' && 'text-[var(--color-accent-mid)] border-[var(--color-accent-mid)]/30 bg-[var(--color-accent-mid)]/10',
+                    room.status === 'IN_PROGRESS' && 'text-[var(--color-warning)] border-[var(--color-warning)]/30 bg-[var(--color-warning)]/10',
+                    room.status === 'FINISHED' && 'text-[var(--color-text-muted)] border-[var(--color-border)] bg-[var(--color-panel)]',
+                  );
+                  const isConfirming = confirmDeleteRoom === room.code;
+                  return (
+                    <div key={room.id}>
+                      {/* Mobile card */}
+                      <div className="sm:hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-3 flex flex-col gap-2.5">
+                        <div className="flex items-start justify-between gap-2">
+                          <span className="font-mono text-lg font-bold tracking-widest leading-none" style={{ color: 'var(--color-text-primary)' }}>{room.code ?? '—'}</span>
+                          <span className={statusClass}>{room.status}</span>
                         </div>
-                      ) : (
-                        <button
-                          onClick={() => setConfirmDeleteRoom(room.code)}
-                          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs text-[var(--color-danger)] hover:bg-[var(--color-danger)]/10 border border-[var(--color-danger)]/30 transition-all"
-                        >
-                          <Trash2 size={12} /> Remover sala
-                        </button>
-                      )}
-                    </div>
-                    {room.players.length > 0 && (
-                      <div className="flex flex-wrap gap-2">
-                        {room.players.map(p => (
-                          <div key={p.userId} className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[var(--color-panel)] border border-[var(--color-border)] text-xs">
-                            <span className={cn('text-[var(--color-text-primary)]', p.userId === room.hostId && 'text-[var(--color-token-gold)]')}>{p.username}</span>
-                            {p.isBot && <span className="text-[9px] text-[var(--color-text-muted)]">bot</span>}
-                            {p.userId === room.hostId && <span className="text-[9px] text-[var(--color-token-gold)]">host</span>}
+                        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-[var(--color-text-muted)]">
+                          <span>{room.mode}</span>
+                          <span className="opacity-50">•</span>
+                          <span>{room.players.length}/{room.maxPlayers} jogadores</span>
+                          {room.isPrivate && <><span className="opacity-50">•</span><span>privada</span></>}
+                          <span className="opacity-50">•</span>
+                          <span>Criada em {formatDate(room.createdAt)}</span>
+                        </div>
+
+                        {room.players.length > 0 && (
+                          <details className="group">
+                            <summary className="cursor-pointer list-none flex items-center justify-between py-1.5 px-2 -mx-1 rounded-lg text-xs font-medium text-[var(--color-text-muted)] hover:bg-[var(--color-panel)]">
+                              <span>Ver jogadores ({room.players.length})</span>
+                              <span className="text-[10px] opacity-60 group-open:rotate-180 transition-transform">▾</span>
+                            </summary>
+                            <div className="flex flex-col gap-1 mt-2">
+                              {room.players.map(p => (
+                                <div key={p.userId} className="flex items-center justify-between gap-2 p-2 rounded-lg bg-[var(--color-panel)] border border-[var(--color-border)]">
+                                  <div className="flex items-center gap-1.5 min-w-0 text-xs">
+                                    <span className={cn('truncate', p.userId === room.hostId ? 'text-[var(--color-token-gold)] font-medium' : 'text-[var(--color-text-primary)]')}>{p.username}</span>
+                                    {p.isBot && <span className="text-[9px] text-[var(--color-text-muted)] shrink-0">bot</span>}
+                                    {p.userId === room.hostId && <span className="text-[9px] text-[var(--color-token-gold)] shrink-0">host</span>}
+                                  </div>
+                                  <button
+                                    onClick={() => kickPlayerMutation.mutate({ code: room.code, userId: p.userId })}
+                                    className="p-2 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-danger)] hover:bg-[var(--color-danger)]/10 transition-colors shrink-0"
+                                    title={`Kickar ${p.username}`}
+                                    aria-label={`Kickar ${p.username}`}
+                                  >
+                                    <UserX size={14} />
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          </details>
+                        )}
+
+                        {isConfirming ? (
+                          <div className="flex gap-2">
                             <button
-                              onClick={() => kickPlayerMutation.mutate({ code: room.code, userId: p.userId })}
-                              className="ml-1 text-[var(--color-text-muted)] hover:text-[var(--color-danger)] transition-colors"
-                              title={`Kickar ${p.username}`}
+                              onClick={() => { deleteRoomMutation.mutate(room.code); setConfirmDeleteRoom(null); }}
+                              className="flex-1 py-2 rounded-lg text-sm font-medium text-white bg-[var(--color-danger)] hover:opacity-90 transition-all"
                             >
-                              <UserX size={11} />
+                              Remover {room.code}
+                            </button>
+                            <button
+                              onClick={() => setConfirmDeleteRoom(null)}
+                              className="px-4 py-2 rounded-lg text-sm text-[var(--color-text-muted)] border border-[var(--color-border)] hover:bg-[var(--color-panel)] transition-all"
+                            >
+                              Cancelar
                             </button>
                           </div>
-                        ))}
+                        ) : (
+                          <button
+                            onClick={() => setConfirmDeleteRoom(room.code)}
+                            className="w-full flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm text-[var(--color-danger)] hover:bg-[var(--color-danger)]/10 border border-[var(--color-danger)]/30 transition-all"
+                          >
+                            <Trash2 size={14} /> Remover sala
+                          </button>
+                        )}
                       </div>
-                    )}
-                    <span className="text-[10px] text-[var(--color-text-muted)]">Criada em {formatDate(room.createdAt)}</span>
-                  </div>
-                ))}
+
+                      {/* Desktop card */}
+                      <div className="hidden sm:flex rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4 flex-col gap-3">
+                        <div className="flex items-center justify-between flex-wrap gap-2">
+                          <div className="flex items-center gap-3">
+                            <span className="font-mono text-base font-bold tracking-widest" style={{ color: 'var(--color-text-primary)' }}>{room.code ?? '—'}</span>
+                            <span className={statusClass}>{room.status}</span>
+                            <span className="text-[10px] text-[var(--color-text-muted)]">{room.mode}</span>
+                            <span className="text-[10px] text-[var(--color-text-muted)]">{room.players.length}/{room.maxPlayers} jogadores</span>
+                            {room.isPrivate && <span className="text-[10px] text-[var(--color-text-muted)]">privada</span>}
+                          </div>
+                          {isConfirming ? (
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-xs text-[var(--color-text-muted)]">Remover {room.code}?</span>
+                              <button
+                                onClick={() => { deleteRoomMutation.mutate(room.code); setConfirmDeleteRoom(null); }}
+                                className="px-2 py-1 rounded-lg text-xs text-white bg-[var(--color-danger)] hover:opacity-90 transition-all"
+                              >
+                                Confirmar
+                              </button>
+                              <button
+                                onClick={() => setConfirmDeleteRoom(null)}
+                                className="px-2 py-1 rounded-lg text-xs text-[var(--color-text-muted)] hover:bg-[var(--color-panel)] transition-all"
+                              >
+                                Cancelar
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() => setConfirmDeleteRoom(room.code)}
+                              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs text-[var(--color-danger)] hover:bg-[var(--color-danger)]/10 border border-[var(--color-danger)]/30 transition-all"
+                            >
+                              <Trash2 size={12} /> Remover sala
+                            </button>
+                          )}
+                        </div>
+                        {room.players.length > 0 && (
+                          <div className="flex flex-wrap gap-2">
+                            {room.players.map(p => (
+                              <div key={p.userId} className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[var(--color-panel)] border border-[var(--color-border)] text-xs">
+                                <span className={cn('text-[var(--color-text-primary)]', p.userId === room.hostId && 'text-[var(--color-token-gold)]')}>{p.username}</span>
+                                {p.isBot && <span className="text-[9px] text-[var(--color-text-muted)]">bot</span>}
+                                {p.userId === room.hostId && <span className="text-[9px] text-[var(--color-token-gold)]">host</span>}
+                                <button
+                                  onClick={() => kickPlayerMutation.mutate({ code: room.code, userId: p.userId })}
+                                  className="ml-1 text-[var(--color-text-muted)] hover:text-[var(--color-danger)] transition-colors"
+                                  title={`Kickar ${p.username}`}
+                                >
+                                  <UserX size={11} />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        <span className="text-[10px] text-[var(--color-text-muted)]">Criada em {formatDate(room.createdAt)}</span>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </>

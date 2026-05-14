@@ -6,7 +6,9 @@ import { CoinDisplay } from '@/components/ui/CoinDisplay';
 import { AccessBar } from '@/components/ui/AccessBar';
 import { ShopModal } from '@/components/shop/ShopModal';
 import { HelpModal } from '@/components/lobby/HelpModal';
+import { LogoutConfirmDialog } from '@/components/ui/LogoutConfirmDialog';
 import { useAuthStore } from '@/stores/authStore';
+import { cn } from '@/lib/utils';
 
 interface AppNavbarProps {
   /**
@@ -40,18 +42,37 @@ interface AppNavbarProps {
    * sentido in-game ou em telas administrativas).
    */
   onHowToPlay?: () => void;
+
+  /**
+   * Quando true, no mobile (<sm) esconde tudo do grupo direito que nao seja
+   * essencial: moedas, premium, loja, info, AccessBar, admin e perfil ficam
+   * agrupados em hidden sm:flex. Voltar, center e sair seguem visiveis.
+   * In-game usa isso para liberar espaco da navbar e nao quebrar o layout.
+   */
+  mobileMinimal?: boolean;
 }
 
 /**
  * Navbar unica do app. Usada em: lobby, lobby da sala, in-game, perfil,
  * ranked, admin. Auth telas tem layout proprio.
  */
-export function AppNavbar({ center, back, hideUsername, onHowToPlay }: AppNavbarProps) {
+export function AppNavbar({ center, back, hideUsername, onHowToPlay, mobileMinimal }: AppNavbarProps) {
   const navigate = useNavigate();
   const user = useAuthStore(s => s.user);
   const logout = useAuthStore(s => s.logout);
   const [shopOpen, setShopOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
+  const [logoutOpen, setLogoutOpen] = useState(false);
+
+  const handleConfirmLogout = async () => {
+    await logout();
+    setLogoutOpen(false);
+    navigate('/');
+  };
+
+  // Quando mobileMinimal e true, agrupa extras (moedas, loja, info, AccessBar,
+  // admin, perfil) num wrapper que some no mobile e reaparece em sm+.
+  const extrasGroupClass = cn('items-center gap-0.5', mobileMinimal ? 'hidden sm:flex' : 'flex');
 
   const handleBack = () => {
     if (typeof back === 'function') return back();
@@ -109,72 +130,75 @@ export function AppNavbar({ center, back, hideUsername, onHowToPlay }: AppNavbar
 
         {/* Direita: acoes universais */}
         <div className="flex items-center gap-0.5">
-          {/* Moedas */}
-          {!user?.isGuest && (
-            <span className="px-1.5" data-testid="access-bar-coins">
-              <CoinDisplay amount={user?.coins ?? 0} size="sm" />
-            </span>
-          )}
-          {/* Premium badge */}
-          {user?.isPremium && (
-            <span title="Premium" className="p-1.5" style={{ color: 'oklch(75% 0.2 310)' }}>
-              <Wine size={16} />
-            </span>
-          )}
-          {/* Loja */}
-          {!user?.isGuest && (
+          {/* Grupo de extras — colapsa no mobile quando mobileMinimal */}
+          <div className={extrasGroupClass}>
+            {/* Moedas */}
+            {!user?.isGuest && (
+              <span className="px-1.5" data-testid="access-bar-coins">
+                <CoinDisplay amount={user?.coins ?? 0} size="sm" />
+              </span>
+            )}
+            {/* Premium badge */}
+            {user?.isPremium && (
+              <span title="Premium" className="p-1.5" style={{ color: 'oklch(75% 0.2 310)' }}>
+                <Wine size={16} />
+              </span>
+            )}
+            {/* Loja */}
+            {!user?.isGuest && (
+              <button
+                onClick={() => setShopOpen(true)}
+                className="p-1.5 rounded-lg transition-colors hover:bg-[var(--color-panel)]"
+                style={{ color: 'var(--color-text-muted)' }}
+                title="Loja"
+                data-testid="access-bar-shop-btn"
+              >
+                <ShoppingBag size={16} />
+              </button>
+            )}
+            {/* Como funciona */}
             <button
-              onClick={() => setShopOpen(true)}
+              onClick={() => setHelpOpen(true)}
               className="p-1.5 rounded-lg transition-colors hover:bg-[var(--color-panel)]"
               style={{ color: 'var(--color-text-muted)' }}
-              title="Loja"
-              data-testid="access-bar-shop-btn"
+              title="Como funciona"
             >
-              <ShoppingBag size={16} />
+              <Info size={17} />
             </button>
-          )}
-          {/* Como funciona */}
-          <button
-            onClick={() => setHelpOpen(true)}
-            className="p-1.5 rounded-lg transition-colors hover:bg-[var(--color-panel)]"
-            style={{ color: 'var(--color-text-muted)' }}
-            title="Como funciona"
-          >
-            <Info size={17} />
-          </button>
-          {/* Som + Música */}
-          <AccessBar />
-          {/* Admin */}
-          {user?.isAdmin && (
-            <button
-              onClick={() => navigate('/admin')}
-              className="flex items-center gap-1.5 text-xs font-medium transition-colors px-2 py-1.5 rounded-lg hover:bg-[var(--color-panel)]"
-              style={{ color: 'var(--color-warning)' }}
-              title="Admin"
-              aria-label="Admin"
-            >
-              <ShieldCheck size={16} />
-              <span className="hidden sm:inline">Admin</span>
-            </button>
-          )}
-          {/* Perfil */}
-          <button
-            onClick={() => navigate('/profile')}
-            className="flex items-center gap-1.5 text-sm transition-colors px-1.5 py-1.5 rounded-lg hover:bg-[var(--color-panel)]"
-            style={{ color: 'var(--color-text-muted)' }}
-            title={user?.username ?? 'Perfil'}
-            data-testid="access-bar-profile-link"
-          >
-            <User size={16} />
-            {!hideUsername && (
-              <span className="hidden sm:inline" data-testid="access-bar-username">{user?.username}</span>
+            {/* Som + Música */}
+            <AccessBar />
+            {/* Admin */}
+            {user?.isAdmin && (
+              <button
+                onClick={() => navigate('/admin')}
+                className="flex items-center gap-1.5 text-xs font-medium transition-colors px-2 py-1.5 rounded-lg hover:bg-[var(--color-panel)]"
+                style={{ color: 'var(--color-warning)' }}
+                title="Admin"
+                aria-label="Admin"
+              >
+                <ShieldCheck size={16} />
+                <span className="hidden sm:inline">Admin</span>
+              </button>
             )}
-          </button>
-          {/* Sair */}
+            {/* Perfil */}
+            <button
+              onClick={() => navigate('/profile')}
+              className="flex items-center gap-1.5 text-sm transition-colors px-1.5 py-1.5 rounded-lg hover:bg-[var(--color-panel)]"
+              style={{ color: 'var(--color-text-muted)' }}
+              title={user?.username ?? 'Perfil'}
+              data-testid="access-bar-profile-link"
+            >
+              <User size={16} />
+              {!hideUsername && (
+                <span className="hidden sm:inline" data-testid="access-bar-username">{user?.username}</span>
+              )}
+            </button>
+          </div>
+          {/* Sair — sempre visivel, sempre vermelho, com confirmacao */}
           <button
-            onClick={() => logout().then(() => navigate('/'))}
-            className="p-1.5 rounded-lg transition-colors hover:bg-[var(--color-panel)]"
-            style={{ color: 'var(--color-text-muted)' }}
+            onClick={() => setLogoutOpen(true)}
+            className="p-1.5 rounded-lg transition-colors hover:bg-[var(--color-danger)]/10"
+            style={{ color: 'var(--color-danger)' }}
             title="Sair"
             data-testid="access-bar-logout-btn"
           >
@@ -185,6 +209,11 @@ export function AppNavbar({ center, back, hideUsername, onHowToPlay }: AppNavbar
 
       <ShopModal open={shopOpen} onClose={() => setShopOpen(false)} />
       <HelpModal open={helpOpen} onClose={() => setHelpOpen(false)} />
+      <LogoutConfirmDialog
+        open={logoutOpen}
+        onClose={() => setLogoutOpen(false)}
+        onConfirm={handleConfirmLogout}
+      />
     </>
   );
 }

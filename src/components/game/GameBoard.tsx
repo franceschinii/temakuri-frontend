@@ -562,11 +562,16 @@ export function GameBoard() {
 
   return (
     <div className="flex flex-col h-dvh bg-[var(--color-base)] overflow-hidden select-none" data-testid="game-board">
-      {/* Game header — usa AppNavbar com badges no slot center */}
+      {/* Game header — usa AppNavbar com badges no slot center.
+          mobileMinimal: no celular esconde extras (moedas, loja, admin, perfil...)
+          deixando navbar com voltar + center + sair. Os badges Duelo/Espectador/
+          contagem somem no mobile (ja sao redundantes: a borda da my area pulsa
+          quando e meu turno, e o espectador sabe que esta espectando). */}
       <AppNavbar
         back={handleLeaveGame}
+        mobileMinimal
         center={
-          <div className="flex items-center gap-2 min-w-0 flex-wrap justify-center">
+          <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 flex-wrap justify-center">
             <span className="text-xs font-mono uppercase tracking-widest" style={{ color: 'var(--color-text-muted)' }}>{roomCode}</span>
             {round > 0 && (
               <span className="text-[10px] bg-[var(--color-panel)] border border-[var(--color-border)] rounded-full px-1.5 py-0.5 font-mono" style={{ color: 'var(--color-accent-mid)' }}>
@@ -574,17 +579,17 @@ export function GameBoard() {
               </span>
             )}
             {isDuel && (
-              <span className="text-[10px] border rounded-full px-2 py-0.5 font-semibold uppercase tracking-wider" style={{ background: 'oklch(78% 0.18 80 / 0.15)', borderColor: 'oklch(78% 0.18 80 / 0.4)', color: 'var(--color-warning)' }}>
+              <span className="hidden sm:inline-flex text-[10px] border rounded-full px-2 py-0.5 font-semibold uppercase tracking-wider" style={{ background: 'oklch(78% 0.18 80 / 0.15)', borderColor: 'oklch(78% 0.18 80 / 0.4)', color: 'var(--color-warning)' }}>
                 Duelo
               </span>
             )}
             {isSpectator && (
-              <span className="text-[10px] border rounded-full px-2 py-0.5 font-semibold uppercase tracking-wider" style={{ background: 'oklch(68% 0.15 145 / 0.15)', borderColor: 'oklch(68% 0.15 145 / 0.4)', color: 'var(--color-accent-mid)' }}>
+              <span className="hidden sm:inline-flex text-[10px] border rounded-full px-2 py-0.5 font-semibold uppercase tracking-wider" style={{ background: 'oklch(68% 0.15 145 / 0.15)', borderColor: 'oklch(68% 0.15 145 / 0.4)', color: 'var(--color-accent-mid)' }}>
                 Espectador
               </span>
             )}
             {!isSpectator && spectatorCount > 0 && (
-              <span className="text-[10px] flex items-center gap-0.5" style={{ color: 'var(--color-text-muted)' }} title={`${spectatorCount} espectador${spectatorCount !== 1 ? 'es' : ''}`}>
+              <span className="hidden sm:flex text-[10px] items-center gap-0.5" style={{ color: 'var(--color-text-muted)' }} title={`${spectatorCount} espectador${spectatorCount !== 1 ? 'es' : ''}`}>
                 <Eye size={12} /> {spectatorCount}
               </span>
             )}
@@ -593,10 +598,13 @@ export function GameBoard() {
         }
       />
 
-      {/* Opponents */}
+      {/* Opponents — no mobile, encolhe visualmente (scale) para 3 oponentes
+          caberem em 375px sem empurrar a mesa. Desktop mantem tamanho 100%. */}
       <div className="flex gap-1.5 justify-center flex-wrap px-2 py-2 border-b border-[var(--color-border)] bg-[var(--color-surface)]">
         {opponents.map(p => (
-          <OpponentRow key={p.userId} player={p} isCurrentTurn={p.userId === currentTurnUserId} />
+          <div key={p.userId} className="origin-top scale-[0.82] sm:scale-100 -mx-2 sm:mx-0">
+            <OpponentRow player={p} isCurrentTurn={p.userId === currentTurnUserId} />
+          </div>
         ))}
         {opponents.length === 0 && (
           <span className="text-xs text-[var(--color-text-muted)] py-2">Aguardando oponentes...</span>
