@@ -120,7 +120,7 @@ export default function ProfilePage() {
   const [shopOpen, setShopOpen] = useState(false);
 
   return (
-    <div className="min-h-dvh bg-[var(--color-base)] flex flex-col">
+    <div className="h-dvh bg-[var(--color-base)] flex flex-col overflow-hidden">
       <AppNavbar back="/lobby" />
 
       <main className="flex-1 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
