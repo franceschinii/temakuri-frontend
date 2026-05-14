@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState, useCallback } from 'react';
+import { useRef, useEffect, useState, useCallback, useImperativeHandle, type Ref } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MessageSquare, X, Send } from 'lucide-react';
 import { useGameStore } from '@/stores/gameStore';
@@ -6,12 +6,29 @@ import { cn } from '@/lib/utils';
 import { formatTimestamp } from '@/lib/formatTime';
 import { playSound } from '@/lib/sounds';
 
+export interface PanelHandle {
+  open: () => void;
+  close: () => void;
+  toggle: () => void;
+}
+
 interface ChatPanelProps {
   onSendMessage: (text: string) => void;
   myUserId: string;
+  /**
+   * Quando true, esconde o botao flutuante mobile interno (canto inferior
+   * direito). O trigger lateral desktop continua intacto. Usado pelo
+   * GameBoard quando ele assume o controle via mobileExtraActions na navbar.
+   */
+  hideTriggers?: boolean;
+  /**
+   * Ref imperativo que expoe open/close/toggle do painel para componentes
+   * externos. GameBoard usa para abrir o chat a partir de um botao na navbar.
+   */
+  externalToggleRef?: Ref<PanelHandle>;
 }
 
-export function ChatPanel({ onSendMessage, myUserId }: ChatPanelProps) {
+export function ChatPanel({ onSendMessage, myUserId, hideTriggers, externalToggleRef }: ChatPanelProps) {
   const gameLog = useGameStore(s => s.gameLog);
   const chatEntries = gameLog.filter(e => e.type === 'chat');
 
@@ -53,6 +70,16 @@ export function ChatPanel({ onSendMessage, myUserId }: ChatPanelProps) {
   useEffect(() => {
     if (open) bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatEntries.length, open]);
+
+  useImperativeHandle(
+    externalToggleRef,
+    () => ({
+      open: () => setOpen(true),
+      close: () => setOpen(false),
+      toggle: () => setOpen(v => !v),
+    }),
+    [],
+  );
 
   const handleSend = useCallback(() => {
     const text = input.trim();
@@ -104,10 +131,15 @@ export function ChatPanel({ onSendMessage, myUserId }: ChatPanelProps) {
         <MessageSquare size={13} className={unread > 0 ? 'text-[var(--color-accent-mid)]' : 'text-[var(--color-text-muted)]'} />
       </button>
 
-      {/* Mobile: bolinha flutuante no canto inferior direito */}
+      {/* Mobile: bolinha flutuante no canto inferior direito.
+          Quando hideTriggers, o GameBoard ja oferece um botao na navbar e
+          este flutuante desaparece para nao cobrir cartas/ActionBar. */}
       <button
         onClick={() => setOpen(v => !v)}
-        className="sm:hidden fixed right-4 bottom-20 z-40 w-12 h-12 flex items-center justify-center bg-[var(--color-accent-strong)] rounded-full shadow-xl active:scale-95 transition-transform"
+        className={cn(
+          'sm:hidden fixed right-4 bottom-20 z-40 w-12 h-12 flex items-center justify-center bg-[var(--color-accent-strong)] rounded-full shadow-xl active:scale-95 transition-transform',
+          hideTriggers && 'hidden',
+        )}
         title="Chat"
         data-testid="chat-toggle-btn-mobile"
       >

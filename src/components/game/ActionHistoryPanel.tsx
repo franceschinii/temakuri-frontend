@@ -1,9 +1,10 @@
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect, useState, useImperativeHandle, type Ref } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { History, X } from 'lucide-react';
 import { useGameStore } from '@/stores/gameStore';
 import type { LogEntry } from '@/stores/gameStore';
 import { cn } from '@/lib/utils';
+import type { PanelHandle } from './ChatPanel';
 
 const TYPE_COLOR: Record<LogEntry['type'], string> = {
   play: 'text-[var(--color-accent-mid)]',
@@ -31,7 +32,20 @@ const IDLE_OPACITY = 0.22;
 const ACTIVE_OPACITY = 1;
 const ACTIVE_DURATION = 2600;
 
-export function ActionHistoryPanel() {
+interface ActionHistoryPanelProps {
+  /**
+   * Quando true, esconde o botao flutuante mobile interno (canto inferior
+   * esquerdo). O feed flutuante desktop continua intacto. Usado pelo
+   * GameBoard quando ele oferece um trigger na navbar.
+   */
+  hideTriggers?: boolean;
+  /**
+   * Ref imperativo que expoe open/close/toggle do drawer.
+   */
+  externalToggleRef?: Ref<PanelHandle>;
+}
+
+export function ActionHistoryPanel({ hideTriggers, externalToggleRef }: ActionHistoryPanelProps = {}) {
   const gameLog = useGameStore(s => s.gameLog);
   const actionLog = gameLog.filter(e => e.type !== 'chat');
 
@@ -40,6 +54,16 @@ export function ActionHistoryPanel() {
   const bottomRef = useRef<HTMLDivElement>(null);
   const prevLenRef = useRef(0);
   const fadeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useImperativeHandle(
+    externalToggleRef,
+    () => ({
+      open: () => setShowFull(true),
+      close: () => setShowFull(false),
+      toggle: () => setShowFull(v => !v),
+    }),
+    [],
+  );
 
   useEffect(() => {
     if (actionLog.length > prevLenRef.current) {
@@ -105,10 +129,15 @@ export function ActionHistoryPanel() {
         )}
       </motion.div>
 
-      {/* ── MOBILE: botão fixo no canto inferior esquerdo ── */}
+      {/* ── MOBILE: botão fixo no canto inferior esquerdo.
+          Quando hideTriggers, o GameBoard ja oferece um botao na navbar e
+          este flutuante desaparece para nao conflitar com gestos do iOS. */}
       <button
         onClick={() => setShowFull(v => !v)}
-        className="sm:hidden fixed left-2 bottom-2 z-40 flex items-center justify-center bg-[var(--color-surface)]/90 backdrop-blur-sm border border-[var(--color-border)] rounded-xl p-2.5 shadow-lg hover:bg-[var(--color-panel)] transition-colors"
+        className={cn(
+          'sm:hidden fixed left-2 bottom-2 z-40 flex items-center justify-center bg-[var(--color-surface)]/90 backdrop-blur-sm border border-[var(--color-border)] rounded-xl p-2.5 shadow-lg hover:bg-[var(--color-panel)] transition-colors',
+          hideTriggers && 'hidden',
+        )}
         title="Histórico de jogadas"
       >
         <History size={14} className="text-[var(--color-text-muted)]" />

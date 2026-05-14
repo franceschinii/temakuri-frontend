@@ -1,6 +1,6 @@
 import { useEffect, useCallback, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Eye } from 'lucide-react';
+import { Eye, History, MessageSquare } from 'lucide-react';
 import { AppNavbar } from '@/components/ui/AppNavbar';
 import { Modal } from '@/components/ui/modal';
 import { Button } from '@/components/ui/button';
@@ -23,7 +23,7 @@ import { GameOverModal } from './GameOverModal';
 import { MarketRow } from './MarketRow';
 import { ReactionBar } from './ReactionBar';
 import { ActionHistoryPanel } from './ActionHistoryPanel';
-import { ChatPanel } from './ChatPanel';
+import { ChatPanel, type PanelHandle } from './ChatPanel';
 import { CardComponent } from './CardComponent';
 import { TrickPickModal } from './TrickPickModal';
 import { DuelPassPickModal } from './DuelPassPickModal';
@@ -65,6 +65,12 @@ export function GameBoard() {
   const ACTION_VIEW_DELAY = 1800;
   const [marketSwapMode, setMarketSwapMode] = useState(false);
   const [selectedHandIndexForSwap, setSelectedHandIndexForSwap] = useState<number | null>(null);
+
+  // Handles imperativos para abrir os paineis de chat e historico a partir
+  // dos botoes que injetamos na navbar via mobileExtraActions. Os paineis
+  // mantem seus drawers/animacoes internos; so trocamos quem dispara o open.
+  const chatRef = useRef<PanelHandle>(null);
+  const historyRef = useRef<PanelHandle>(null);
   const [leaveConfirmOpen, setLeaveConfirmOpen] = useState(false);
   const [turnBanner, setTurnBanner] = useState<{ name: string; isMe: boolean } | null>(null);
   const [trickPickOpen, setTrickPickOpen] = useState(false);
@@ -570,6 +576,28 @@ export function GameBoard() {
       <AppNavbar
         back={handleLeaveGame}
         mobileMinimal
+        mobileExtraActions={
+          <>
+            <button
+              onClick={() => historyRef.current?.toggle()}
+              className="p-1.5 rounded-lg transition-colors hover:bg-[var(--color-panel)]"
+              style={{ color: 'var(--color-text-muted)' }}
+              title="Histórico de jogadas"
+              aria-label="Histórico de jogadas"
+            >
+              <History size={16} />
+            </button>
+            <button
+              onClick={() => chatRef.current?.toggle()}
+              className="p-1.5 rounded-lg transition-colors hover:bg-[var(--color-panel)]"
+              style={{ color: 'var(--color-text-muted)' }}
+              title="Chat"
+              aria-label="Chat"
+            >
+              <MessageSquare size={16} />
+            </button>
+          </>
+        }
         center={
           <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 flex-wrap justify-center">
             <span className="text-xs font-mono uppercase tracking-widest" style={{ color: 'var(--color-text-muted)' }}>{roomCode}</span>
@@ -598,16 +626,24 @@ export function GameBoard() {
         }
       />
 
-      {/* Opponents — no mobile, encolhe visualmente (scale) para 3 oponentes
-          caberem em 375px sem empurrar a mesa. Desktop mantem tamanho 100%. */}
-      <div className="flex gap-1.5 justify-center flex-wrap px-2 py-2 border-b border-[var(--color-border)] bg-[var(--color-surface)]">
+      {/* Opponents — mobile: scroll horizontal com snap, OpponentRow compact
+          (120px de largura, sem fan de cartas). Desktop: flex-wrap centralizado
+          com OpponentRow padrao. */}
+      <div className="flex gap-1.5 px-2 py-2 border-b border-[var(--color-border)] bg-[var(--color-surface)] overflow-x-auto snap-x snap-mandatory sm:flex-wrap sm:overflow-visible sm:justify-center [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {opponents.map(p => (
-          <div key={p.userId} className="origin-top scale-[0.82] sm:scale-100 -mx-2 sm:mx-0">
-            <OpponentRow player={p} isCurrentTurn={p.userId === currentTurnUserId} />
+          <div key={p.userId} className="snap-start shrink-0">
+            {/* Mobile compact */}
+            <div className="sm:hidden">
+              <OpponentRow player={p} isCurrentTurn={p.userId === currentTurnUserId} compact />
+            </div>
+            {/* Desktop full */}
+            <div className="hidden sm:block">
+              <OpponentRow player={p} isCurrentTurn={p.userId === currentTurnUserId} />
+            </div>
           </div>
         ))}
         {opponents.length === 0 && (
-          <span className="text-xs text-[var(--color-text-muted)] py-2">Aguardando oponentes...</span>
+          <span className="text-xs text-[var(--color-text-muted)] py-2 shrink-0">Aguardando oponentes...</span>
         )}
       </div>
 
@@ -871,9 +907,15 @@ export function GameBoard() {
         )}
       </div>
 
-      {/* Game action history (left) + chat (right) */}
-      <ActionHistoryPanel />
-      <ChatPanel onSendMessage={handleSendMessage} myUserId={user?.id ?? ''} />
+      {/* Game action history (left) + chat (right). Triggers mobile internos
+          ocultos: a navbar (via mobileExtraActions) oferece os botoes equivalentes. */}
+      <ActionHistoryPanel externalToggleRef={historyRef} hideTriggers />
+      <ChatPanel
+        onSendMessage={handleSendMessage}
+        myUserId={user?.id ?? ''}
+        externalToggleRef={chatRef}
+        hideTriggers
+      />
 
       {/* Reactions overlay — dedicated zone above reaction bar */}
       <div className="fixed bottom-24 right-3 sm:right-16 flex flex-col-reverse gap-1.5 z-40 pointer-events-none items-end min-w-[96px]">

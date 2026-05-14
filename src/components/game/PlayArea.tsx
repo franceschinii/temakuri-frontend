@@ -57,7 +57,7 @@ export function PlayArea({ pile, drawPileCount, discardPile, saborActive, saborM
   const topDiscard = discardPile[discardPile.length - 1];
 
   return (
-    <div className="flex items-start justify-center gap-2 sm:gap-3 w-full max-w-2xl mx-auto px-1 sm:px-4" data-testid="play-area">
+    <div className="flex items-start justify-center gap-1.5 sm:gap-3 w-full max-w-2xl mx-auto px-2 sm:px-4" data-testid="play-area">
       {/* Draw pile (left) — oculto no modo duelo */}
       {!isDuel && <PileStack count={drawPileCount} label="Monte" countTestId="draw-pile-count" />}
 

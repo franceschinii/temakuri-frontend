@@ -70,23 +70,28 @@ export function PlayerHand({
   // Swap mode — seleção para mercado
   if (onSwapSelect !== undefined) {
     return (
-      <div className="flex items-end gap-1 sm:gap-1.5 flex-wrap justify-center px-2 pb-2">
+      <div className="flex items-end gap-1 px-2 pb-2 overflow-x-auto snap-x snap-mandatory sm:overflow-visible sm:flex-wrap sm:gap-1.5 sm:justify-center [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {hand.map((card, i) => (
-          <CardComponent
-            key={card.id}
-            card={card}
-            responsiveSmall
-            selected={swapSelectIndex === i}
-            onClick={() => onSwapSelect(i)}
-          />
+          <div key={card.id} className="snap-start shrink-0">
+            <CardComponent
+              card={card}
+              responsiveSmall
+              selected={swapSelectIndex === i}
+              onClick={() => onSwapSelect(i)}
+            />
+          </div>
         ))}
       </div>
     );
   }
 
-  // Normal mode
+  // Normal mode — no mobile usa scroll horizontal (sem wrap); no sm+ volta
+  // ao flex-wrap centralizado original.
   return (
-    <div className="flex items-end gap-1 sm:gap-1.5 flex-wrap justify-center px-2 pb-2" data-testid="player-hand">
+    <div
+      className="flex items-end gap-1 px-2 pb-2 overflow-x-auto snap-x snap-mandatory sm:overflow-visible sm:flex-wrap sm:gap-1.5 sm:justify-center [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      data-testid="player-hand"
+    >
       <AnimatePresence>
         {hand.map((card, i) => (
           <motion.div
@@ -96,6 +101,7 @@ export function PlayerHand({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.8 }}
             transition={{ duration: 0.15 }}
+            className="snap-start shrink-0"
           >
             <CardComponent
               card={card}

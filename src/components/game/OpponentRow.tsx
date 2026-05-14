@@ -10,11 +10,69 @@ import { cn } from '@/lib/utils';
 interface OpponentRowProps {
   player: PublicPlayerState;
   isCurrentTurn: boolean;
+  /**
+   * Versao enxuta para mobile: avatar 28px, sem fan de cartas, sem RankBadge,
+   * tudo em uma linha horizontal com width 120px. Mantem highlight de turno
+   * e marcacao de eliminado/desconectado.
+   */
+  compact?: boolean;
 }
 
-export function OpponentRow({ player, isCurrentTurn }: OpponentRowProps) {
+export function OpponentRow({ player, isCurrentTurn, compact }: OpponentRowProps) {
   const visibleCards = Math.min(player.cardCount, 8);
   const extraCards = player.cardCount - visibleCards;
+
+  if (compact) {
+    return (
+      <div
+        data-testid={`opponent-row-${player.userId}`}
+        className={cn(
+          'flex items-center gap-2 px-2 py-1.5 rounded-lg border transition-colors shrink-0',
+          isCurrentTurn
+            ? 'border-[var(--color-accent-strong)] bg-[var(--color-surface)] shadow-[0_0_6px_var(--color-accent-glow)]'
+            : 'border-[var(--color-border)] bg-[var(--color-surface)]',
+          player.isEliminated && 'opacity-30',
+        )}
+        style={{ width: 130 }}
+      >
+        {isCurrentTurn && (
+          <span data-testid={`current-turn-indicator-${player.userId}`} className="sr-only">
+            current turn
+          </span>
+        )}
+        <AvatarWithBorder index={player.avatarIndex ?? 0} level={player.level ?? 1} size={28} />
+        <div className="flex flex-col min-w-0 flex-1 gap-0.5">
+          <div className="flex items-center gap-1 min-w-0">
+            <span
+              className={cn(
+                'text-xs font-medium truncate min-w-0',
+                (player.pds ?? 0) >= 4000
+                  ? 'text-[var(--color-danger)]'
+                  : isCurrentTurn
+                    ? 'text-[var(--color-accent-soft)]'
+                    : 'text-[var(--color-text-primary)]',
+              )}
+              title={player.username}
+            >
+              {player.username}
+            </span>
+            {!player.isConnected && (
+              <span className="text-[9px] text-[var(--color-danger)] shrink-0" title="Desconectado">●</span>
+            )}
+          </div>
+          <div className="flex items-center gap-1.5">
+            <TokenDisplay tokens={player.tokensLeft} size="sm" playerId={player.userId} />
+            <span
+              className="text-[10px] text-[var(--color-text-muted)] tabular-nums font-mono shrink-0"
+              data-testid={`opponent-card-count-${player.userId}`}
+            >
+              {player.cardCount}c
+            </span>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div

@@ -50,13 +50,22 @@ interface AppNavbarProps {
    * In-game usa isso para liberar espaco da navbar e nao quebrar o layout.
    */
   mobileMinimal?: boolean;
+
+  /**
+   * Slot opcional que aparece SOMENTE no mobile (<sm), posicionado entre o
+   * grupo de extras (escondido por mobileMinimal) e o botao Sair. Usado pelo
+   * GameBoard para injetar gatilhos de chat e historico que migraram dos
+   * paineis flutuantes. No desktop (sm+) este wrapper some via sm:hidden, sem
+   * afetar o layout existente.
+   */
+  mobileExtraActions?: ReactNode;
 }
 
 /**
  * Navbar unica do app. Usada em: lobby, lobby da sala, in-game, perfil,
  * ranked, admin. Auth telas tem layout proprio.
  */
-export function AppNavbar({ center, back, hideUsername, onHowToPlay, mobileMinimal }: AppNavbarProps) {
+export function AppNavbar({ center, back, hideUsername, onHowToPlay, mobileMinimal, mobileExtraActions }: AppNavbarProps) {
   const navigate = useNavigate();
   const user = useAuthStore(s => s.user);
   const logout = useAuthStore(s => s.logout);
@@ -194,6 +203,12 @@ export function AppNavbar({ center, back, hideUsername, onHowToPlay, mobileMinim
               )}
             </button>
           </div>
+          {/* Slot extra — somente mobile (<sm). No desktop some via sm:hidden. */}
+          {mobileExtraActions && (
+            <div className="flex sm:hidden items-center gap-0.5">
+              {mobileExtraActions}
+            </div>
+          )}
           {/* Sair — sempre visivel, sempre vermelho, com confirmacao */}
           <button
             onClick={() => setLogoutOpen(true)}
