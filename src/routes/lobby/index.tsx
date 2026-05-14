@@ -29,6 +29,11 @@ export default function LobbyPage() {
     return () => stopMusic();
   }, []);
 
+  // Garante que a tela abre no topo apos navegacao (volta de sala/partida)
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   const user = useAuthStore(s => s.user);
   const navigate = useNavigate();
   const queryClient = useQueryClient();

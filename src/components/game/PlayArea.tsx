@@ -66,7 +66,7 @@ export function PlayArea({ pile, drawPileCount, discardPile, saborActive, saborM
 
       {/* Active play area (center) */}
       <div className={cn(
-        'flex-1 min-h-28 sm:min-h-32 rounded-xl border-2 flex flex-col items-center justify-center gap-2 p-2 sm:p-3 transition-all',
+        'flex-1 min-h-28 sm:min-h-28 [@media(min-height:900px)]:sm:min-h-32 rounded-xl border-2 flex flex-col items-center justify-center gap-2 p-2 sm:p-2.5 [@media(min-height:900px)]:sm:p-3 transition-all',
         pile.length === 0
           ? 'border-dashed border-[var(--color-border)]'
           : saborActive

@@ -56,7 +56,7 @@ export function CardComponent({ card, selected, onClick, faceDown, small, respon
         small
           ? 'w-12 h-16 p-1 text-xs'
           : responsiveSmall
-            ? 'w-12 h-16 p-1 text-xs sm:w-20 sm:h-28 sm:p-2 sm:text-base'
+            ? 'w-12 h-16 p-1 text-xs sm:w-16 sm:h-24 sm:p-1.5 sm:text-sm [@media(min-height:900px)]:sm:w-20 [@media(min-height:900px)]:sm:h-28 [@media(min-height:900px)]:sm:p-2 [@media(min-height:900px)]:sm:text-base'
             : 'w-20 h-28 p-2 text-base',
         selected
           ? 'border-[var(--color-accent-glow)] shadow-[0_0_12px_var(--color-accent-glow)] sm:-translate-y-2'
@@ -72,7 +72,7 @@ export function CardComponent({ card, selected, onClick, faceDown, small, respon
           small
             ? 'text-sm'
             : responsiveSmall
-              ? 'text-sm sm:text-lg'
+              ? 'text-sm sm:text-base [@media(min-height:900px)]:sm:text-lg'
               : 'text-lg',
         )}
         style={{ color: 'oklch(98% 0.02 90)' }}
@@ -81,7 +81,7 @@ export function CardComponent({ card, selected, onClick, faceDown, small, respon
       </span>
       <span
         className={cn(
-          small ? 'text-sm' : responsiveSmall ? 'text-sm sm:text-2xl' : 'text-2xl',
+          small ? 'text-sm' : responsiveSmall ? 'text-sm sm:text-xl [@media(min-height:900px)]:sm:text-2xl' : 'text-2xl',
         )}
       >
         {emoji}

@@ -34,6 +34,13 @@ export default function RoomPage() {
     return () => stopMusic();
   }, []);
 
+  // Garante que a tela abre no topo. Sem isso, em algumas navegacoes
+  // (criar sala, voltar de partida) o scroll vinha herdado da rota
+  // anterior, deixando o usuario perdido no meio do lobby.
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   const { roomCode } = useParams<{ roomCode: string }>();
   const navigate = useNavigate();
   const location = useLocation();
