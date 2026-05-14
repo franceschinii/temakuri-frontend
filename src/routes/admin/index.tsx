@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Modal } from '@/components/ui/modal';
 import { DevFooter } from '@/components/ui/DevFooter';
 import { PlayerDetailsDialog, type PlayerSnapshot } from '@/components/ui/PlayerDetailsDialog';
+import { DiamondIcon } from '@/components/ui/DiamondIcon';
 import { Skeleton } from '@/components/ui/Skeleton';
 import api from '@/lib/api';
 import { toast } from 'sonner';
@@ -877,7 +878,7 @@ function EditProgressionModal({ open, user, onClose, onSuccess }: { open: boolea
   const toggleRevokeMode = (m: string) => setRevokeModes(prev => prev.includes(m) ? prev.filter(x => x !== m) : [...prev, m]);
 
   return (
-    <Modal open={open} onClose={onClose} title="Editar progressão" description={user?.username}>
+    <Modal open={open} onClose={onClose} title="Editar progressão" description={user?.username} className="max-w-2xl max-h-[90vh] overflow-y-auto">
       <form onSubmit={e => { e.preventDefault(); mutation.mutate(); }} className="flex flex-col gap-4">
 
         <div className="grid grid-cols-2 gap-3">
@@ -912,7 +913,7 @@ function EditProgressionModal({ open, user, onClose, onSuccess }: { open: boolea
           </p>
           <div className="grid grid-cols-2 gap-2">
             <Input label="Quantidade (+ ou -)" type="number" value={diamondDelta} onChange={e => setDiamondDelta(e.target.value)} placeholder="ex: 100 ou -50" />
-            <Input label="Motivo (opcional)" value={diamondReason} onChange={e => setDiamondReason(e.target.value)} placeholder="ex: compensacao bug" />
+            <Input label="Motivo (opcional)" value={diamondReason} onChange={e => setDiamondReason(e.target.value)} placeholder="ex: compensação por bug" />
           </div>
           <Button
             type="button"
@@ -922,7 +923,14 @@ function EditProgressionModal({ open, user, onClose, onSuccess }: { open: boolea
             disabled={creditDiamondsMutation.isPending || !diamondDelta || Number(diamondDelta) === 0}
             className="self-start"
           >
-            {creditDiamondsMutation.isPending ? 'Aplicando...' : `Aplicar (${diamondDelta || 0} 💎)`}
+            {creditDiamondsMutation.isPending ? (
+              'Aplicando...'
+            ) : (
+              <span className="inline-flex items-center gap-1.5">
+                Aplicar ({diamondDelta || 0}
+                <DiamondIcon size={12} />)
+              </span>
+            )}
           </Button>
         </div>
 
