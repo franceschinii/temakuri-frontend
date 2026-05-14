@@ -14,6 +14,23 @@ export interface ChangelogEntry {
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: '2026-05-14',
+    version: '0.5.4',
+    title: 'Correções rápidas na partida',
+    category: 'fix',
+    highlights: [
+      'Número das cartas voltou a ficar legível',
+      'Botão de chat duplicado removido',
+      'Contador de vazas e sabores agora funciona',
+    ],
+    details: `Algumas correções importantes:
+
+• Os números das cartas ficaram bem visíveis de novo, com letrinha branca destacada.
+• Tinha um botão de chat sobrando no canto direito — foi removido. O acesso continua pelo botão na linha dos emojis.
+• O código da sala e o tempo do turno pararam de vazar pra fora da barra de cima.
+• O contador de vazas ganhas e sabores ativados estava sempre em zero — agora salva direitinho ao fim de cada partida.`,
+  },
+  {
+    date: '2026-05-14',
     version: '0.5.3',
     title: 'Avatares mais bonitos e novo Udon Gold',
     category: 'feature',

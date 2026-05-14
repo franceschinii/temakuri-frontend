@@ -610,29 +610,31 @@ export function GameBoard() {
           </>
         }
         center={
-          <div className="flex items-center gap-1.5 sm:gap-3 min-w-0 flex-wrap justify-center">
-            <span className="text-xs sm:text-sm font-mono uppercase tracking-widest font-semibold" style={{ color: 'var(--color-text-muted)' }}>{roomCode}</span>
+          <div className="flex items-center gap-1.5 sm:gap-2.5 min-w-0 flex-nowrap justify-center whitespace-nowrap">
+            <span className="text-xs sm:text-sm font-mono uppercase tracking-widest font-semibold shrink-0" style={{ color: 'var(--color-text-muted)' }}>{roomCode}</span>
             {round > 0 && (
-              <span className="text-[10px] sm:text-xs bg-[var(--color-panel)] border border-[var(--color-border)] rounded-full px-1.5 py-0.5 sm:px-2 font-mono font-semibold" style={{ color: 'var(--color-accent-mid)' }} title={`Rodada ${round}`}>
+              <span className="text-[10px] sm:text-xs bg-[var(--color-panel)] border border-[var(--color-border)] rounded-full px-1.5 py-0.5 sm:px-2 font-mono font-semibold shrink-0" style={{ color: 'var(--color-accent-mid)' }} title={`Rodada ${round}`}>
                 R{round}
               </span>
             )}
             {isDuel && (
-              <span className="hidden sm:inline-flex text-[10px] border rounded-full px-2 py-0.5 font-semibold uppercase tracking-wider" style={{ background: 'oklch(78% 0.18 80 / 0.15)', borderColor: 'oklch(78% 0.18 80 / 0.4)', color: 'var(--color-warning)' }}>
+              <span className="hidden sm:inline-flex text-[10px] border rounded-full px-2 py-0.5 font-semibold uppercase tracking-wider shrink-0" style={{ background: 'oklch(78% 0.18 80 / 0.15)', borderColor: 'oklch(78% 0.18 80 / 0.4)', color: 'var(--color-warning)' }}>
                 Duelo
               </span>
             )}
             {isSpectator && (
-              <span className="hidden sm:inline-flex text-[10px] border rounded-full px-2 py-0.5 font-semibold uppercase tracking-wider" style={{ background: 'oklch(68% 0.15 145 / 0.15)', borderColor: 'oklch(68% 0.15 145 / 0.4)', color: 'var(--color-accent-mid)' }}>
+              <span className="hidden sm:inline-flex text-[10px] border rounded-full px-2 py-0.5 font-semibold uppercase tracking-wider shrink-0" style={{ background: 'oklch(68% 0.15 145 / 0.15)', borderColor: 'oklch(68% 0.15 145 / 0.4)', color: 'var(--color-accent-mid)' }}>
                 Espectador
               </span>
             )}
             {!isSpectator && spectatorCount > 0 && (
-              <span className="hidden sm:flex text-[10px] items-center gap-0.5" style={{ color: 'var(--color-text-muted)' }} title={`${spectatorCount} espectador${spectatorCount !== 1 ? 'es' : ''}`}>
+              <span className="hidden sm:flex text-[10px] items-center gap-0.5 shrink-0" style={{ color: 'var(--color-text-muted)' }} title={`${spectatorCount} espectador${spectatorCount !== 1 ? 'es' : ''}`}>
                 <Eye size={12} /> {spectatorCount}
               </span>
             )}
-            <TurnTimer key={timerKey} timeoutMs={timerMs} isMyTurn={isMyTurn} />
+            <div className="shrink min-w-0 w-32 sm:w-44">
+              <TurnTimer key={timerKey} timeoutMs={timerMs} isMyTurn={isMyTurn} />
+            </div>
           </div>
         }
       />

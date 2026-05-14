@@ -112,16 +112,19 @@ export function ActionHistoryPanel({ hideTriggers, externalToggleRef }: ActionHi
 
   return (
     <>
-      {/* ── DESKTOP: feed flutuante à esquerda (oculto em mobile). hideTriggers
-          afeta apenas o gatilho mobile interno; este feed desktop continua
-          mostrando as ultimas jogadas e abre o historico ao clicar. */}
+      {/* ── DESKTOP: feed flutuante à esquerda (oculto em mobile). Quando
+          hideTriggers, o consumidor (GameBoard) ja oferece um gatilho proprio
+          na linha inferior e este feed some pra nao duplicar. */}
       <motion.div
         animate={{ opacity: showFull ? 0 : feedOpacity }}
         transition={{ opacity: { duration: 0.6, ease: 'easeInOut' } }}
         onHoverStart={() => !showFull && setFeedOpacity(ACTIVE_OPACITY)}
         onHoverEnd={() => !showFull && setFeedOpacity(IDLE_OPACITY)}
         onClick={() => setShowFull(true)}
-        className="hidden sm:flex fixed left-2 top-1/2 -translate-y-1/2 z-30 flex-col gap-1.5 cursor-pointer"
+        className={cn(
+          'hidden sm:flex fixed left-2 top-1/2 -translate-y-1/2 z-30 flex-col gap-1.5 cursor-pointer',
+          hideTriggers && 'sm:hidden',
+        )}
         style={{ maxWidth: 192, pointerEvents: showFull ? 'none' : 'auto' }}
         title="Ver histórico completo"
       >

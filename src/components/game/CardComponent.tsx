@@ -68,13 +68,14 @@ export function CardComponent({ card, selected, onClick, faceDown, small, respon
     >
       <span
         className={cn(
-          'font-bold text-[var(--color-text-primary)]',
+          'font-bold drop-shadow-[0_1px_1px_rgba(0,0,0,0.6)]',
           small
-            ? 'text-xs'
+            ? 'text-sm'
             : responsiveSmall
-              ? 'text-xs sm:text-base'
-              : 'text-base',
+              ? 'text-sm sm:text-lg'
+              : 'text-lg',
         )}
+        style={{ color: 'oklch(98% 0.02 90)' }}
       >
         {card.value}
       </span>
@@ -91,7 +92,7 @@ export function CardComponent({ card, selected, onClick, faceDown, small, respon
       {responsiveSmall && (
         <span className="hidden sm:block text-[9px] text-[var(--color-text-muted)] leading-tight text-center">{label}</span>
       )}
-      <div className="absolute top-0.5 right-1 text-[8px] font-bold opacity-40" style={{ color }}>
+      <div className="absolute top-0.5 right-1 text-[9px] font-bold opacity-75" style={{ color }}>
         {card.category[0]}
       </div>
     </motion.button>

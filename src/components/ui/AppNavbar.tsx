@@ -141,8 +141,8 @@ export function AppNavbar({ center, back, hideUsername, onHowToPlay, mobileMinim
           </div>
         )}
         {center && (
-          <div className="hidden sm:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 items-center justify-center pointer-events-none">
-            <div className="pointer-events-auto">
+          <div className="hidden sm:flex absolute left-1/2 top-0 -translate-x-1/2 h-full items-center justify-center pointer-events-none max-w-[min(60vw,720px)]">
+            <div className="pointer-events-auto flex items-center justify-center min-w-0">
               {center}
             </div>
           </div>
