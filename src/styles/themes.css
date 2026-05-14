@@ -20,6 +20,7 @@
 [data-theme="bambu"] {
   --color-base:          oklch(22% 0.06 145);
   --color-surface:       oklch(28% 0.05 148);
+  --color-panel:         oklch(35% 0.06 150);
   --color-accent-strong: oklch(52% 0.18 145);
   --color-accent-mid:    oklch(68% 0.15 145);
   --color-accent-soft:   oklch(82% 0.10 145);
@@ -53,6 +54,7 @@
 [data-theme="oceano"] {
   --color-base:          oklch(22% 0.06 240);
   --color-surface:       oklch(28% 0.07 240);
+  --color-panel:         oklch(35% 0.07 240);
   --color-accent-strong: oklch(56% 0.18 240);
   --color-accent-mid:    oklch(70% 0.16 240);
   --color-accent-soft:   oklch(84% 0.10 240);
@@ -76,6 +78,7 @@
 [data-theme="sakura"] {
   --color-base:          oklch(22% 0.05 350);
   --color-surface:       oklch(28% 0.06 350);
+  --color-panel:         oklch(35% 0.07 350);
   --color-accent-strong: oklch(58% 0.18 350);
   --color-accent-mid:    oklch(72% 0.16 350);
   --color-accent-soft:   oklch(86% 0.10 350);
@@ -99,6 +102,7 @@
 [data-theme="oni"] {
   --color-base:          oklch(20% 0.08 25);
   --color-surface:       oklch(26% 0.08 25);
+  --color-panel:         oklch(35% 0.08 25);
   --color-accent-strong: oklch(58% 0.22 30);
   --color-accent-mid:    oklch(72% 0.18 30);
   --color-accent-soft:   oklch(84% 0.12 30);
