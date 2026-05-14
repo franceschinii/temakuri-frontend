@@ -120,9 +120,16 @@ export function AppNavbar({ center, back, hideUsername, onHowToPlay, mobileMinim
           {onHowToPlay && (
             <button
               onClick={onHowToPlay}
-              className="p-1.5 rounded-lg transition-colors hover:bg-[var(--color-panel)] flex items-center gap-1.5"
+              className={cn(
+                'p-1.5 rounded-lg transition-colors hover:bg-[var(--color-panel)] items-center gap-1.5',
+                // In-game mobile (mobileMinimal=true) ja tem HelpCircle nos
+                // mobileExtraActions. Esconder o botao ao lado do logo no
+                // mobile pra nao duplicar; desktop sempre visivel.
+                mobileMinimal ? 'hidden sm:flex' : 'flex',
+              )}
               style={{ color: 'var(--color-text-muted)' }}
               title="Como jogar"
+              aria-label="Como jogar"
             >
               <HelpCircle size={16} />
               <span className="text-xs hidden md:inline">Como jogar</span>

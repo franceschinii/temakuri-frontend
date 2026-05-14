@@ -12,6 +12,7 @@ import { XpBar } from '@/components/ui/XpBar';
 import { CoinDisplay } from '@/components/ui/CoinDisplay';
 import { ShopModal } from '@/components/shop/ShopModal';
 import { AppNavbar } from '@/components/ui/AppNavbar';
+import { RulesModal } from '@/components/ui/RulesModal';
 import { DevFooter } from '@/components/ui/DevFooter';
 import { AdBanner } from '@/components/ui/AdBanner';
 import { useAuthStore } from '@/stores/authStore';
@@ -32,6 +33,7 @@ export default function ProfilePage() {
   const [usernameInput, setUsernameInput] = useState(user?.username ?? '');
   const [usernameStatus, setUsernameStatus] = useState<UsernameStatus>('same');
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [rulesOpen, setRulesOpen] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const { data: profile } = useQuery({
@@ -121,7 +123,7 @@ export default function ProfilePage() {
 
   return (
     <div className="h-dvh bg-[var(--color-base)] flex flex-col overflow-hidden">
-      <AppNavbar back="/lobby" />
+      <AppNavbar back="/lobby" onHowToPlay={() => setRulesOpen(true)} />
 
       <main className="flex-1 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <div className="max-w-md mx-auto w-full p-5 flex flex-col gap-6">
@@ -329,6 +331,7 @@ export default function ProfilePage() {
           </Button>
         </div>
       </Modal>
+      <RulesModal open={rulesOpen} onClose={() => setRulesOpen(false)} />
       <DevFooter />
     </div>
   );

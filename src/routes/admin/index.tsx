@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Pencil, KeyRound, Trash2, BarChart2, Search, X, Ban, Clock, ShieldCheck, Users, DoorOpen, UserX, RefreshCw, TrendingUp, Wine } from 'lucide-react';
 import { AppNavbar } from '@/components/ui/AppNavbar';
+import { RulesModal } from '@/components/ui/RulesModal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Modal } from '@/components/ui/modal';
@@ -129,6 +130,7 @@ export default function AdminPage() {
   useEffect(() => { window.localStorage.setItem('admin:filter', filter); }, [filter]);
   const [playerDialogUserId, setPlayerDialogUserId] = useState<string | null>(null);
   const [playerDialogSnapshot, setPlayerDialogSnapshot] = useState<PlayerSnapshot | null>(null);
+  const [rulesOpen, setRulesOpen] = useState(false);
   const openPlayerDialog = (snapshot: PlayerSnapshot) => {
     setPlayerDialogSnapshot(snapshot);
     setPlayerDialogUserId(snapshot.userId);
@@ -347,7 +349,7 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-dvh bg-[var(--color-base)] flex flex-col">
-      <AppNavbar back="/lobby" hideUsername />
+      <AppNavbar back="/lobby" hideUsername onHowToPlay={() => setRulesOpen(true)} />
 
       <main className="flex-1 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <div className="max-w-5xl mx-auto w-full p-4 sm:p-6 flex flex-col gap-4">
@@ -653,6 +655,7 @@ export default function AdminPage() {
         userId={playerDialogUserId}
         snapshot={playerDialogSnapshot}
       />
+      <RulesModal open={rulesOpen} onClose={() => setRulesOpen(false)} />
       <DevFooter />
     </div>
   );
