@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Check } from 'lucide-react';
+import { Check, HandHeart } from 'lucide-react';
 import { Modal } from '@/components/ui/modal';
 import { Button } from '@/components/ui/button';
 import { AvatarImage } from '@/components/ui/Avatar';
@@ -360,23 +360,30 @@ export function ShopModal({ open, onClose }: ShopModalProps) {
                 <p className="text-xs text-[var(--color-text-muted)]">
                   Compre diamantes para destravar avatares premium, temas e mais.
                 </p>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-3 items-stretch">
                   {DIAMOND_PACKS.map(pack => (
                     <div
                       key={pack.sku}
-                      className="flex flex-col items-center gap-1.5 p-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] text-center"
+                      className="flex flex-col items-center gap-1.5 p-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] text-center h-full"
                     >
                       <DiamondIcon size={28} />
-                      <span className="text-base font-bold text-[var(--color-text-primary)]">{pack.diamonds.toLocaleString('pt-BR')}</span>
-                      {pack.bonus > 0 && (
+                      <span
+                        className="text-lg font-bold drop-shadow-[0_1px_1px_rgba(0,0,0,0.6)]"
+                        style={{ color: 'oklch(98% 0.02 90)' }}
+                      >
+                        {pack.diamonds.toLocaleString('pt-BR')}
+                      </span>
+                      {pack.bonus > 0 ? (
                         <span className="text-[10px] text-[var(--color-accent-mid)] font-semibold uppercase">+{pack.bonus}% bônus</span>
+                      ) : (
+                        <span className="text-[10px] opacity-0 select-none">—</span>
                       )}
                       <span className="text-xs text-[var(--color-text-muted)] tabular-nums">
                         R$ {pack.priceBrl.toFixed(2).replace('.', ',')}
                       </span>
                       <Button
                         size="sm"
-                        className="w-full mt-1"
+                        className="w-full mt-auto"
                         disabled={!PAYMENTS_ENABLED}
                         onClick={() => handleStripeCheckout('diamonds', pack.sku)}
                       >
@@ -474,6 +481,10 @@ export function ShopModal({ open, onClose }: ShopModalProps) {
                     <li className="flex items-center gap-2">
                       <Check size={14} className="text-[oklch(75%_0.2_310)] shrink-0" />
                       Badge premium no perfil
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <HandHeart size={14} className="text-[oklch(75%_0.2_310)] shrink-0" />
+                      Apoia o desenvolvedor independente
                     </li>
                   </ul>
                   {user?.isPremium ? (
