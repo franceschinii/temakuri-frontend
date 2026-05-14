@@ -14,6 +14,19 @@ export interface ChangelogEntry {
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: '2026-05-14',
+    version: '0.5.3',
+    title: 'Avatares mais bonitos e novo Udon Gold',
+    category: 'feature',
+    highlights: [
+      'Os avatares ficaram mais caprichados',
+      'Novo Udon Gold dourado disponível na loja',
+    ],
+    details: `Demos uma caprichada nos rostinhos das comidas — eles ficaram mais expressivos, com mais cores e detalhes. As boquinhas agora aparecem direitinho.
+
+Tem um novo avatar à venda: o **Udon Gold**, com a tigela toda dourada.`,
+  },
+  {
+    date: '2026-05-14',
     version: '0.5.2',
     title: 'Polimento da partida e correção da economia',
     category: 'fix',
