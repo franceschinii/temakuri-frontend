@@ -1067,7 +1067,10 @@ export function GameBoard() {
             <Button variant="ghost" onClick={() => setLeaveConfirmOpen(false)}>Cancelar</Button>
             <Button
               className="bg-[var(--color-danger)] hover:opacity-90 text-white border-0"
-              onClick={() => navigate('/lobby')}
+              onClick={() => {
+                emitSocketEvent('lobby:leave_room', { roomCode });
+                navigate('/lobby');
+              }}
             >
               Sair mesmo assim
             </Button>

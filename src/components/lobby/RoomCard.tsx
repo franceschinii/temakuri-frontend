@@ -96,16 +96,22 @@ export function RoomCard({ room }: RoomCardProps) {
           </div>
         </div>
 
-        {!isInProgress && isFull ? (
-          <span className="text-[10px] text-[var(--color-text-muted)] shrink-0">Lotada</span>
+        {isInProgress ? (
+          <Button size="sm" variant="secondary" disabled>
+            Em andamento
+          </Button>
+        ) : isFull ? (
+          <Button size="sm" variant="secondary" disabled>
+            Lotada
+          </Button>
         ) : (
           <Button
             size="sm"
-            variant={isInProgress ? 'secondary' : 'primary'}
+            variant="primary"
             onClick={handleEnter}
             data-testid={`lobby-room-join-btn-${room.code}`}
           >
-            {isInProgress ? 'Assistir' : 'Entrar'}
+            Entrar
           </Button>
         )}
       </div>
