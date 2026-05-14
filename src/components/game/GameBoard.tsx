@@ -643,7 +643,7 @@ export function GameBoard() {
       {/* Opponents — em mobile e em notebooks (altura < 900px) usa OpponentRow
           compact, que e horizontal e baixo (~50px de altura). Em monitores
           desktop com altura suficiente, usa o full vertical com fan de cartas. */}
-      <div className="flex gap-1.5 px-2 py-2 border-b border-[var(--color-border)] bg-[var(--color-surface)] overflow-x-auto snap-x snap-mandatory [@media(min-height:900px)]:sm:flex-wrap [@media(min-height:900px)]:sm:overflow-visible [@media(min-height:900px)]:sm:justify-center [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div className="flex gap-1.5 px-2 py-1 [@media(min-height:900px)]:py-2 border-b border-[var(--color-border)] bg-[var(--color-surface)] overflow-x-auto snap-x snap-mandatory sm:justify-center [@media(min-height:900px)]:sm:flex-wrap [@media(min-height:900px)]:sm:overflow-visible [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {opponents.map(p => {
           const handleClick = () => openPlayerDialog({
             userId: p.userId,
@@ -677,10 +677,10 @@ export function GameBoard() {
       {/* Center area — mantem layout flex, mas com altura reservada para overlays
           e sem overflow-y-auto que causava layout shift. Conteudo opcional usa
           min-h reservado em vez de entrar/sair do DOM. */}
-      <div className="flex-1 min-h-0 flex flex-col items-center justify-center gap-2 px-2 py-3 sm:px-4">
+      <div className="flex-1 min-h-0 flex flex-col items-center justify-center gap-1.5 [@media(min-height:900px)]:gap-2 px-2 py-1.5 [@media(min-height:900px)]:py-3 sm:px-4">
         {/* Banner de eventos importantes (turno, sabor, etc.) — topo da area de mesa,
-            altura reservada de 36px para nao empurrar a mesa quando entra/sai. */}
-        <div className="h-9 flex items-center justify-center w-full pointer-events-none">
+            altura reservada para nao empurrar a mesa quando entra/sai. */}
+        <div className="h-7 [@media(min-height:900px)]:h-9 flex items-center justify-center w-full pointer-events-none">
           <AnimatePresence mode="wait">
             {turnBanner ? (
               <motion.div
@@ -804,7 +804,7 @@ export function GameBoard() {
 
       {/* My area — destaque visual forte quando e meu turno */}
       <div
-        className={`relative shrink-0 border-t-2 bg-[var(--color-surface)] px-2 pt-1.5 pb-2 sm:px-4 sm:pt-2 sm:pb-3 flex flex-col transition-all ${
+        className={`relative shrink-0 border-t-2 bg-[var(--color-surface)] px-2 pt-1 pb-1.5 sm:px-4 [@media(min-height:900px)]:sm:pt-2 [@media(min-height:900px)]:sm:pb-3 flex flex-col transition-all ${
           isMyTurn && phase === 'PLAYER_TURN'
             ? 'border-t-[var(--color-accent-strong)] shadow-[0_-8px_24px_-4px_var(--color-accent-strong-translucent)]'
             : 'border-t-[var(--color-border)]'
@@ -820,7 +820,7 @@ export function GameBoard() {
           ))}
         </div>
         {/* Info bar */}
-        <div className="flex items-center justify-between mb-1.5">
+        <div className="flex items-center justify-between mb-1 [@media(min-height:900px)]:mb-1.5">
           <div className="flex items-center gap-2">
             <button
               type="button"
@@ -902,13 +902,23 @@ export function GameBoard() {
 
         {/* Hand — sempre renderiza o mesmo componente para evitar remount/flick
             quando entra/sai pickMode. */}
-        <div className="pb-3 pt-2 overflow-visible">
+        <div className="relative pb-1.5 pt-1 [@media(min-height:900px)]:pb-3 [@media(min-height:900px)]:pt-2 overflow-visible">
           <PlayerHand
             hand={myHand}
             isMyTurn={isMyTurn}
             pickMode={pickMode}
             onPickInsert={pickMode ? handleInsertAtIndex : undefined}
           />
+          {/* Overlay flutuante: aviso de jogada inválida sobre a mão.
+              Absolute para não empurrar o ActionBar e não causar resize
+              da mesa quando aparece/desaparece. */}
+          {isMyTurn && selectedIndices.length > 0 && !canPlay && pile.length > 0 && (
+            <div className="pointer-events-none absolute left-1/2 -translate-x-1/2 -top-1 z-20">
+              <span className="inline-flex items-center text-[11px] font-semibold px-2.5 py-1 rounded-full bg-[var(--color-surface)]/95 backdrop-blur-sm border border-[var(--color-warning)]/50 text-[var(--color-warning)] shadow-lg whitespace-nowrap">
+                Jogada inválida — precisa de mais cartas ou valor maior
+              </span>
+            </div>
+          )}
         </div>
 
         {!pickMode && !marketSwapMode && (
@@ -923,11 +933,6 @@ export function GameBoard() {
               isDuel={isDuel}
               myDuelPlatesCount={myDuelPlates?.length ?? 0}
             />
-            {isMyTurn && selectedIndices.length > 0 && !canPlay && pile.length > 0 && (
-              <p className="text-xs text-center text-[var(--color-warning)]">
-                Jogada inválida — precisa de mais cartas ou valor maior
-              </p>
-            )}
             {/* Linha inferior: historico (esq) + emojis (centro) + chat (dir) */}
             <div className="flex items-center justify-between gap-2">
               <button

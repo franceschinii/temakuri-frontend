@@ -122,7 +122,7 @@ export function ActionHistoryPanel({ hideTriggers, externalToggleRef }: ActionHi
         onHoverStart={() => !showFull && setFeedOpacity(ACTIVE_OPACITY)}
         onHoverEnd={() => !showFull && setFeedOpacity(IDLE_OPACITY)}
         onClick={() => setShowFull(true)}
-        className="hidden sm:flex fixed left-2 top-1/2 -translate-y-1/2 z-30 flex-col gap-1.5 cursor-pointer"
+        className="hidden sm:flex fixed left-2 top-1/3 [@media(min-height:900px)]:top-1/2 -translate-y-1/2 z-30 flex-col gap-1.5 cursor-pointer"
         style={{ maxWidth: 192, pointerEvents: showFull ? 'none' : 'auto' }}
         title="Ver histórico completo"
       >
