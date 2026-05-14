@@ -59,9 +59,12 @@ export default function LandingPage() {
           className="relative flex flex-col items-center gap-2"
         >
           <div className="absolute inset-0 scale-150 rounded-full bg-[var(--color-accent-strong)]/10 blur-3xl pointer-events-none" />
+          {/* H1 semantico para SEO (lido por bots e leitores de tela; oculto visualmente
+              porque a marca visual ja vem do logo abaixo). */}
+          <h1 className="sr-only">Temakuri — Jogo de Cartas Japonês Multiplayer Online</h1>
           <img
             src="/logo.svg"
-            alt="Temakuri"
+            alt="Temakuri — Jogo de cartas japonês online"
             draggable={false}
             className="relative drop-shadow-[0_0_48px_oklch(68%_0.15_145_/_0.5)] w-[280px] sm:w-[380px] md:w-[480px] h-auto"
           />

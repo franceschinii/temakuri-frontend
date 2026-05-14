@@ -14,6 +14,27 @@ export interface ChangelogEntry {
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: '2026-05-14',
+    version: '0.6.5',
+    title: 'GameBoard responsivo, modais com scroll e sair de partida limpa a sala',
+    category: 'qol',
+    highlights: [
+      'Mesa do jogo cabe bonita em notebooks',
+      'Modais não vazam mais da tela',
+      'Sair da partida apaga a sala (não fica zumbi)',
+      'Lobby abre no topo, sem scroll perdido',
+    ],
+    details: `Várias melhorias de experiência:
+
+• **Notebooks (telas baixas)**: oponentes em linha horizontal centralizada, mesa central com mais espaço, cartas e paddings ajustados. Em monitor desktop o layout segue maior como antes.
+• **Histórico flutuante** (lateral esquerda) sobe um pouco em notebooks pra não ficar colado na mão.
+• **Aviso "Jogada inválida"** virou um badge flutuante acima da mão — não empurra mais o ActionBar nem causa "tremida" da mesa.
+• **Modais** (Como Jogar, Loja, Resultado, etc): nenhum vaza mais da tela. Quando o conteúdo é grande, scrolla internamente dentro do dialog.
+• **Sair de partida**: ao sair com bots, a sala é encerrada de verdade. Antes ela ficava "zumbi" na lista do lobby mostrando opção fantasma de assistir.
+• **Botão "Assistir" removido** (a feature de espectador foi descontinuada). Salas em andamento mostram "Em andamento" desabilitado.
+• **Lobby e sala**: abrem com scroll no topo (antes às vezes apareciam scrolladas).`,
+  },
+  {
+    date: '2026-05-14',
     version: '0.6.4',
     title: 'Partidas mais estáveis e novos temas na loja',
     category: 'fix',

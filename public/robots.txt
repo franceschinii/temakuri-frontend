@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /lobby
+Disallow: /game
+Disallow: /profile
+Disallow: /payments
+Disallow: /ranked
+
+Sitemap: https://temakuri.com/sitemap.xml
