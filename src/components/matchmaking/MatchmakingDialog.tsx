@@ -191,10 +191,10 @@ export function MatchmakingDialog({ open, onClose }: Props) {
   const strokeDashoffset = circumference * (1 - confirmProgress / 100);
 
   return createPortal(
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm" data-testid="matchmaking-dialog">
-      <div className="relative w-full max-w-sm mx-4 rounded-2xl border border-[var(--color-border)] bg-[var(--color-panel)] shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4" data-testid="matchmaking-dialog">
+      <div className="relative w-full max-w-sm max-h-[90dvh] rounded-2xl border border-[var(--color-border)] bg-[var(--color-panel)] shadow-2xl flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-[var(--color-border)]">
+        <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-[var(--color-border)] shrink-0">
           <div className="flex items-center gap-2">
             <Swords size={16} className="text-[var(--color-accent-soft)]" />
             <span className="text-sm font-semibold text-[var(--color-text-primary)]">Buscar Partida</span>
@@ -209,7 +209,7 @@ export function MatchmakingDialog({ open, onClose }: Props) {
           )}
         </div>
 
-        <div className="p-5 flex flex-col gap-5">
+        <div className="p-5 flex flex-col gap-5 overflow-y-auto flex-1 min-h-0">
           {/* IDLE: type selection */}
           {status === 'idle' && (
             <>

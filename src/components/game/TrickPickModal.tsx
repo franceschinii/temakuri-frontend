@@ -38,7 +38,7 @@ export function TrickPickModal({ open, pile, myHand, onTake, onDiscard }: TrickP
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
-            className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-2xl p-6 w-full max-w-sm shadow-2xl flex flex-col gap-4"
+            className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-2xl p-6 w-full max-w-sm max-h-[90dvh] overflow-y-auto shadow-2xl flex flex-col gap-4"
           >
             {step === 'choose' ? (
               <>

@@ -549,7 +549,7 @@ export default function RoomPage() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 12 }}
               transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-              className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-80 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-2xl shadow-2xl p-6 flex flex-col gap-4"
+              className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-[calc(100vw-2rem)] max-w-80 max-h-[90dvh] overflow-y-auto bg-[var(--color-surface)] border border-[var(--color-border)] rounded-2xl shadow-2xl p-6 flex flex-col gap-4"
             >
               <div className="flex items-center gap-2">
                 <Lock size={14} className="text-[var(--color-accent-mid)]" />

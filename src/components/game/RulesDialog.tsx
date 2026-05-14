@@ -38,7 +38,7 @@ export function RulesDialog() {
                 exit={{ scale: 0.92, opacity: 0 }}
                 onClick={e => e.stopPropagation()}
                 style={{ position: 'relative' }}
-                className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-2xl p-6 w-full max-w-md max-h-[85vh] overflow-y-auto [scrollbar-width:none] shadow-2xl flex flex-col gap-4"
+                className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-2xl p-6 w-full max-w-md max-h-[90dvh] overflow-y-auto [scrollbar-width:none] shadow-2xl flex flex-col gap-4"
               >
                 <div className="flex items-center justify-between">
                   <h2 className="text-lg font-semibold text-[var(--color-text-primary)]" style={{ fontFamily: 'var(--font-display)' }}>
