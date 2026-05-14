@@ -319,7 +319,7 @@ export function MatchmakingDialog({ open, onClose }: Props) {
                   <circle
                     cx="30" cy="30" r="26"
                     fill="none"
-                    stroke={confirmTimer <= 10 ? 'var(--color-danger)' : 'oklch(70% 0.2 145)'}
+                    stroke={confirmTimer <= 10 ? 'var(--color-danger)' : 'var(--color-accent-mid)'}
                     strokeWidth="3"
                     strokeLinecap="round"
                     strokeDasharray={circumference}

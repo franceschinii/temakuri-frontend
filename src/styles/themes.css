@@ -1,17 +1,21 @@
 /**
- * Temas comprados na loja aplicados via [data-theme="X"] no <body> em toda
- * area autenticada (gerenciado pelo AuthGuard em App.tsx). LP e rotas
- * publicas (/, /auth/*) nao recebem data-theme e ficam no esquema default
- * de theme.css.
+ * Temas comprados/aplicados via [data-theme="X"] no <body> em toda area
+ * autenticada (gerenciado pelo AuthGuard em App.tsx). LP e rotas publicas
+ * (/, /auth/*) nao recebem data-theme e ficam no esquema default de
+ * theme.css.
  *
- * Cada tema sobrescreve o conjunto de tokens de acento, surface, borda e
- * base. Lightness/chroma dos tokens originais sao preservados pra evitar
- * regressao de contraste; apenas o hue (e levemente o chroma de acento)
- * muda. Backgrounds gradientes ficam restritos a body/.h-dvh.
+ * Bambu Verde e o tema padrao gratuito; seus tokens batem com o default
+ * de theme.css, entao [data-theme="bambu"] e essencialmente um no-op
+ * (mantido por simetria com os demais e permite reaplicar o gradient
+ * de bambu quando o user escolhe explicitamente).
+ *
+ * Cada tema sobrescreve apenas os tokens de acento, surface, borda e base.
+ * Lightness/chroma sao preservados pra evitar regressao de contraste;
+ * apenas o hue muda.
  */
 
 /* ============================================================
- * BAMBU — verde (hue 145)
+ * BAMBU VERDE — tema padrao gratuito (hue 145)
  * ============================================================ */
 [data-theme="bambu"] {
   --color-base:          oklch(22% 0.06 145);
@@ -39,6 +43,27 @@
       oklch(35% 0.1 140 / 0.18) 40px
     );
   background-blend-mode: multiply;
+}
+
+/* ============================================================
+ * OCEANO — azul profundo (hue 240)
+ * ============================================================ */
+[data-theme="oceano"] {
+  --color-base:          oklch(22% 0.06 240);
+  --color-surface:       oklch(28% 0.07 240);
+  --color-accent-strong: oklch(56% 0.18 240);
+  --color-accent-mid:    oklch(70% 0.16 240);
+  --color-accent-soft:   oklch(84% 0.10 240);
+  --color-accent-glow:   oklch(88% 0.12 235);
+  --color-border:        oklch(38% 0.08 240);
+}
+[data-theme="oceano"] body,
+[data-theme="oceano"] .min-h-dvh,
+[data-theme="oceano"] .h-dvh {
+  background:
+    radial-gradient(circle at 30% 80%, oklch(60% 0.18 230 / 0.20), transparent 45%),
+    radial-gradient(circle at 70% 20%, oklch(70% 0.14 220 / 0.16), transparent 40%),
+    linear-gradient(to bottom, oklch(22% 0.06 240), oklch(14% 0.05 240));
 }
 
 /* ============================================================

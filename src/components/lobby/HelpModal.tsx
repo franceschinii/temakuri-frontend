@@ -74,7 +74,7 @@ const ICON_INFO: { Icon: ComponentType<{ size?: number; className?: string }>; i
   },
   {
     Icon: Zap,
-    iconStyle: { color: 'oklch(70% 0.2 145)' },
+    iconStyle: { color: 'var(--color-accent-mid)' },
     name: 'Sua vez',
     description: 'Destaque verde que aparece no seu avatar e nome quando é a sua vez de jogar.',
   },

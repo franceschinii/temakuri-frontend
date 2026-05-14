@@ -118,6 +118,7 @@ export interface ShopCatalogTheme {
   price: number;
   currency: 'diamonds';
   owned: boolean;
+  free: boolean;
 }
 
 export interface ShopCatalogCoinPack {
