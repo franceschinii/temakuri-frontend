@@ -25,6 +25,8 @@
   --color-accent-soft:   oklch(82% 0.10 145);
   --color-accent-glow:   oklch(88% 0.12 140);
   --color-border:        oklch(38% 0.06 148);
+  --color-text-primary:  oklch(96% 0.02 145);
+  --color-text-muted:    oklch(72% 0.05 145);
 }
 [data-theme="bambu"] body,
 [data-theme="bambu"] .min-h-dvh,
@@ -56,6 +58,8 @@
   --color-accent-soft:   oklch(84% 0.10 240);
   --color-accent-glow:   oklch(88% 0.12 235);
   --color-border:        oklch(38% 0.08 240);
+  --color-text-primary:  oklch(96% 0.02 240);
+  --color-text-muted:    oklch(72% 0.05 240);
 }
 [data-theme="oceano"] body,
 [data-theme="oceano"] .min-h-dvh,
@@ -77,6 +81,8 @@
   --color-accent-soft:   oklch(86% 0.10 350);
   --color-accent-glow:   oklch(90% 0.12 350);
   --color-border:        oklch(38% 0.07 350);
+  --color-text-primary:  oklch(96% 0.02 350);
+  --color-text-muted:    oklch(72% 0.05 350);
 }
 [data-theme="sakura"] body,
 [data-theme="sakura"] .min-h-dvh,
@@ -98,6 +104,8 @@
   --color-accent-soft:   oklch(84% 0.12 30);
   --color-accent-glow:   oklch(88% 0.14 30);
   --color-border:        oklch(38% 0.09 25);
+  --color-text-primary:  oklch(96% 0.02 25);
+  --color-text-muted:    oklch(72% 0.05 25);
 }
 [data-theme="oni"] body,
 [data-theme="oni"] .min-h-dvh,
