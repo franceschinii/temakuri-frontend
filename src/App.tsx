@@ -1,4 +1,4 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { useAuthStore } from '@/stores/authStore';
 
@@ -69,6 +69,18 @@ function PageLoader() {
 
 function AuthGuard() {
   const user = useAuthStore(s => s.user);
+
+  useEffect(() => {
+    if (user?.activeTheme) {
+      document.body.setAttribute('data-theme', user.activeTheme);
+    } else {
+      document.body.removeAttribute('data-theme');
+    }
+    return () => {
+      document.body.removeAttribute('data-theme');
+    };
+  }, [user?.activeTheme]);
+
   if (!user) return <Navigate to="/" replace />;
   return <Outlet />;
 }
