@@ -91,7 +91,7 @@ export function AppNavbar({ center, back, hideUsername, onHowToPlay, mobileMinim
 
   return (
     <>
-      <header className="border-b border-[var(--color-border)] bg-[var(--color-surface)]/95 backdrop-blur-sm px-4 sm:px-6 py-3 flex items-center justify-between shrink-0 z-20 gap-3">
+      <header className="relative border-b border-[var(--color-border)] bg-[var(--color-surface)]/95 backdrop-blur-sm px-4 sm:px-6 py-3 flex items-center justify-between shrink-0 z-20 gap-3">
         {/* Esquerda: voltar + logo */}
         <div className="flex items-center gap-2.5 min-w-0">
           {back !== undefined && back !== false && (
@@ -130,10 +130,21 @@ export function AppNavbar({ center, back, hideUsername, onHowToPlay, mobileMinim
           )}
         </div>
 
-        {/* Centro: slot customizado */}
+        {/* Centro: slot customizado.
+            Mobile (<sm): fica no fluxo flex, dividindo espaco entre esquerda
+            e direita. Desktop (sm+): centralizado absoluto na tela toda, para
+            nao sofrer com a assimetria entre lado esquerdo (curto) e lado
+            direito (muitos botoes). */}
         {center && (
-          <div className="flex-1 flex items-center justify-center min-w-0">
+          <div className="flex-1 flex items-center justify-center min-w-0 sm:hidden">
             {center}
+          </div>
+        )}
+        {center && (
+          <div className="hidden sm:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 items-center justify-center pointer-events-none">
+            <div className="pointer-events-auto">
+              {center}
+            </div>
           </div>
         )}
 

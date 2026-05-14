@@ -52,8 +52,13 @@ export function ActionHistoryPanel({ hideTriggers, externalToggleRef }: ActionHi
   const [showFull, setShowFull] = useState(false);
   const [feedOpacity, setFeedOpacity] = useState(IDLE_OPACITY);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const prevLenRef = useRef(0);
   const fadeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Sticky auto-scroll: enquanto true, novas entradas rolam a lista para o
+  // fim. Vira false quando o usuario faz scroll para cima e volta a true
+  // quando ele rola de volta ate proximo do final.
+  const [autoScroll, setAutoScroll] = useState(true);
 
   useImperativeHandle(
     externalToggleRef,
@@ -76,33 +81,47 @@ export function ActionHistoryPanel({ hideTriggers, externalToggleRef }: ActionHi
     }
   }, [actionLog.length, showFull]);
 
+  // Ao abrir o modal: garante que comece scrollado no fim e reseta autoScroll.
   useEffect(() => {
     if (showFull) {
       setFeedOpacity(IDLE_OPACITY);
-      setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 80);
+      setAutoScroll(true);
+      // 'auto' (instantaneo) para nao mostrar a animacao subindo
+      requestAnimationFrame(() => {
+        bottomRef.current?.scrollIntoView({ behavior: 'auto' });
+      });
     }
   }, [showFull]);
 
+  // Quando chega entrada nova e o usuario esta colado no fim, segue rolando.
+  // Se ele subiu para ler algo, paramos.
   useEffect(() => {
-    if (showFull) bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [actionLog.length, showFull]);
+    if (showFull && autoScroll) {
+      bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [actionLog.length, showFull, autoScroll]);
+
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const el = e.currentTarget;
+    // Considera 'no fim' quando faltam menos de 32px para o final visivel.
+    const nearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 32;
+    setAutoScroll(nearBottom);
+  };
 
   const recent = actionLog.slice(-4);
 
   return (
     <>
-      {/* ── DESKTOP: feed flutuante à esquerda (oculto em mobile). Some
-          tambem quando hideTriggers — quem consome ja oferece trigger proprio. */}
+      {/* ── DESKTOP: feed flutuante à esquerda (oculto em mobile). hideTriggers
+          afeta apenas o gatilho mobile interno; este feed desktop continua
+          mostrando as ultimas jogadas e abre o historico ao clicar. */}
       <motion.div
         animate={{ opacity: showFull ? 0 : feedOpacity }}
         transition={{ opacity: { duration: 0.6, ease: 'easeInOut' } }}
         onHoverStart={() => !showFull && setFeedOpacity(ACTIVE_OPACITY)}
         onHoverEnd={() => !showFull && setFeedOpacity(IDLE_OPACITY)}
         onClick={() => setShowFull(true)}
-        className={cn(
-          'hidden sm:flex fixed left-2 top-1/2 -translate-y-1/2 z-30 flex-col gap-1.5 cursor-pointer',
-          hideTriggers && 'sm:hidden',
-        )}
+        className="hidden sm:flex fixed left-2 top-1/2 -translate-y-1/2 z-30 flex-col gap-1.5 cursor-pointer"
         style={{ maxWidth: 192, pointerEvents: showFull ? 'none' : 'auto' }}
         title="Ver histórico completo"
       >
@@ -179,7 +198,11 @@ export function ActionHistoryPanel({ hideTriggers, externalToggleRef }: ActionHi
                   <X size={13} className="text-[var(--color-text-muted)]" />
                 </button>
               </div>
-              <div className="flex-1 overflow-y-auto px-3 py-3 space-y-2 min-h-0 scroll-smooth">
+              <div
+                ref={scrollContainerRef}
+                onScroll={handleScroll}
+                className="flex-1 overflow-y-auto px-3 py-3 space-y-2 min-h-0 scroll-smooth"
+              >
                 <LogList entries={actionLog} bottomRef={bottomRef} />
               </div>
             </motion.div>
@@ -202,7 +225,11 @@ export function ActionHistoryPanel({ hideTriggers, externalToggleRef }: ActionHi
                   <X size={13} className="text-[var(--color-text-muted)]" />
                 </button>
               </div>
-              <div className="flex-1 overflow-y-auto px-3 py-3 space-y-2 min-h-0 scroll-smooth">
+              <div
+                ref={scrollContainerRef}
+                onScroll={handleScroll}
+                className="flex-1 overflow-y-auto px-3 py-3 space-y-2 min-h-0 scroll-smooth"
+              >
                 <LogList entries={actionLog} bottomRef={bottomRef} />
               </div>
             </motion.div>

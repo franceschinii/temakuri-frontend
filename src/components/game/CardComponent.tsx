@@ -52,7 +52,7 @@ export function CardComponent({ card, selected, onClick, faceDown, small, respon
       whileHover={!disabled ? { y: -4, scale: 1.03 } : {}}
       whileTap={!disabled ? { scale: 0.97 } : {}}
       className={cn(
-        'relative rounded-lg border-2 flex flex-col items-center justify-between cursor-pointer transition-all duration-150 select-none',
+        'relative rounded-lg border-2 flex flex-col items-center justify-between transition-all duration-150 select-none',
         small
           ? 'w-12 h-16 p-1 text-xs'
           : responsiveSmall
@@ -61,7 +61,7 @@ export function CardComponent({ card, selected, onClick, faceDown, small, respon
         selected
           ? 'border-[var(--color-accent-glow)] shadow-[0_0_12px_var(--color-accent-glow)] -translate-y-2'
           : 'border-[var(--color-border)] hover:border-[var(--color-accent-mid)]',
-        disabled && 'opacity-40 cursor-not-allowed',
+        disabled ? 'cursor-default' : 'cursor-pointer',
         insertTarget && 'border-dashed border-[var(--color-warning)] opacity-60',
       )}
       style={{ background: `${color}18` }}

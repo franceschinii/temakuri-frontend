@@ -610,10 +610,10 @@ export function GameBoard() {
           </>
         }
         center={
-          <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 flex-wrap justify-center">
-            <span className="text-xs font-mono uppercase tracking-widest" style={{ color: 'var(--color-text-muted)' }}>{roomCode}</span>
+          <div className="flex items-center gap-1.5 sm:gap-3 min-w-0 flex-wrap justify-center">
+            <span className="text-xs sm:text-sm font-mono uppercase tracking-widest font-semibold" style={{ color: 'var(--color-text-muted)' }}>{roomCode}</span>
             {round > 0 && (
-              <span className="text-[10px] bg-[var(--color-panel)] border border-[var(--color-border)] rounded-full px-1.5 py-0.5 font-mono" style={{ color: 'var(--color-accent-mid)' }}>
+              <span className="text-[10px] sm:text-xs bg-[var(--color-panel)] border border-[var(--color-border)] rounded-full px-1.5 py-0.5 sm:px-2 font-mono font-semibold" style={{ color: 'var(--color-accent-mid)' }} title={`Rodada ${round}`}>
                 R{round}
               </span>
             )}

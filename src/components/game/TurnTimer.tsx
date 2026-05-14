@@ -34,8 +34,8 @@ export function TurnTimer({ timeoutMs, isMyTurn }: TurnTimerProps) {
   const seconds = Math.ceil(remaining / 1000);
 
   return (
-    <div className="flex items-center gap-2 w-full max-w-xs" data-testid="turn-timer">
-      <div className="flex-1 h-2 rounded-full bg-[var(--color-surface)] overflow-hidden">
+    <div className="flex items-center gap-2 sm:gap-3 w-full max-w-xs sm:max-w-sm" data-testid="turn-timer">
+      <div className="flex-1 h-2 sm:h-2.5 rounded-full bg-[var(--color-surface)] overflow-hidden">
         <div
           data-testid="turn-timer-progress"
           className={cn(
@@ -50,7 +50,7 @@ export function TurnTimer({ timeoutMs, isMyTurn }: TurnTimerProps) {
         />
       </div>
       <span className={cn(
-        'text-sm font-mono w-6 text-right tabular-nums',
+        'text-sm sm:text-lg font-mono w-6 sm:w-8 text-right tabular-nums font-semibold',
         pct <= 20 ? 'text-[var(--color-danger)]' : isMyTurn ? 'text-[var(--color-accent-soft)]' : 'text-[var(--color-text-muted)]',
       )}>
         {seconds}
