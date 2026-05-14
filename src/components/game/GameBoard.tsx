@@ -640,10 +640,10 @@ export function GameBoard() {
         }
       />
 
-      {/* Opponents — mobile: scroll horizontal com snap, OpponentRow compact
-          (120px de largura, sem fan de cartas). Desktop: flex-wrap centralizado
-          com OpponentRow padrao. */}
-      <div className="flex gap-1.5 px-2 py-2 border-b border-[var(--color-border)] bg-[var(--color-surface)] overflow-x-auto snap-x snap-mandatory sm:flex-wrap sm:overflow-visible sm:justify-center [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      {/* Opponents — em mobile e em notebooks (altura < 900px) usa OpponentRow
+          compact, que e horizontal e baixo (~50px de altura). Em monitores
+          desktop com altura suficiente, usa o full vertical com fan de cartas. */}
+      <div className="flex gap-1.5 px-2 py-2 border-b border-[var(--color-border)] bg-[var(--color-surface)] overflow-x-auto snap-x snap-mandatory [@media(min-height:900px)]:sm:flex-wrap [@media(min-height:900px)]:sm:overflow-visible [@media(min-height:900px)]:sm:justify-center [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {opponents.map(p => {
           const handleClick = () => openPlayerDialog({
             userId: p.userId,
@@ -658,12 +658,12 @@ export function GameBoard() {
           });
           return (
             <div key={p.userId} className="snap-start shrink-0">
-              {/* Mobile compact */}
-              <div className="sm:hidden">
+              {/* Compact: mobile e notebooks (qualquer largura mas altura < 900) */}
+              <div className="[@media(min-height:900px)]:sm:hidden">
                 <OpponentRow player={p} isCurrentTurn={p.userId === currentTurnUserId} compact onClick={handleClick} />
               </div>
-              {/* Desktop full */}
-              <div className="hidden sm:block">
+              {/* Full: desktop com altura sobrando */}
+              <div className="hidden [@media(min-height:900px)]:sm:block">
                 <OpponentRow player={p} isCurrentTurn={p.userId === currentTurnUserId} onClick={handleClick} />
               </div>
             </div>
@@ -806,7 +806,7 @@ export function GameBoard() {
       <div
         className={`relative shrink-0 border-t-2 bg-[var(--color-surface)] px-2 pt-1.5 pb-2 sm:px-4 sm:pt-2 sm:pb-3 flex flex-col transition-all ${
           isMyTurn && phase === 'PLAYER_TURN'
-            ? 'border-t-[var(--color-accent-strong)] shadow-[0_-8px_24px_-4px_oklch(52%_0.18_145_/_0.4)]'
+            ? 'border-t-[var(--color-accent-strong)] shadow-[0_-8px_24px_-4px_var(--color-accent-strong-translucent)]'
             : 'border-t-[var(--color-border)]'
         }`}
       >
@@ -840,13 +840,13 @@ export function GameBoard() {
               aria-label="Ver detalhes do jogador"
             >
               <div className={cn(
-                'sm:hidden',
+                '[@media(min-height:900px)]:sm:hidden',
                 isMyTurn && phase === 'PLAYER_TURN' ? 'ring-2 ring-[var(--color-accent-strong)] ring-offset-2 ring-offset-[var(--color-surface)] rounded-full animate-pulse' : '',
               )}>
                 <AvatarWithBorder index={me?.avatarIndex ?? 0} level={me?.level ?? 1} size={36} />
               </div>
               <div className={cn(
-                'hidden sm:block',
+                'hidden [@media(min-height:900px)]:sm:block',
                 isMyTurn && phase === 'PLAYER_TURN' ? 'ring-2 ring-[var(--color-accent-strong)] ring-offset-2 ring-offset-[var(--color-surface)] rounded-full animate-pulse' : '',
               )}>
                 <AvatarWithBorder index={me?.avatarIndex ?? 0} level={me?.level ?? 1} size={52} />
@@ -858,7 +858,7 @@ export function GameBoard() {
               <MedalBadge count={me?.sessionWins ?? 0} />
             </button>
             {isMyTurn && phase === 'PLAYER_TURN' && (
-              <span className="text-xs px-2 py-0.5 rounded-full bg-[var(--color-accent-strong)] text-white font-bold uppercase tracking-wider shadow-[0_0_8px_oklch(52%_0.18_145_/_0.6)]">
+              <span className="text-xs px-2 py-0.5 rounded-full bg-[var(--color-accent-strong)] text-white font-bold uppercase tracking-wider shadow-[0_0_8px_var(--color-accent-strong-glow)]">
                 Sua vez
               </span>
             )}

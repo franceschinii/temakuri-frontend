@@ -3,6 +3,8 @@
   --color-surface:        oklch(28% 0.05 148);
   --color-panel:          oklch(35% 0.06 150);
   --color-accent-strong:  oklch(52% 0.18 145);
+  --color-accent-strong-translucent: oklch(52% 0.18 145 / 0.4);
+  --color-accent-strong-glow: oklch(52% 0.18 145 / 0.6);
   --color-accent-mid:     oklch(68% 0.15 145);
   --color-accent-soft:    oklch(82% 0.10 145);
   --color-accent-glow:    oklch(88% 0.12 140);
@@ -31,6 +33,8 @@
   --color-surface:        oklch(28% 0.05 148);
   --color-panel:          oklch(35% 0.06 150);
   --color-accent-strong:  oklch(52% 0.18 145);
+  --color-accent-strong-translucent: oklch(52% 0.18 145 / 0.4);
+  --color-accent-strong-glow: oklch(52% 0.18 145 / 0.6);
   --color-accent-mid:     oklch(68% 0.15 145);
   --color-accent-soft:    oklch(82% 0.10 145);
   --color-accent-glow:    oklch(88% 0.12 140);
