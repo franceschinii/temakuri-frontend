@@ -116,6 +116,17 @@ export function GameBoard() {
     };
   }, []);
 
+  // Aplica tema de mesa do user (via styles/themes.css). data-theme no body
+  // afeta apenas a rota /game/:code; removido no unmount.
+  useEffect(() => {
+    if (user?.activeTheme) {
+      document.body.setAttribute('data-theme', user.activeTheme);
+    }
+    return () => {
+      document.body.removeAttribute('data-theme');
+    };
+  }, [user?.activeTheme]);
+
   useEffect(() => {
     if (musicEnabled) startMusic('game');
     else stopMusic();
