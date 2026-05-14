@@ -99,29 +99,38 @@ export default function LobbyPage() {
           transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
           className="flex flex-col gap-2"
         >
+          {/* Mobile: duas linhas — (codigo + entrar) e (criar / buscar / ranking).
+              sm+: linha unica como antes. */}
           <div className="flex flex-col sm:flex-row gap-2">
-            <Input
-              placeholder="Código da sala (ex: ABC123)"
-              value={joinCode}
-              onChange={e => { setJoinCode(e.target.value.toUpperCase()); setJoinNeedsPassword(false); setJoinPassword(''); }}
-              onKeyDown={e => e.key === 'Enter' && handleJoin()}
-              maxLength={6}
-              className="font-mono tracking-widest"
-            />
-            <Button variant="outline" onClick={handleJoin} disabled={joining} className="shrink-0">
-              {joining ? '...' : <><Search size={15} /> Entrar</>}
-            </Button>
-            <Button onClick={() => setCreateOpen(true)} className="shrink-0" data-testid="lobby-create-room-btn">
-              <Plus size={15} /> Criar
-            </Button>
-            {!user?.isGuest && (
-              <Button variant="secondary" onClick={() => setMatchOpen(true)} className="shrink-0" data-testid="lobby-matchmaking-btn">
-                <Swords size={15} /> Buscar
+            {/* Linha 1: codigo + entrar */}
+            <div className="flex gap-2 sm:contents">
+              <Input
+                placeholder="Código"
+                value={joinCode}
+                onChange={e => { setJoinCode(e.target.value.toUpperCase()); setJoinNeedsPassword(false); setJoinPassword(''); }}
+                onKeyDown={e => e.key === 'Enter' && handleJoin()}
+                maxLength={6}
+                className="font-mono tracking-widest flex-1 sm:flex-none"
+                aria-label="Código da sala"
+              />
+              <Button variant="outline" onClick={handleJoin} disabled={joining} className="shrink-0" aria-label="Entrar">
+                {joining ? '...' : (<><Search size={15} /> Entrar</>)}
               </Button>
-            )}
-            <Button variant="outline" onClick={() => navigate('/ranked')} className="shrink-0" data-testid="access-bar-leaderboard-link">
-              <Trophy size={15} /> Ranking
-            </Button>
+            </div>
+            {/* Linha 2: criar / buscar / ranking */}
+            <div className="grid grid-cols-3 gap-2 sm:contents">
+              <Button onClick={() => setCreateOpen(true)} className="shrink-0 w-full sm:w-auto" data-testid="lobby-create-room-btn">
+                <Plus size={15} /> Criar
+              </Button>
+              {!user?.isGuest && (
+                <Button variant="secondary" onClick={() => setMatchOpen(true)} className="shrink-0 w-full sm:w-auto" data-testid="lobby-matchmaking-btn">
+                  <Swords size={15} /> Buscar
+                </Button>
+              )}
+              <Button variant="outline" onClick={() => navigate('/ranked')} className="shrink-0 w-full sm:w-auto" data-testid="access-bar-leaderboard-link">
+                <Trophy size={15} /> Ranking
+              </Button>
+            </div>
           </div>
           {joinNeedsPassword && (
             <div className="flex gap-2">

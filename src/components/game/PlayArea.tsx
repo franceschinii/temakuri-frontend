@@ -57,7 +57,7 @@ export function PlayArea({ pile, drawPileCount, discardPile, saborActive, saborM
   const topDiscard = discardPile[discardPile.length - 1];
 
   return (
-    <div className="flex items-start justify-center gap-3 w-full max-w-2xl mx-auto px-4" data-testid="play-area">
+    <div className="flex items-start justify-center gap-2 sm:gap-3 w-full max-w-2xl mx-auto px-1 sm:px-4" data-testid="play-area">
       {/* Draw pile (left) — oculto no modo duelo */}
       {!isDuel && <PileStack count={drawPileCount} label="Monte" countTestId="draw-pile-count" />}
 
@@ -81,7 +81,7 @@ export function PlayArea({ pile, drawPileCount, discardPile, saborActive, saborM
               {pile.length} carta{pile.length > 1 ? 's' : ''} • valor {pile[0]?.value}
               {consecutivePasses > 0 && ` • ${consecutivePasses} pas${consecutivePasses > 1 ? 'ses' : 'se'}`}
             </p>
-            <div className="flex gap-1.5 flex-wrap justify-center">
+            <div className="flex gap-1 sm:gap-1.5 flex-wrap justify-center">
               <AnimatePresence>
                 {pile.map((card, i) => (
                   <motion.div
@@ -91,7 +91,7 @@ export function PlayArea({ pile, drawPileCount, discardPile, saborActive, saborM
                     exit={{ opacity: 0, scale: 0.7 }}
                     transition={{ duration: 0.2 }}
                   >
-                    <CardComponent card={card} disabled testId={`pile-card-${i}`} />
+                    <CardComponent card={card} responsiveSmall disabled testId={`pile-card-${i}`} />
                   </motion.div>
                 ))}
               </AnimatePresence>

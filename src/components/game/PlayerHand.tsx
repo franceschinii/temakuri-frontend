@@ -70,11 +70,12 @@ export function PlayerHand({
   // Swap mode — seleção para mercado
   if (onSwapSelect !== undefined) {
     return (
-      <div className="flex items-end gap-1.5 flex-wrap justify-center px-2 pb-2">
+      <div className="flex items-end gap-1 sm:gap-1.5 flex-wrap justify-center px-2 pb-2">
         {hand.map((card, i) => (
           <CardComponent
             key={card.id}
             card={card}
+            responsiveSmall
             selected={swapSelectIndex === i}
             onClick={() => onSwapSelect(i)}
           />
@@ -85,7 +86,7 @@ export function PlayerHand({
 
   // Normal mode
   return (
-    <div className="flex items-end gap-1.5 flex-wrap justify-center px-2 pb-2" data-testid="player-hand">
+    <div className="flex items-end gap-1 sm:gap-1.5 flex-wrap justify-center px-2 pb-2" data-testid="player-hand">
       <AnimatePresence>
         {hand.map((card, i) => (
           <motion.div
@@ -98,6 +99,7 @@ export function PlayerHand({
           >
             <CardComponent
               card={card}
+              responsiveSmall
               selected={isSelected(i)}
               disabled={isCardDisabled(i)}
               onClick={() => isMyTurn && !pickMode && toggleCardSelection(i)}

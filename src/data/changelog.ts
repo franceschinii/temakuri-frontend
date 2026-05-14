@@ -14,6 +14,29 @@ export interface ChangelogEntry {
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: '2026-05-13',
+    version: '0.5.0',
+    title: 'Celular jogável: tela do jogo refeita pra tela pequena',
+    category: 'feature',
+    highlights: [
+      'Cartas menores no celular para mesa e mão caberem sem sobrepor',
+      'Barra do topo enxuta durante a partida — só o essencial',
+      'Sair da conta agora pede confirmação (e ficou vermelho)',
+    ],
+    details: `Uma rodada inteira de ajustes pensando em quem joga no celular. No PC nada muda — toda a melhoria entra automaticamente em telas pequenas:
+
+• Durante a partida, a barra de cima passa a mostrar só voltar, código da sala, rodada, tempo e sair. Moedas, loja, perfil e admin foram pro modo desktop — no celular elas só atrapalhavam.
+• As cartas da sua mão e da mesa ficam pequenas no celular automaticamente. No PC continuam grandonas como antes. Resultado: mão de 8 cartas e a mesa convivem sem sobrepor.
+• Avatares dos oponentes encolhem no celular pra três caberem confortavelmente em telas estreitas.
+• Lobby reorganizado no celular: linha 1 com código + entrar, linha 2 com Criar / Buscar / Ranking ocupando largura total. No desktop tudo continua numa linha só.
+• Painel do Admin: aba "Salas" foi refeita com card limpo, lista de jogadores expansível, botão de remover sala em largura total. A aba alterna Usuários/Salas ficou acima da busca, com tamanho cheio no celular.
+• Botão Admin agora aparece no celular (antes ficava só no desktop) — ícone amarelo no celular, ícone + texto no PC.
+• Sair da conta virou ação destrutiva: ícone vermelho em todas as telas, com diálogo "Sair da conta?" antes de deslogar. Acaba o risco de tocar sem querer e cair pra tela inicial.
+• Barra do topo da tela de Perfil agora fica fixa quando rolagem — antes a barra ia embora junto com a página.
+• No diálogo de criar sala, no celular, o controle "Privada" agora aparece numa linha própria ao invés de ser empurrado pra fora da viewport.
+• "Como jogar" agora abre ao lado do logo no lobby, com mais espaço.`,
+  },
+  {
+    date: '2026-05-13',
     version: '0.4.1',
     title: 'Menu de topo agora é igual em todas as telas',
     category: 'qol',

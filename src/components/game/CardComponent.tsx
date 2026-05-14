@@ -9,20 +9,30 @@ interface CardProps {
   selected?: boolean;
   onClick?: () => void;
   faceDown?: boolean;
+  /** Sempre pequena, em qualquer breakpoint. */
   small?: boolean;
+  /**
+   * Pequena no mobile (<sm), tamanho normal no desktop. Usado na mao e na
+   * mesa para nao estourar o layout em 375px. Ignorado quando `small`.
+   */
+  responsiveSmall?: boolean;
   disabled?: boolean;
   insertTarget?: boolean;
   testId?: string;
 }
 
-export function CardComponent({ card, selected, onClick, faceDown, small, disabled, insertTarget, testId }: CardProps) {
+export function CardComponent({ card, selected, onClick, faceDown, small, responsiveSmall, disabled, insertTarget, testId }: CardProps) {
   if (faceDown) {
     return (
       <div
         data-testid={testId}
         className={cn(
           'rounded-lg border border-[var(--color-border)] bg-[var(--color-panel)] flex items-center justify-center',
-          small ? 'w-10 h-14' : 'w-16 h-24',
+          small
+            ? 'w-10 h-14'
+            : responsiveSmall
+              ? 'w-10 h-14 sm:w-16 sm:h-24'
+              : 'w-16 h-24',
         )}
       >
         <EyeOff size={small ? 14 : 22} className="text-[var(--color-text-muted)]" />
@@ -43,7 +53,11 @@ export function CardComponent({ card, selected, onClick, faceDown, small, disabl
       whileTap={!disabled ? { scale: 0.97 } : {}}
       className={cn(
         'relative rounded-lg border-2 flex flex-col items-center justify-between cursor-pointer transition-all duration-150 select-none',
-        small ? 'w-12 h-16 p-1 text-xs' : 'w-20 h-28 p-2 text-base',
+        small
+          ? 'w-12 h-16 p-1 text-xs'
+          : responsiveSmall
+            ? 'w-12 h-16 p-1 text-xs sm:w-20 sm:h-28 sm:p-2 sm:text-base'
+            : 'w-20 h-28 p-2 text-base',
         selected
           ? 'border-[var(--color-accent-glow)] shadow-[0_0_12px_var(--color-accent-glow)] -translate-y-2'
           : 'border-[var(--color-border)] hover:border-[var(--color-accent-mid)]',
@@ -52,12 +66,30 @@ export function CardComponent({ card, selected, onClick, faceDown, small, disabl
       )}
       style={{ background: `${color}18` }}
     >
-      <span className="font-bold text-[var(--color-text-primary)]" style={{ fontSize: small ? 12 : 16 }}>
+      <span
+        className={cn(
+          'font-bold text-[var(--color-text-primary)]',
+          small
+            ? 'text-xs'
+            : responsiveSmall
+              ? 'text-xs sm:text-base'
+              : 'text-base',
+        )}
+      >
         {card.value}
       </span>
-      <span style={{ fontSize: small ? 14 : 22 }}>{emoji}</span>
-      {!small && (
+      <span
+        className={cn(
+          small ? 'text-sm' : responsiveSmall ? 'text-sm sm:text-2xl' : 'text-2xl',
+        )}
+      >
+        {emoji}
+      </span>
+      {!small && !responsiveSmall && (
         <span className="text-[9px] text-[var(--color-text-muted)] leading-tight text-center">{label}</span>
+      )}
+      {responsiveSmall && (
+        <span className="hidden sm:block text-[9px] text-[var(--color-text-muted)] leading-tight text-center">{label}</span>
       )}
       <div className="absolute top-0.5 right-1 text-[8px] font-bold opacity-40" style={{ color }}>
         {card.category[0]}
