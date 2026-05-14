@@ -1,9 +1,12 @@
 import { useEffect, useCallback, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Eye, History, MessageSquare } from 'lucide-react';
+import { Eye, HelpCircle, History, MessageSquare } from 'lucide-react';
 import { AppNavbar } from '@/components/ui/AppNavbar';
 import { Modal } from '@/components/ui/modal';
 import { Button } from '@/components/ui/button';
+import { AccessBar } from '@/components/ui/AccessBar';
+import { RulesModal } from '@/components/ui/RulesModal';
+import { PlayerDetailsDialog, type PlayerSnapshot } from '@/components/ui/PlayerDetailsDialog';
 import { motion, AnimatePresence } from 'framer-motion';
 import { startMusic, stopMusic } from '@/lib/music';
 import { useGameStore } from '@/stores/gameStore';
@@ -66,11 +69,27 @@ export function GameBoard() {
   const [marketSwapMode, setMarketSwapMode] = useState(false);
   const [selectedHandIndexForSwap, setSelectedHandIndexForSwap] = useState<number | null>(null);
 
-  // Handles imperativos para abrir os paineis de chat e historico a partir
-  // dos botoes que injetamos na navbar via mobileExtraActions. Os paineis
-  // mantem seus drawers/animacoes internos; so trocamos quem dispara o open.
+  // Handles imperativos para abrir os paineis de chat e historico. Os botoes
+  // visuais ficam no canto inferior junto da ReactionBar; aqui mantemos refs
+  // para eventual uso futuro (atalhos de teclado, automacao de testes).
   const chatRef = useRef<PanelHandle>(null);
   const historyRef = useRef<PanelHandle>(null);
+
+  // Modal de regras (Como jogar) — abre via icone na navbar mobile in-game.
+  const [rulesOpen, setRulesOpen] = useState(false);
+
+  // PlayerDetailsDialog — clicar em qualquer player (oponente ou eu) abre.
+  const [playerDialogUserId, setPlayerDialogUserId] = useState<string | null>(null);
+  const [playerDialogSnapshot, setPlayerDialogSnapshot] = useState<PlayerSnapshot | null>(null);
+
+  const openPlayerDialog = useCallback((snapshot: PlayerSnapshot) => {
+    setPlayerDialogSnapshot(snapshot);
+    setPlayerDialogUserId(snapshot.userId);
+  }, []);
+  const closePlayerDialog = useCallback(() => {
+    setPlayerDialogUserId(null);
+    setPlayerDialogSnapshot(null);
+  }, []);
   const [leaveConfirmOpen, setLeaveConfirmOpen] = useState(false);
   const [turnBanner, setTurnBanner] = useState<{ name: string; isMe: boolean } | null>(null);
   const [trickPickOpen, setTrickPickOpen] = useState(false);
@@ -579,23 +598,15 @@ export function GameBoard() {
         mobileExtraActions={
           <>
             <button
-              onClick={() => historyRef.current?.toggle()}
+              onClick={() => setRulesOpen(true)}
               className="p-1.5 rounded-lg transition-colors hover:bg-[var(--color-panel)]"
               style={{ color: 'var(--color-text-muted)' }}
-              title="Histórico de jogadas"
-              aria-label="Histórico de jogadas"
+              title="Como jogar"
+              aria-label="Como jogar"
             >
-              <History size={16} />
+              <HelpCircle size={16} />
             </button>
-            <button
-              onClick={() => chatRef.current?.toggle()}
-              className="p-1.5 rounded-lg transition-colors hover:bg-[var(--color-panel)]"
-              style={{ color: 'var(--color-text-muted)' }}
-              title="Chat"
-              aria-label="Chat"
-            >
-              <MessageSquare size={16} />
-            </button>
+            <AccessBar />
           </>
         }
         center={
@@ -630,18 +641,31 @@ export function GameBoard() {
           (120px de largura, sem fan de cartas). Desktop: flex-wrap centralizado
           com OpponentRow padrao. */}
       <div className="flex gap-1.5 px-2 py-2 border-b border-[var(--color-border)] bg-[var(--color-surface)] overflow-x-auto snap-x snap-mandatory sm:flex-wrap sm:overflow-visible sm:justify-center [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        {opponents.map(p => (
-          <div key={p.userId} className="snap-start shrink-0">
-            {/* Mobile compact */}
-            <div className="sm:hidden">
-              <OpponentRow player={p} isCurrentTurn={p.userId === currentTurnUserId} compact />
+        {opponents.map(p => {
+          const handleClick = () => openPlayerDialog({
+            userId: p.userId,
+            username: p.username,
+            avatarIndex: p.avatarIndex,
+            level: p.level,
+            pds: p.pds,
+            isAdmin: p.isAdmin,
+            isGuest: p.isGuest,
+            isBot: p.isBot,
+            sessionWins: p.sessionWins,
+          });
+          return (
+            <div key={p.userId} className="snap-start shrink-0">
+              {/* Mobile compact */}
+              <div className="sm:hidden">
+                <OpponentRow player={p} isCurrentTurn={p.userId === currentTurnUserId} compact onClick={handleClick} />
+              </div>
+              {/* Desktop full */}
+              <div className="hidden sm:block">
+                <OpponentRow player={p} isCurrentTurn={p.userId === currentTurnUserId} onClick={handleClick} />
+              </div>
             </div>
-            {/* Desktop full */}
-            <div className="hidden sm:block">
-              <OpponentRow player={p} isCurrentTurn={p.userId === currentTurnUserId} />
-            </div>
-          </div>
-        ))}
+          );
+        })}
         {opponents.length === 0 && (
           <span className="text-xs text-[var(--color-text-muted)] py-2 shrink-0">Aguardando oponentes...</span>
         )}
@@ -795,14 +819,32 @@ export function GameBoard() {
         {/* Info bar */}
         <div className="flex items-center justify-between mb-1.5">
           <div className="flex items-center gap-2">
-            <div className={isMyTurn && phase === 'PLAYER_TURN' ? 'ring-2 ring-[var(--color-accent-strong)] ring-offset-2 ring-offset-[var(--color-surface)] rounded-full animate-pulse' : ''}>
-              <AvatarWithBorder index={me?.avatarIndex ?? 0} level={me?.level ?? 1} size={36} />
-            </div>
-            <span className="text-base font-semibold" style={{ color: 'var(--color-text-primary)' }}>
-              {me?.username ?? 'Você'}
-            </span>
-            <LevelBadge level={me?.level ?? 1} size="xs" />
-            <MedalBadge count={me?.sessionWins ?? 0} />
+            <button
+              type="button"
+              onClick={() => me && openPlayerDialog({
+                userId: me.userId,
+                username: me.username,
+                avatarIndex: me.avatarIndex,
+                level: me.level,
+                pds: me.pds,
+                isAdmin: me.isAdmin,
+                isGuest: me.isGuest,
+                isBot: me.isBot,
+                sessionWins: me.sessionWins,
+              })}
+              className="flex items-center gap-2 rounded-lg p-1 -m-1 hover:bg-[var(--color-panel)] active:scale-[0.98] transition-colors"
+              title="Ver detalhes"
+              aria-label="Ver detalhes do jogador"
+            >
+              <div className={isMyTurn && phase === 'PLAYER_TURN' ? 'ring-2 ring-[var(--color-accent-strong)] ring-offset-2 ring-offset-[var(--color-surface)] rounded-full animate-pulse' : ''}>
+                <AvatarWithBorder index={me?.avatarIndex ?? 0} level={me?.level ?? 1} size={36} />
+              </div>
+              <span className="text-base font-semibold" style={{ color: 'var(--color-text-primary)' }}>
+                {me?.username ?? 'Você'}
+              </span>
+              <LevelBadge level={me?.level ?? 1} size="xs" />
+              <MedalBadge count={me?.sessionWins ?? 0} />
+            </button>
             {isMyTurn && phase === 'PLAYER_TURN' && (
               <span className="text-xs px-2 py-0.5 rounded-full bg-[var(--color-accent-strong)] text-white font-bold uppercase tracking-wider shadow-[0_0_8px_oklch(52%_0.18_145_/_0.6)]">
                 Sua vez
@@ -877,7 +919,30 @@ export function GameBoard() {
                 Jogada inválida — precisa de mais cartas ou valor maior
               </p>
             )}
-            <ReactionBar onReact={handleSendReaction} disabled={reactionCooldown} />
+            {/* Linha inferior: historico (esq) + emojis (centro) + chat (dir) */}
+            <div className="flex items-center justify-between gap-2">
+              <button
+                onClick={() => historyRef.current?.toggle()}
+                className="w-9 h-9 rounded-full bg-[var(--color-panel)] hover:bg-[var(--color-surface)] hover:scale-110 active:scale-95 transition-all border border-[var(--color-border)] flex items-center justify-center shrink-0"
+                title="Histórico de jogadas"
+                aria-label="Histórico de jogadas"
+                data-testid="game-history-toggle"
+              >
+                <History size={15} className="text-[var(--color-text-muted)]" />
+              </button>
+              <div className="flex-1 min-w-0">
+                <ReactionBar onReact={handleSendReaction} disabled={reactionCooldown} />
+              </div>
+              <button
+                onClick={() => chatRef.current?.toggle()}
+                className="w-9 h-9 rounded-full bg-[var(--color-panel)] hover:bg-[var(--color-surface)] hover:scale-110 active:scale-95 transition-all border border-[var(--color-border)] flex items-center justify-center shrink-0"
+                title="Chat"
+                aria-label="Chat"
+                data-testid="game-chat-toggle"
+              >
+                <MessageSquare size={15} className="text-[var(--color-text-muted)]" />
+              </button>
+            </div>
           </div>
         )}
 
@@ -1005,6 +1070,17 @@ export function GameBoard() {
           </div>
         </div>
       </Modal>
+
+      {/* Como jogar — disparado pela navbar mobile in-game */}
+      <RulesModal open={rulesOpen} onClose={() => setRulesOpen(false)} />
+
+      {/* Player details — abre ao clicar em qualquer player na tela */}
+      <PlayerDetailsDialog
+        open={!!playerDialogUserId}
+        onClose={closePlayerDialog}
+        userId={playerDialogUserId}
+        snapshot={playerDialogSnapshot}
+      />
     </div>
   );
 }

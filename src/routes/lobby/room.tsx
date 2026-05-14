@@ -23,6 +23,7 @@ import { playSound } from '@/lib/sounds';
 import { RoomChat } from '@/components/lobby/RoomChat';
 import { DevFooter } from '@/components/ui/DevFooter';
 import { Input } from '@/components/ui/input';
+import { PlayerDetailsDialog, type PlayerSnapshot } from '@/components/ui/PlayerDetailsDialog';
 
 export default function RoomPage() {
   useEffect(() => {
@@ -101,6 +102,16 @@ export default function RoomPage() {
 
   const [countdown, setCountdown] = useState<number | null>(null);
   const [isSpectator, setIsSpectator] = useState(false);
+  const [playerDialogUserId, setPlayerDialogUserId] = useState<string | null>(null);
+  const [playerDialogSnapshot, setPlayerDialogSnapshot] = useState<PlayerSnapshot | null>(null);
+  const openPlayerDialog = useCallback((snapshot: PlayerSnapshot) => {
+    setPlayerDialogSnapshot(snapshot);
+    setPlayerDialogUserId(snapshot.userId);
+  }, []);
+  const closePlayerDialog = useCallback(() => {
+    setPlayerDialogUserId(null);
+    setPlayerDialogSnapshot(null);
+  }, []);
   const room = currentRoom ?? initialRoom;
   const countdownIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const navigatedRef = useRef(false);
@@ -316,6 +327,7 @@ export default function RoomPage() {
             <AnimatePresence mode="popLayout">
               {room.players.map((p) => {
                 const isReady = readyMap[p.userId] || p.isBot;
+                const clickable = !p.isBot;
                 return (
                   <motion.div
                     key={p.userId}
@@ -325,11 +337,25 @@ export default function RoomPage() {
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.88 }}
                     transition={{ duration: 0.25 }}
+                    onClick={clickable ? () => openPlayerDialog({
+                      userId: p.userId,
+                      username: p.username,
+                      avatarIndex: p.avatarIndex,
+                      level: p.level,
+                      pds: p.pds,
+                      isAdmin: p.isAdmin,
+                      isGuest: p.isGuest,
+                      isBot: p.isBot,
+                      sessionWins: p.sessionWins,
+                    }) : undefined}
+                    role={clickable ? 'button' : undefined}
+                    tabIndex={clickable ? 0 : undefined}
                     className={cn(
                       'relative flex flex-col gap-2.5 px-4 py-3.5 rounded-xl border-2 transition-all duration-300',
                       isReady
                         ? 'border-[var(--color-accent-strong)] bg-[var(--color-accent-strong)]/8'
                         : 'border-[var(--color-border)] bg-[var(--color-surface)]',
+                      clickable && 'cursor-pointer hover:border-[var(--color-accent-mid)] active:scale-[0.99]',
                     )}
                   >
                     {/* Ready glow */}
@@ -634,6 +660,13 @@ export default function RoomPage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <PlayerDetailsDialog
+        open={!!playerDialogUserId}
+        onClose={closePlayerDialog}
+        userId={playerDialogUserId}
+        snapshot={playerDialogSnapshot}
+      />
     </div>
   );
 }

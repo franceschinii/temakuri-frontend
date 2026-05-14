@@ -1,4 +1,4 @@
-const REACTIONS = ['😋', '🔥', '😤', '🤯', '👀', '💀'];
+const REACTIONS = ['😋', '😂', '🔥', '😤', '🤯', '👀', '💀'];
 
 interface ReactionBarProps {
   onReact: (emoji: string) => void;

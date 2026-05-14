@@ -16,21 +16,31 @@ interface OpponentRowProps {
    * e marcacao de eliminado/desconectado.
    */
   compact?: boolean;
+  /**
+   * Quando passado, o bloco vira clicavel (button) e dispara este callback
+   * em vez de abrir nada por conta propria. Usado pelo GameBoard para abrir
+   * PlayerDetailsDialog.
+   */
+  onClick?: () => void;
 }
 
-export function OpponentRow({ player, isCurrentTurn, compact }: OpponentRowProps) {
+export function OpponentRow({ player, isCurrentTurn, compact, onClick }: OpponentRowProps) {
   const visibleCards = Math.min(player.cardCount, 8);
   const extraCards = player.cardCount - visibleCards;
 
   if (compact) {
+    const Wrapper: any = onClick ? 'button' : 'div';
     return (
-      <div
+      <Wrapper
         data-testid={`opponent-row-${player.userId}`}
+        onClick={onClick}
+        type={onClick ? 'button' : undefined}
         className={cn(
-          'flex items-center gap-2 px-2 py-1.5 rounded-lg border transition-colors shrink-0',
+          'flex items-center gap-2 px-2 py-1.5 rounded-lg border transition-colors shrink-0 text-left',
           isCurrentTurn
             ? 'border-[var(--color-accent-strong)] bg-[var(--color-surface)] shadow-[0_0_6px_var(--color-accent-glow)]'
             : 'border-[var(--color-border)] bg-[var(--color-surface)]',
+          onClick && 'cursor-pointer hover:bg-[var(--color-panel)] active:scale-[0.98]',
           player.isEliminated && 'opacity-30',
         )}
         style={{ width: 130 }}
@@ -70,16 +80,20 @@ export function OpponentRow({ player, isCurrentTurn, compact }: OpponentRowProps
             </span>
           </div>
         </div>
-      </div>
+      </Wrapper>
     );
   }
 
+  const FullWrapper: any = onClick ? 'button' : 'div';
   return (
-    <div
+    <FullWrapper
       data-testid={`opponent-row-${player.userId}`}
+      onClick={onClick}
+      type={onClick ? 'button' : undefined}
       className={cn(
         'flex flex-col items-center gap-1.5 px-3 py-2 rounded-xl transition-all shrink-0',
         isCurrentTurn && 'ring-2 ring-[var(--color-accent-soft)] bg-[var(--color-surface)]',
+        onClick && 'cursor-pointer hover:bg-[var(--color-panel)] active:scale-[0.98]',
         player.isEliminated && 'opacity-30',
       )}
       style={{ width: 180 }}
@@ -172,6 +186,6 @@ export function OpponentRow({ player, isCurrentTurn, compact }: OpponentRowProps
       >
         {player.cardCount} carta{player.cardCount !== 1 ? 's' : ''}
       </span>
-    </div>
+    </FullWrapper>
   );
 }

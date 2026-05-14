@@ -3,6 +3,7 @@ import { Modal } from '@/components/ui/modal';
 import { Button } from '@/components/ui/button';
 import { AvatarImage } from '@/components/ui/Avatar';
 import { CoinDisplay } from '@/components/ui/CoinDisplay';
+import { Skeleton } from '@/components/ui/Skeleton';
 import { useShopStore } from '@/stores/shopStore';
 import { useAuthStore } from '@/stores/authStore';
 import { GAME_MODES } from '@/constants/game';
@@ -69,8 +70,10 @@ export function ShopModal({ open, onClose }: ShopModalProps) {
         </div>
 
         {isLoading ? (
-          <div className="flex items-center justify-center flex-1 py-8">
-            <div className="w-6 h-6 rounded-full border-2 border-[var(--color-accent-strong)] border-t-transparent animate-spin" />
+          <div className="grid grid-cols-4 gap-3">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <Skeleton key={i} variant="card" className="h-24" />
+            ))}
           </div>
         ) : (
           <>

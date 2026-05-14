@@ -116,10 +116,14 @@ export function ChatPanel({ onSendMessage, myUserId, hideTriggers, externalToggl
         )}
       </AnimatePresence>
 
-      {/* Fixed right toggle — lateral no desktop, canto inferior no mobile */}
+      {/* Fixed right toggle — lateral no desktop. Quando hideTriggers, o
+          consumidor (GameBoard) ja oferece um botao proprio e este some. */}
       <button
         onClick={() => setOpen(v => !v)}
-        className="fixed right-0 top-[58%] -translate-y-1/2 z-40 sm:flex hidden flex-col items-center justify-center gap-1 bg-[var(--color-surface)]/80 backdrop-blur-sm border border-r-0 border-[var(--color-border)] rounded-l-xl px-1.5 py-3 shadow-lg hover:bg-[var(--color-panel)] transition-colors"
+        className={cn(
+          'fixed right-0 top-[58%] -translate-y-1/2 z-40 sm:flex hidden flex-col items-center justify-center gap-1 bg-[var(--color-surface)]/80 backdrop-blur-sm border border-r-0 border-[var(--color-border)] rounded-l-xl px-1.5 py-3 shadow-lg hover:bg-[var(--color-panel)] transition-colors',
+          hideTriggers && 'sm:hidden',
+        )}
         title="Chat"
         data-testid="chat-toggle-btn"
       >

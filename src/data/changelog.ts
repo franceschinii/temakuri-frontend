@@ -13,6 +13,24 @@ export interface ChangelogEntry {
  */
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    date: '2026-05-14',
+    version: '0.5.1',
+    title: 'Detalhes de jogadores + skeletons em toda a interface',
+    category: 'feature',
+    highlights: [
+      'Clique em qualquer jogador para ver perfil e estatísticas',
+      'Chat e histórico voltaram pro canto inferior, junto dos emojis',
+      'Skeletons no lugar de telas em branco enquanto carrega',
+    ],
+    details: `Várias melhorias para deixar a interface mais informativa e responsiva:
+
+• Toque/clique no avatar ou nome de qualquer jogador (oponentes na partida, lista de salas, sala de espera, painel de admin) abre um diálogo com nível, rank, partidas jogadas, vitórias, sabores ativados, vazas e tempo de jogador.
+• Chat e histórico de jogadas saíram da navbar e voltaram para o canto inferior da tela, na mesma linha dos emojis de reação. Histórico à esquerda, chat à direita.
+• Adicionado emoji 😂 nas reações.
+• Na navbar mobile durante a partida, agora aparecem o botão "Como jogar" e o controle de som/música — sem precisar sair do jogo pra ajustar.
+• Skeletons substituem os retângulos pulsantes em todo o sistema: lobby, ranking, admin, loja e diálogos. Carregamento fica mais fluido visualmente.`,
+  },
+  {
     date: '2026-05-13',
     version: '0.5.0',
     title: 'Celular jogável: tela do jogo refeita pra tela pequena',

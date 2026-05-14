@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Modal } from '@/components/ui/modal';
 import { DevFooter } from '@/components/ui/DevFooter';
+import { PlayerDetailsDialog, type PlayerSnapshot } from '@/components/ui/PlayerDetailsDialog';
+import { Skeleton } from '@/components/ui/Skeleton';
 import api from '@/lib/api';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -110,6 +112,16 @@ export default function AdminPage() {
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<FilterType>('all');
   const [confirmDeleteRoom, setConfirmDeleteRoom] = useState<string | null>(null);
+  const [playerDialogUserId, setPlayerDialogUserId] = useState<string | null>(null);
+  const [playerDialogSnapshot, setPlayerDialogSnapshot] = useState<PlayerSnapshot | null>(null);
+  const openPlayerDialog = (snapshot: PlayerSnapshot) => {
+    setPlayerDialogSnapshot(snapshot);
+    setPlayerDialogUserId(snapshot.userId);
+  };
+  const closePlayerDialog = () => {
+    setPlayerDialogUserId(null);
+    setPlayerDialogSnapshot(null);
+  };
 
   const openModal = (type: ModalType, user: AdminUser) => setModal({ type, user });
   const closeModal = () => setModal({ type: null, user: null });
@@ -208,7 +220,7 @@ export default function AdminPage() {
             </div>
             {roomsLoading ? (
               <div className="flex flex-col gap-2">
-                {[0,1,2].map(i => <div key={i} className="h-16 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)] animate-pulse" />)}
+                {[0,1,2].map(i => <Skeleton key={i} variant="card" className="h-16" />)}
               </div>
             ) : rooms.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 border border-dashed border-[var(--color-border)] rounded-2xl text-center gap-2">
@@ -250,11 +262,16 @@ export default function AdminPage() {
                             <div className="flex flex-col gap-1 mt-2">
                               {room.players.map(p => (
                                 <div key={p.userId} className="flex items-center justify-between gap-2 p-2 rounded-lg bg-[var(--color-panel)] border border-[var(--color-border)]">
-                                  <div className="flex items-center gap-1.5 min-w-0 text-xs">
+                                  <button
+                                    type="button"
+                                    onClick={() => !p.isBot && openPlayerDialog({ userId: p.userId, username: p.username, avatarIndex: p.avatarIndex, isBot: p.isBot })}
+                                    disabled={p.isBot}
+                                    className="flex items-center gap-1.5 min-w-0 text-xs text-left flex-1 rounded p-0.5 -m-0.5 hover:bg-[var(--color-surface)] disabled:cursor-default disabled:hover:bg-transparent transition-colors"
+                                  >
                                     <span className={cn('truncate', p.userId === room.hostId ? 'text-[var(--color-token-gold)] font-medium' : 'text-[var(--color-text-primary)]')}>{p.username}</span>
                                     {p.isBot && <span className="text-[9px] text-[var(--color-text-muted)] shrink-0">bot</span>}
                                     {p.userId === room.hostId && <span className="text-[9px] text-[var(--color-token-gold)] shrink-0">host</span>}
-                                  </div>
+                                  </button>
                                   <button
                                     onClick={() => kickPlayerMutation.mutate({ code: room.code, userId: p.userId })}
                                     className="p-2 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-danger)] hover:bg-[var(--color-danger)]/10 transition-colors shrink-0"
@@ -333,9 +350,20 @@ export default function AdminPage() {
                           <div className="flex flex-wrap gap-2">
                             {room.players.map(p => (
                               <div key={p.userId} className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[var(--color-panel)] border border-[var(--color-border)] text-xs">
-                                <span className={cn('text-[var(--color-text-primary)]', p.userId === room.hostId && 'text-[var(--color-token-gold)]')}>{p.username}</span>
-                                {p.isBot && <span className="text-[9px] text-[var(--color-text-muted)]">bot</span>}
-                                {p.userId === room.hostId && <span className="text-[9px] text-[var(--color-token-gold)]">host</span>}
+                                <button
+                                  type="button"
+                                  onClick={() => !p.isBot && openPlayerDialog({ userId: p.userId, username: p.username, avatarIndex: p.avatarIndex, isBot: p.isBot })}
+                                  disabled={p.isBot}
+                                  className={cn(
+                                    'flex items-center gap-1.5 rounded p-0.5 -m-0.5 transition-colors',
+                                    !p.isBot && 'hover:bg-[var(--color-surface)] cursor-pointer',
+                                    p.isBot && 'cursor-default',
+                                  )}
+                                >
+                                  <span className={cn('text-[var(--color-text-primary)]', p.userId === room.hostId && 'text-[var(--color-token-gold)]')}>{p.username}</span>
+                                  {p.isBot && <span className="text-[9px] text-[var(--color-text-muted)]">bot</span>}
+                                  {p.userId === room.hostId && <span className="text-[9px] text-[var(--color-token-gold)]">host</span>}
+                                </button>
                                 <button
                                   onClick={() => kickPlayerMutation.mutate({ code: room.code, userId: p.userId })}
                                   className="ml-1 text-[var(--color-text-muted)] hover:text-[var(--color-danger)] transition-colors"
@@ -404,7 +432,7 @@ export default function AdminPage() {
           {isLoading ? (
             <div className="flex flex-col gap-2">
               {[0, 1, 2, 3].map(i => (
-                <div key={i} className="h-14 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)] animate-pulse" />
+                <Skeleton key={i} variant="card" className="h-14" />
               ))}
             </div>
           ) : filtered.length === 0 ? (
@@ -426,7 +454,14 @@ export default function AdminPage() {
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex flex-col gap-1 min-w-0 flex-1">
                       <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className="font-medium text-[var(--color-text-primary)] truncate">{user.username}</span>
+                        <button
+                          type="button"
+                          onClick={() => !user.isBot && openPlayerDialog({ userId: user.id, username: user.username, avatarIndex: user.avatarIndex, isAdmin: user.isAdmin, isGuest: user.isGuest, isBot: user.isBot, isPremium: user.isPremium, level: user.level, pds: user.pds })}
+                          disabled={user.isBot}
+                          className="font-medium text-[var(--color-text-primary)] truncate hover:text-[var(--color-accent-soft)] disabled:hover:text-[var(--color-text-primary)] disabled:cursor-default transition-colors text-left"
+                        >
+                          {user.username}
+                        </button>
                         {user.isPremium && (
                           <span title="Premium" className="text-[oklch(75%_0.2_310)] shrink-0">
                             <Wine size={12} />
@@ -501,7 +536,16 @@ export default function AdminPage() {
                         user.isBanned && 'opacity-60',
                       )}
                     >
-                      <td className="px-4 py-3 font-medium text-[var(--color-text-primary)]">{user.username}</td>
+                      <td className="px-4 py-3 font-medium text-[var(--color-text-primary)]">
+                        <button
+                          type="button"
+                          onClick={() => !user.isBot && openPlayerDialog({ userId: user.id, username: user.username, avatarIndex: user.avatarIndex, isAdmin: user.isAdmin, isGuest: user.isGuest, isBot: user.isBot, isPremium: user.isPremium, level: user.level, pds: user.pds })}
+                          disabled={user.isBot}
+                          className="hover:text-[var(--color-accent-soft)] disabled:hover:text-current disabled:cursor-default transition-colors"
+                        >
+                          {user.username}
+                        </button>
+                      </td>
                       <td className="px-4 py-3 text-[var(--color-text-muted)] hidden sm:table-cell max-w-[160px]">
                         <span className="block truncate" title={user.email ?? ''}>{user.email ?? '—'}</span>
                       </td>
@@ -564,6 +608,12 @@ export default function AdminPage() {
       <EditProgressionModal open={modal.type === 'progression'} user={modal.user} onClose={closeModal} onSuccess={invalidate} />
       <DeleteUserModal open={modal.type === 'delete'} user={modal.user} onClose={closeModal} onSuccess={invalidate} />
       <ModerationModal open={modal.type === 'moderation'} user={modal.user} onClose={closeModal} onSuccess={invalidate} />
+      <PlayerDetailsDialog
+        open={!!playerDialogUserId}
+        onClose={closePlayerDialog}
+        userId={playerDialogUserId}
+        snapshot={playerDialogSnapshot}
+      />
       <DevFooter />
     </div>
   );

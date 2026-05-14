@@ -8,6 +8,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { RANK_COLORS, RANK_LABELS, type GameRank } from '@/types/api';
 import { rankFromPds } from '@/lib/xpUtils';
 import { RankIcon } from '@/components/ui/RankIcon';
+import { Skeleton } from '@/components/ui/Skeleton';
 import api from '@/lib/api';
 
 interface LeaderboardEntry {
@@ -135,7 +136,7 @@ export default function RankedPage() {
               </p>
               <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 flex items-center gap-3">
                 {myRankLoading ? (
-                  <div className="h-4 w-40 rounded bg-[var(--color-panel)] animate-pulse" />
+                  <Skeleton variant="text" className="h-4 w-40" />
                 ) : user && user.pds <= 0 ? (
                   <p className="text-sm text-[var(--color-text-muted)]">
                     Jogue partidas ranqueadas para aparecer no ranking.
@@ -175,10 +176,7 @@ export default function RankedPage() {
             ) : leaderboardLoading ? (
               <div className="flex flex-col gap-1.5">
                 {Array.from({ length: 5 }).map((_, i) => (
-                  <div
-                    key={i}
-                    className="h-14 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)] animate-pulse"
-                  />
+                  <Skeleton key={i} variant="card" className="h-14" />
                 ))}
               </div>
             ) : leaderboard.length === 0 ? (
