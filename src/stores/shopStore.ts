@@ -16,10 +16,11 @@ interface ShopState {
   purchaseCoinPack: (sku: string) => Promise<void>;
   useUtility: (sku: string) => Promise<void>;
 
-  // Stripe checkout (Fase A: retorna 503 se PAYMENTS_ENABLED=false)
+  // Mercado Pago checkout (Fase A: retorna 503 se PAYMENTS_ENABLED=false).
+  // O endpoint retorna o init_point do MP, que e a URL para redirect.
   startDiamondCheckout: (sku: string) => Promise<string>;
   startPremiumCheckout: () => Promise<string>;
-  openCustomerPortal: () => Promise<string>;
+  cancelPremium: () => Promise<void>;
 }
 
 async function refreshAll(set: (s: Partial<ShopState>) => void) {
@@ -108,8 +109,8 @@ export const useShopStore = create<ShopState>((set) => ({
     return data.url as string;
   },
 
-  openCustomerPortal: async () => {
-    const { data } = await api.post('/payments/portal');
-    return data.url as string;
+  cancelPremium: async () => {
+    await api.post('/payments/premium/cancel');
+    await useAuthStore.getState().refreshUser();
   },
 }));

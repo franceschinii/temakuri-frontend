@@ -4,8 +4,8 @@ import { Button } from '@/components/ui/button';
 
 /**
  * Pix one-time pode demorar minutos para confirmar. Usuario aterrissa
- * aqui se o pagamento ficou pending no Stripe. Quando o webhook chegar,
- * /auth/me ja reflete o saldo atualizado.
+ * aqui se o pagamento ficou pending no Mercado Pago. Quando o webhook
+ * chegar, /auth/me ja reflete o saldo atualizado.
  */
 export default function PaymentsPendingPage() {
   const navigate = useNavigate();

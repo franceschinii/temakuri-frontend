@@ -11,15 +11,20 @@ const POLL_MS = 1500;
 const MAX_POLLS = 8; // ~12s totais
 
 /**
- * Pagina de retorno apos checkout Stripe. Stripe redireciona para ca com
- * ?session_id=cs_xxx. O webhook ja deve ter creditado os diamantes, mas
- * pode haver delay de 1-2s; fazemos polling de /auth/me ate o saldo mudar
- * ou atingir limite de tentativas.
+ * Pagina de retorno apos checkout Mercado Pago. MP redireciona com
+ * payment_id (one-time) ou preapproval_id (assinatura). O webhook ja
+ * deve ter creditado, mas pode haver delay; polling de /auth/me ate
+ * o saldo mudar ou atingir limite de tentativas.
  */
 export default function PaymentsSuccessPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const sessionId = searchParams.get('session_id');
+  // Mercado Pago retorna combinacoes:
+  //   one-time: ?collection_id=&collection_status=approved&payment_id=&external_reference=&preference_id=
+  //   premium:  ?preapproval_id=
+  const paymentId = searchParams.get('payment_id') ?? searchParams.get('collection_id');
+  const preapprovalId = searchParams.get('preapproval_id');
+  const refId = paymentId ?? preapprovalId;
   const user = useAuthStore(s => s.user);
   const refreshUser = useAuthStore(s => s.refreshUser);
   const [polls, setPolls] = useState(0);
@@ -77,7 +82,7 @@ export default function PaymentsSuccessPage() {
           <>
             <p className="text-sm text-[var(--color-text-muted)] text-center">
               Estamos confirmando seu pagamento. Pode levar alguns instantes.
-              {sessionId && <span className="block text-[10px] mt-2 opacity-60 break-all">Ref: {sessionId}</span>}
+              {refId && <span className="block text-[10px] mt-2 opacity-60 break-all">Ref: {refId}</span>}
             </p>
             <p className="text-xs text-[var(--color-text-muted)] text-center">
               Se o saldo não atualizar em 1 minuto, fale com o suporte.
@@ -93,7 +98,7 @@ export default function PaymentsSuccessPage() {
               Confirmando seu pagamento...
             </h1>
             <p className="text-xs text-[var(--color-text-muted)] text-center">
-              Aguardando confirmação do Stripe ({polls + 1}/{MAX_POLLS})
+              Aguardando confirmação ({polls + 1}/{MAX_POLLS})
             </p>
           </>
         )}
