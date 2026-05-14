@@ -14,6 +14,26 @@ export interface ChangelogEntry {
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: '2026-05-14',
+    version: '0.5.2',
+    title: 'Polimento da partida e correção da economia',
+    category: 'fix',
+    highlights: [
+      'Cartas legíveis mesmo fora do turno',
+      'Compra na loja agora exige confirmação clara',
+      'Quem abandona partida não ganha mais moedas',
+    ],
+    details: `Várias correções e ajustes:
+
+• As cartas da sua mão ficavam apagadas demais quando não era seu turno. Agora seguem legíveis (número, emoji e nome visíveis); o cursor e o efeito de hover é que mudam para indicar que você não pode jogar.
+• No PC, o código da sala, rodada e tempo da partida agora ficam centralizados de verdade na tela, e o contador de segundos está maior.
+• Botões flutuantes do chat e histórico voltaram a aparecer no PC — o feed lateral do histórico e o painel de chat com prévia de novas mensagens continuam onde sempre estiveram.
+• O modal do histórico agora abre já rolado até a jogada mais recente e segue acompanhando enquanto chegam novas. Se você rolar para cima para reler algo, o auto-scroll pausa; volta automaticamente quando você voltar perto do final.
+• Loja: comprar avatar ou modo agora abre uma confirmação dedicada com preço, saldo atual e saldo após a compra. Mais difícil de errar.
+• Admin: a aba "Salas" separa Ativas (esperando ou em andamento) de Inativas (finalizadas). Filtros de busca, aba e tipo de usuário ficam salvos no navegador — sobrevivem ao F5.
+• Correção crítica: quem saía no meio de uma partida ainda recebia XP e moedas como se tivesse jogado até o fim. Agora só quem está na sala quando o jogo termina recebe recompensas.`,
+  },
+  {
+    date: '2026-05-14',
     version: '0.5.1',
     title: 'Detalhes de jogadores + skeletons em toda a interface',
     category: 'feature',

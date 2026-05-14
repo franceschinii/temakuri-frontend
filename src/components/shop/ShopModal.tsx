@@ -42,6 +42,51 @@ export function ShopModal({ open, onClose }: ShopModalProps) {
     }
   };
 
+  // Vista de confirmacao quando o usuario clica em comprar um item.
+  // Substitui o conteudo do modal pra dar destaque maximo a transacao.
+  if (confirmItem) {
+    return (
+      <Modal
+        open={open}
+        onClose={() => !isPurchasing && (setConfirmItem(null), onClose())}
+        title="Confirmar compra"
+        testId="shop-confirm-dialog"
+      >
+        <div className="flex flex-col gap-4">
+          <p className="text-sm text-[var(--color-text-muted)]">
+            Você está prestes a desbloquear{' '}
+            <strong className="text-[var(--color-text-primary)]">{confirmItem.name}</strong>.
+          </p>
+          <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-3 flex flex-col gap-2 text-sm">
+            <div className="flex items-center justify-between">
+              <span className="text-[var(--color-text-muted)]">Preço</span>
+              <span className="font-semibold" style={{ color: 'oklch(78% 0.2 75)' }}>
+                <CoinDisplay amount={confirmItem.price} size="sm" />
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-[var(--color-text-muted)]">Saldo atual</span>
+              <CoinDisplay amount={user?.coins ?? 0} size="sm" />
+            </div>
+            <div className="h-px bg-[var(--color-border)]" />
+            <div className="flex items-center justify-between">
+              <span className="text-[var(--color-text-muted)] font-medium">Saldo após</span>
+              <CoinDisplay amount={Math.max(0, (user?.coins ?? 0) - confirmItem.price)} size="sm" />
+            </div>
+          </div>
+          <div className="flex gap-2 justify-end pt-1">
+            <Button variant="secondary" onClick={() => setConfirmItem(null)} disabled={isPurchasing}>
+              Voltar
+            </Button>
+            <Button onClick={handlePurchase} disabled={isPurchasing} data-testid="shop-buy-btn">
+              {isPurchasing ? 'Comprando...' : 'Confirmar compra'}
+            </Button>
+          </div>
+        </div>
+      </Modal>
+    );
+  }
+
   return (
     <Modal open={open} onClose={onClose} title="Loja" testId="shop-modal">
       <div className="flex flex-col gap-4 min-h-[320px]">
@@ -161,23 +206,6 @@ export function ShopModal({ open, onClose }: ShopModalProps) {
           </>
         )}
 
-        {/* Confirm purchase */}
-        {confirmItem && (
-          <div className="mt-auto pt-3 border-t border-[var(--color-border)] flex flex-col gap-3">
-            <p className="text-sm text-[var(--color-text-primary)]">
-              Desbloquear <strong>{confirmItem.name}</strong> por{' '}
-              <CoinDisplay amount={confirmItem.price} size="sm" />?
-            </p>
-            <div className="flex gap-2 justify-end">
-              <Button variant="secondary" size="sm" onClick={() => setConfirmItem(null)} disabled={isPurchasing}>
-                Cancelar
-              </Button>
-              <Button size="sm" onClick={handlePurchase} disabled={isPurchasing} data-testid="shop-buy-btn">
-                {isPurchasing ? 'Comprando...' : 'Confirmar'}
-              </Button>
-            </div>
-          </div>
-        )}
       </div>
     </Modal>
   );

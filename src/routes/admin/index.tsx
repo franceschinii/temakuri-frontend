@@ -107,11 +107,26 @@ const FILTER_LABELS: Record<FilterType, string> = {
 export default function AdminPage() {
   const navigate = useNavigate();
   const qc = useQueryClient();
-  const [tab, setTab] = useState<AdminTab>('users');
+  // Filtros persistidos em localStorage para sobreviverem a F5.
+  const [tab, setTab] = useState<AdminTab>(() => {
+    const v = typeof window !== 'undefined' ? window.localStorage.getItem('admin:tab') : null;
+    return v === 'rooms' || v === 'users' ? v : 'users';
+  });
   const [modal, setModal] = useState<ModalState>({ type: null, user: null });
-  const [search, setSearch] = useState('');
-  const [filter, setFilter] = useState<FilterType>('all');
+  const [search, setSearch] = useState<string>(() => {
+    return typeof window !== 'undefined' ? window.localStorage.getItem('admin:search') ?? '' : '';
+  });
+  const [filter, setFilter] = useState<FilterType>(() => {
+    const v = typeof window !== 'undefined' ? window.localStorage.getItem('admin:filter') : null;
+    return v && (['all', 'registered', 'guest', 'admin', 'banned', 'suspended'] as const).includes(v as FilterType)
+      ? (v as FilterType)
+      : 'all';
+  });
   const [confirmDeleteRoom, setConfirmDeleteRoom] = useState<string | null>(null);
+
+  useEffect(() => { window.localStorage.setItem('admin:tab', tab); }, [tab]);
+  useEffect(() => { window.localStorage.setItem('admin:search', search); }, [search]);
+  useEffect(() => { window.localStorage.setItem('admin:filter', filter); }, [filter]);
   const [playerDialogUserId, setPlayerDialogUserId] = useState<string | null>(null);
   const [playerDialogSnapshot, setPlayerDialogSnapshot] = useState<PlayerSnapshot | null>(null);
   const openPlayerDialog = (snapshot: PlayerSnapshot) => {
@@ -180,6 +195,156 @@ export default function AdminPage() {
 
   const invalidate = () => qc.invalidateQueries({ queryKey: ['admin', 'users'] });
 
+  const renderRoomCard = (room: AdminRoom) => {
+    const statusClass = cn(
+      'text-[10px] px-2 py-0.5 rounded-full border font-medium shrink-0',
+      room.status === 'WAITING' && 'text-[var(--color-accent-mid)] border-[var(--color-accent-mid)]/30 bg-[var(--color-accent-mid)]/10',
+      room.status === 'IN_PROGRESS' && 'text-[var(--color-warning)] border-[var(--color-warning)]/30 bg-[var(--color-warning)]/10',
+      room.status === 'FINISHED' && 'text-[var(--color-text-muted)] border-[var(--color-border)] bg-[var(--color-panel)]',
+    );
+    const isConfirming = confirmDeleteRoom === room.code;
+    return (
+      <div key={room.id}>
+        {/* Mobile card */}
+        <div className="sm:hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-3 flex flex-col gap-2.5">
+          <div className="flex items-start justify-between gap-2">
+            <span className="font-mono text-lg font-bold tracking-widest leading-none" style={{ color: 'var(--color-text-primary)' }}>{room.code ?? '—'}</span>
+            <span className={statusClass}>{room.status}</span>
+          </div>
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-[var(--color-text-muted)]">
+            <span>{room.mode}</span>
+            <span className="opacity-50">•</span>
+            <span>{room.players.length}/{room.maxPlayers} jogadores</span>
+            {room.isPrivate && <><span className="opacity-50">•</span><span>privada</span></>}
+            <span className="opacity-50">•</span>
+            <span>Criada em {formatDate(room.createdAt)}</span>
+          </div>
+          {room.players.length > 0 && (
+            <details className="group">
+              <summary className="cursor-pointer list-none flex items-center justify-between py-1.5 px-2 -mx-1 rounded-lg text-xs font-medium text-[var(--color-text-muted)] hover:bg-[var(--color-panel)]">
+                <span>Ver jogadores ({room.players.length})</span>
+                <span className="text-[10px] opacity-60 group-open:rotate-180 transition-transform">▾</span>
+              </summary>
+              <div className="flex flex-col gap-1 mt-2">
+                {room.players.map(p => (
+                  <div key={p.userId} className="flex items-center justify-between gap-2 p-2 rounded-lg bg-[var(--color-panel)] border border-[var(--color-border)]">
+                    <button
+                      type="button"
+                      onClick={() => !p.isBot && openPlayerDialog({ userId: p.userId, username: p.username, avatarIndex: p.avatarIndex, isBot: p.isBot })}
+                      disabled={p.isBot}
+                      className="flex items-center gap-1.5 min-w-0 text-xs text-left flex-1 rounded p-0.5 -m-0.5 hover:bg-[var(--color-surface)] disabled:cursor-default disabled:hover:bg-transparent transition-colors"
+                    >
+                      <span className={cn('truncate', p.userId === room.hostId ? 'text-[var(--color-token-gold)] font-medium' : 'text-[var(--color-text-primary)]')}>{p.username}</span>
+                      {p.isBot && <span className="text-[9px] text-[var(--color-text-muted)] shrink-0">bot</span>}
+                      {p.userId === room.hostId && <span className="text-[9px] text-[var(--color-token-gold)] shrink-0">host</span>}
+                    </button>
+                    <button
+                      onClick={() => kickPlayerMutation.mutate({ code: room.code, userId: p.userId })}
+                      className="p-2 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-danger)] hover:bg-[var(--color-danger)]/10 transition-colors shrink-0"
+                      title={`Kickar ${p.username}`}
+                      aria-label={`Kickar ${p.username}`}
+                    >
+                      <UserX size={14} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </details>
+          )}
+          {isConfirming ? (
+            <div className="flex gap-2">
+              <button
+                onClick={() => { deleteRoomMutation.mutate(room.code); setConfirmDeleteRoom(null); }}
+                className="flex-1 py-2 rounded-lg text-sm font-medium text-white bg-[var(--color-danger)] hover:opacity-90 transition-all"
+              >
+                Remover {room.code}
+              </button>
+              <button
+                onClick={() => setConfirmDeleteRoom(null)}
+                className="px-4 py-2 rounded-lg text-sm text-[var(--color-text-muted)] border border-[var(--color-border)] hover:bg-[var(--color-panel)] transition-all"
+              >
+                Cancelar
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => setConfirmDeleteRoom(room.code)}
+              className="w-full flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm text-[var(--color-danger)] hover:bg-[var(--color-danger)]/10 border border-[var(--color-danger)]/30 transition-all"
+            >
+              <Trash2 size={14} /> Remover sala
+            </button>
+          )}
+        </div>
+        {/* Desktop card */}
+        <div className="hidden sm:flex rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4 flex-col gap-3">
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <div className="flex items-center gap-3">
+              <span className="font-mono text-base font-bold tracking-widest" style={{ color: 'var(--color-text-primary)' }}>{room.code ?? '—'}</span>
+              <span className={statusClass}>{room.status}</span>
+              <span className="text-[10px] text-[var(--color-text-muted)]">{room.mode}</span>
+              <span className="text-[10px] text-[var(--color-text-muted)]">{room.players.length}/{room.maxPlayers} jogadores</span>
+              {room.isPrivate && <span className="text-[10px] text-[var(--color-text-muted)]">privada</span>}
+            </div>
+            {isConfirming ? (
+              <div className="flex items-center gap-1.5">
+                <span className="text-xs text-[var(--color-text-muted)]">Remover {room.code}?</span>
+                <button
+                  onClick={() => { deleteRoomMutation.mutate(room.code); setConfirmDeleteRoom(null); }}
+                  className="px-2 py-1 rounded-lg text-xs text-white bg-[var(--color-danger)] hover:opacity-90 transition-all"
+                >
+                  Confirmar
+                </button>
+                <button
+                  onClick={() => setConfirmDeleteRoom(null)}
+                  className="px-2 py-1 rounded-lg text-xs text-[var(--color-text-muted)] hover:bg-[var(--color-panel)] transition-all"
+                >
+                  Cancelar
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setConfirmDeleteRoom(room.code)}
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs text-[var(--color-danger)] hover:bg-[var(--color-danger)]/10 border border-[var(--color-danger)]/30 transition-all"
+              >
+                <Trash2 size={12} /> Remover sala
+              </button>
+            )}
+          </div>
+          {room.players.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {room.players.map(p => (
+                <div key={p.userId} className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[var(--color-panel)] border border-[var(--color-border)] text-xs">
+                  <button
+                    type="button"
+                    onClick={() => !p.isBot && openPlayerDialog({ userId: p.userId, username: p.username, avatarIndex: p.avatarIndex, isBot: p.isBot })}
+                    disabled={p.isBot}
+                    className={cn(
+                      'flex items-center gap-1.5 rounded p-0.5 -m-0.5 transition-colors',
+                      !p.isBot && 'hover:bg-[var(--color-surface)] cursor-pointer',
+                      p.isBot && 'cursor-default',
+                    )}
+                  >
+                    <span className={cn('text-[var(--color-text-primary)]', p.userId === room.hostId && 'text-[var(--color-token-gold)]')}>{p.username}</span>
+                    {p.isBot && <span className="text-[9px] text-[var(--color-text-muted)]">bot</span>}
+                    {p.userId === room.hostId && <span className="text-[9px] text-[var(--color-token-gold)]">host</span>}
+                  </button>
+                  <button
+                    onClick={() => kickPlayerMutation.mutate({ code: room.code, userId: p.userId })}
+                    className="ml-1 text-[var(--color-text-muted)] hover:text-[var(--color-danger)] transition-colors"
+                    title={`Kickar ${p.username}`}
+                  >
+                    <UserX size={11} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+          <span className="text-[10px] text-[var(--color-text-muted)]">Criada em {formatDate(room.createdAt)}</span>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-dvh bg-[var(--color-base)] flex flex-col">
       <AppNavbar back="/lobby" hideUsername />
@@ -211,177 +376,51 @@ export default function AdminPage() {
         {tab === 'rooms' && (
           <>
             <div className="flex items-center gap-3">
-              <span className="text-xs uppercase tracking-[0.15em] font-medium text-[var(--color-text-muted)]">Salas ativas</span>
+              <span className="text-xs uppercase tracking-[0.15em] font-medium text-[var(--color-text-muted)]">Salas</span>
               <span className="text-xs bg-[var(--color-panel)] border border-[var(--color-border)] text-[var(--color-accent-mid)] rounded-full px-2 py-0.5 font-mono">{rooms.length}</span>
               <div className="flex-1 h-px bg-[var(--color-border)]" />
               <button onClick={() => refetchRooms()} className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors p-1.5 rounded-lg hover:bg-[var(--color-panel)]" title="Atualizar">
                 <RefreshCw size={13} />
               </button>
             </div>
-            {roomsLoading ? (
-              <div className="flex flex-col gap-2">
-                {[0,1,2].map(i => <Skeleton key={i} variant="card" className="h-16" />)}
-              </div>
-            ) : rooms.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-16 border border-dashed border-[var(--color-border)] rounded-2xl text-center gap-2">
-                <p className="text-sm text-[var(--color-text-muted)]">Nenhuma sala no banco</p>
-              </div>
-            ) : (
-              <div className="flex flex-col gap-2">
-                {rooms.map(room => {
-                  const statusClass = cn(
-                    'text-[10px] px-2 py-0.5 rounded-full border font-medium shrink-0',
-                    room.status === 'WAITING' && 'text-[var(--color-accent-mid)] border-[var(--color-accent-mid)]/30 bg-[var(--color-accent-mid)]/10',
-                    room.status === 'IN_PROGRESS' && 'text-[var(--color-warning)] border-[var(--color-warning)]/30 bg-[var(--color-warning)]/10',
-                    room.status === 'FINISHED' && 'text-[var(--color-text-muted)] border-[var(--color-border)] bg-[var(--color-panel)]',
-                  );
-                  const isConfirming = confirmDeleteRoom === room.code;
-                  return (
-                    <div key={room.id}>
-                      {/* Mobile card */}
-                      <div className="sm:hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-3 flex flex-col gap-2.5">
-                        <div className="flex items-start justify-between gap-2">
-                          <span className="font-mono text-lg font-bold tracking-widest leading-none" style={{ color: 'var(--color-text-primary)' }}>{room.code ?? '—'}</span>
-                          <span className={statusClass}>{room.status}</span>
-                        </div>
-                        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-[var(--color-text-muted)]">
-                          <span>{room.mode}</span>
-                          <span className="opacity-50">•</span>
-                          <span>{room.players.length}/{room.maxPlayers} jogadores</span>
-                          {room.isPrivate && <><span className="opacity-50">•</span><span>privada</span></>}
-                          <span className="opacity-50">•</span>
-                          <span>Criada em {formatDate(room.createdAt)}</span>
-                        </div>
-
-                        {room.players.length > 0 && (
-                          <details className="group">
-                            <summary className="cursor-pointer list-none flex items-center justify-between py-1.5 px-2 -mx-1 rounded-lg text-xs font-medium text-[var(--color-text-muted)] hover:bg-[var(--color-panel)]">
-                              <span>Ver jogadores ({room.players.length})</span>
-                              <span className="text-[10px] opacity-60 group-open:rotate-180 transition-transform">▾</span>
-                            </summary>
-                            <div className="flex flex-col gap-1 mt-2">
-                              {room.players.map(p => (
-                                <div key={p.userId} className="flex items-center justify-between gap-2 p-2 rounded-lg bg-[var(--color-panel)] border border-[var(--color-border)]">
-                                  <button
-                                    type="button"
-                                    onClick={() => !p.isBot && openPlayerDialog({ userId: p.userId, username: p.username, avatarIndex: p.avatarIndex, isBot: p.isBot })}
-                                    disabled={p.isBot}
-                                    className="flex items-center gap-1.5 min-w-0 text-xs text-left flex-1 rounded p-0.5 -m-0.5 hover:bg-[var(--color-surface)] disabled:cursor-default disabled:hover:bg-transparent transition-colors"
-                                  >
-                                    <span className={cn('truncate', p.userId === room.hostId ? 'text-[var(--color-token-gold)] font-medium' : 'text-[var(--color-text-primary)]')}>{p.username}</span>
-                                    {p.isBot && <span className="text-[9px] text-[var(--color-text-muted)] shrink-0">bot</span>}
-                                    {p.userId === room.hostId && <span className="text-[9px] text-[var(--color-token-gold)] shrink-0">host</span>}
-                                  </button>
-                                  <button
-                                    onClick={() => kickPlayerMutation.mutate({ code: room.code, userId: p.userId })}
-                                    className="p-2 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-danger)] hover:bg-[var(--color-danger)]/10 transition-colors shrink-0"
-                                    title={`Kickar ${p.username}`}
-                                    aria-label={`Kickar ${p.username}`}
-                                  >
-                                    <UserX size={14} />
-                                  </button>
-                                </div>
-                              ))}
-                            </div>
-                          </details>
-                        )}
-
-                        {isConfirming ? (
-                          <div className="flex gap-2">
-                            <button
-                              onClick={() => { deleteRoomMutation.mutate(room.code); setConfirmDeleteRoom(null); }}
-                              className="flex-1 py-2 rounded-lg text-sm font-medium text-white bg-[var(--color-danger)] hover:opacity-90 transition-all"
-                            >
-                              Remover {room.code}
-                            </button>
-                            <button
-                              onClick={() => setConfirmDeleteRoom(null)}
-                              className="px-4 py-2 rounded-lg text-sm text-[var(--color-text-muted)] border border-[var(--color-border)] hover:bg-[var(--color-panel)] transition-all"
-                            >
-                              Cancelar
-                            </button>
-                          </div>
-                        ) : (
-                          <button
-                            onClick={() => setConfirmDeleteRoom(room.code)}
-                            className="w-full flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm text-[var(--color-danger)] hover:bg-[var(--color-danger)]/10 border border-[var(--color-danger)]/30 transition-all"
-                          >
-                            <Trash2 size={14} /> Remover sala
-                          </button>
-                        )}
-                      </div>
-
-                      {/* Desktop card */}
-                      <div className="hidden sm:flex rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4 flex-col gap-3">
-                        <div className="flex items-center justify-between flex-wrap gap-2">
-                          <div className="flex items-center gap-3">
-                            <span className="font-mono text-base font-bold tracking-widest" style={{ color: 'var(--color-text-primary)' }}>{room.code ?? '—'}</span>
-                            <span className={statusClass}>{room.status}</span>
-                            <span className="text-[10px] text-[var(--color-text-muted)]">{room.mode}</span>
-                            <span className="text-[10px] text-[var(--color-text-muted)]">{room.players.length}/{room.maxPlayers} jogadores</span>
-                            {room.isPrivate && <span className="text-[10px] text-[var(--color-text-muted)]">privada</span>}
-                          </div>
-                          {isConfirming ? (
-                            <div className="flex items-center gap-1.5">
-                              <span className="text-xs text-[var(--color-text-muted)]">Remover {room.code}?</span>
-                              <button
-                                onClick={() => { deleteRoomMutation.mutate(room.code); setConfirmDeleteRoom(null); }}
-                                className="px-2 py-1 rounded-lg text-xs text-white bg-[var(--color-danger)] hover:opacity-90 transition-all"
-                              >
-                                Confirmar
-                              </button>
-                              <button
-                                onClick={() => setConfirmDeleteRoom(null)}
-                                className="px-2 py-1 rounded-lg text-xs text-[var(--color-text-muted)] hover:bg-[var(--color-panel)] transition-all"
-                              >
-                                Cancelar
-                              </button>
-                            </div>
-                          ) : (
-                            <button
-                              onClick={() => setConfirmDeleteRoom(room.code)}
-                              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs text-[var(--color-danger)] hover:bg-[var(--color-danger)]/10 border border-[var(--color-danger)]/30 transition-all"
-                            >
-                              <Trash2 size={12} /> Remover sala
-                            </button>
-                          )}
-                        </div>
-                        {room.players.length > 0 && (
-                          <div className="flex flex-wrap gap-2">
-                            {room.players.map(p => (
-                              <div key={p.userId} className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[var(--color-panel)] border border-[var(--color-border)] text-xs">
-                                <button
-                                  type="button"
-                                  onClick={() => !p.isBot && openPlayerDialog({ userId: p.userId, username: p.username, avatarIndex: p.avatarIndex, isBot: p.isBot })}
-                                  disabled={p.isBot}
-                                  className={cn(
-                                    'flex items-center gap-1.5 rounded p-0.5 -m-0.5 transition-colors',
-                                    !p.isBot && 'hover:bg-[var(--color-surface)] cursor-pointer',
-                                    p.isBot && 'cursor-default',
-                                  )}
-                                >
-                                  <span className={cn('text-[var(--color-text-primary)]', p.userId === room.hostId && 'text-[var(--color-token-gold)]')}>{p.username}</span>
-                                  {p.isBot && <span className="text-[9px] text-[var(--color-text-muted)]">bot</span>}
-                                  {p.userId === room.hostId && <span className="text-[9px] text-[var(--color-token-gold)]">host</span>}
-                                </button>
-                                <button
-                                  onClick={() => kickPlayerMutation.mutate({ code: room.code, userId: p.userId })}
-                                  className="ml-1 text-[var(--color-text-muted)] hover:text-[var(--color-danger)] transition-colors"
-                                  title={`Kickar ${p.username}`}
-                                >
-                                  <UserX size={11} />
-                                </button>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                        <span className="text-[10px] text-[var(--color-text-muted)]">Criada em {formatDate(room.createdAt)}</span>
-                      </div>
+            {(() => {
+              const activeRooms = rooms.filter(r => r.status !== 'FINISHED');
+              const inactiveRooms = rooms.filter(r => r.status === 'FINISHED');
+              if (roomsLoading) {
+                return (
+                  <div className="flex flex-col gap-2">
+                    {[0,1,2].map(i => <Skeleton key={i} variant="card" className="h-16" />)}
+                  </div>
+                );
+              }
+              if (rooms.length === 0) {
+                return (
+                  <div className="flex flex-col items-center justify-center py-16 border border-dashed border-[var(--color-border)] rounded-2xl text-center gap-2">
+                    <p className="text-sm text-[var(--color-text-muted)]">Nenhuma sala no banco</p>
+                  </div>
+                );
+              }
+              return (
+                <>
+                  <SectionLabel title="Ativas" count={activeRooms.length} accent />
+                  {activeRooms.length === 0 ? (
+                    <p className="text-xs text-[var(--color-text-muted)] italic px-1">Nenhuma sala ativa no momento.</p>
+                  ) : (
+                    <div className="flex flex-col gap-2">
+                      {activeRooms.map(room => renderRoomCard(room))}
                     </div>
-                  );
-                })}
-              </div>
-            )}
+                  )}
+                  {inactiveRooms.length > 0 && (
+                    <>
+                      <SectionLabel title="Inativas (finalizadas)" count={inactiveRooms.length} />
+                      <div className="flex flex-col gap-2 opacity-75">
+                        {inactiveRooms.map(room => renderRoomCard(room))}
+                      </div>
+                    </>
+                  )}
+                </>
+              );
+            })()}
           </>
         )}
 
@@ -952,5 +991,24 @@ function ModerationModal({ open, user, onClose, onSuccess }: { open: boolean; us
         </div>
       </div>
     </Modal>
+  );
+}
+
+function SectionLabel({ title, count, accent }: { title: string; count: number; accent?: boolean }) {
+  return (
+    <div className="flex items-center gap-3">
+      <span className="text-xs uppercase tracking-[0.15em] font-medium text-[var(--color-text-muted)]">{title}</span>
+      <span
+        className={cn(
+          'text-xs rounded-full px-2 py-0.5 font-mono border',
+          accent
+            ? 'bg-[var(--color-panel)] border-[var(--color-border)] text-[var(--color-accent-mid)]'
+            : 'bg-[var(--color-panel)] border-[var(--color-border)] text-[var(--color-text-muted)]',
+        )}
+      >
+        {count}
+      </span>
+      <div className="flex-1 h-px bg-[var(--color-border)]" />
+    </div>
   );
 }
