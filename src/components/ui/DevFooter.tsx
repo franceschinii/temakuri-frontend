@@ -7,7 +7,7 @@ export function DevFooter() {
           <span className="text-[10px] text-[var(--color-text-muted)] opacity-40 tracking-widest" style={{ fontFamily: 'var(--font-display)' }}>
             寿司 · 拉麺 · 餃子
           </span>
-          <span className="text-[10px] text-[var(--color-text-muted)] opacity-25 font-mono">v0.6.1-beta</span>
+          <span className="text-[10px] text-[var(--color-text-muted)] opacity-25 font-mono">v0.6.2-beta</span>
         </div>
         <div className="flex items-center justify-between">
           <a
@@ -33,7 +33,7 @@ export function DevFooter() {
             寿司 · 拉麺 · 餃子
           </span>
           <span className="text-[10px] text-[var(--color-text-muted)]">·</span>
-          <span className="text-[10px] text-[var(--color-text-muted)] font-mono opacity-70">v0.6.1-beta</span>
+          <span className="text-[10px] text-[var(--color-text-muted)] font-mono opacity-70">v0.6.2-beta</span>
         </div>
         <div className="flex items-center gap-2 opacity-40">
           <span className="text-[10px] text-[var(--color-text-muted)]">

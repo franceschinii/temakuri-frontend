@@ -29,6 +29,16 @@ export function RulesModal({ open, onClose }: RulesModalProps) {
         </section>
 
         <section className="flex flex-col gap-1.5">
+          <p className="text-xs font-semibold uppercase tracking-wider text-[var(--color-accent-mid)]">Quem começa</p>
+          <p className="text-[var(--color-text-muted)] leading-relaxed">
+            Na <strong className="text-[var(--color-text-primary)]">primeira rodada</strong> o jogador inicial é <strong className="text-[var(--color-text-primary)]">sorteado</strong>. Nas rodadas seguintes, quem <strong className="text-[var(--color-text-primary)]">venceu a rodada anterior</strong> (esvaziou a mão primeiro) começa a próxima.
+          </p>
+          <p className="text-[var(--color-text-muted)] leading-relaxed">
+            Dentro da rodada, quem ganha a vaza inicia a próxima vaza.
+          </p>
+        </section>
+
+        <section className="flex flex-col gap-1.5">
           <p className="text-xs font-semibold uppercase tracking-wider text-[var(--color-accent-mid)]">A — Jogar cartas</p>
           <p className="text-[var(--color-text-muted)] leading-relaxed">
             Selecione cartas <strong className="text-[var(--color-text-primary)]">adjacentes de mesmo valor</strong> e jogue na pilha central. A jogada deve superar a anterior:
