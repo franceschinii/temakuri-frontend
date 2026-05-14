@@ -169,7 +169,7 @@ export function CreateRoomModal({ open, onClose }: CreateRoomModalProps) {
             <option value={3}>3 pratos</option>
           </select>
 
-          <label className="flex items-center gap-2 text-sm text-[var(--color-text-muted)] cursor-pointer ml-auto">
+          <label className="flex items-center gap-2 text-sm text-[var(--color-text-muted)] cursor-pointer w-full sm:w-auto sm:ml-auto">
             <input
               type="checkbox"
               {...register('isPrivate')}
