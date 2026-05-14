@@ -48,6 +48,7 @@ export function ShopModal({ open, onClose }: ShopModalProps) {
     catalog, isLoading, isPurchasing,
     fetchCatalog, purchaseAvatar, purchaseMode, purchaseTheme,
     setActiveTheme, purchaseCoinPack, useUtility,
+    startDiamondCheckout, startPremiumCheckout, openCustomerPortal,
   } = useShopStore();
   const user = useAuthStore(s => s.user);
   const userBalance = confirmItem?.currency === 'diamonds' ? (user?.diamonds ?? 0) : (user?.coins ?? 0);
@@ -70,6 +71,43 @@ export function ShopModal({ open, onClose }: ShopModalProps) {
       setConfirmItem(null);
     } catch (e: any) {
       toast.error(e?.response?.data?.message ?? 'Erro na operação');
+    }
+  };
+
+  /**
+   * Dispara checkout do Stripe (compra de diamantes ou premium). Redireciona
+   * pra URL retornada pelo backend. Em Fase A (PAYMENTS_ENABLED=false), o
+   * backend retorna 503 e o toast informa "Em breve".
+   */
+  const handleStripeCheckout = async (kind: 'diamonds' | 'premium', sku?: string) => {
+    try {
+      const url = kind === 'diamonds'
+        ? await startDiamondCheckout(sku!)
+        : await startPremiumCheckout();
+      if (!url) throw new Error('URL vazia');
+      window.location.href = url;
+    } catch (e: any) {
+      const status = e?.response?.status;
+      if (status === 503) {
+        toast.info('Pagamentos ainda não estão disponíveis. Em breve!');
+      } else {
+        toast.error(e?.response?.data?.message ?? 'Erro ao iniciar pagamento');
+      }
+    }
+  };
+
+  const handleManageSubscription = async () => {
+    try {
+      const url = await openCustomerPortal();
+      if (!url) throw new Error('URL vazia');
+      window.location.href = url;
+    } catch (e: any) {
+      const status = e?.response?.status;
+      if (status === 503) {
+        toast.info('Pagamentos ainda não estão disponíveis.');
+      } else {
+        toast.error(e?.response?.data?.message ?? 'Erro ao abrir portal');
+      }
     }
   };
 
@@ -340,7 +378,7 @@ export function ShopModal({ open, onClose }: ShopModalProps) {
                         size="sm"
                         className="w-full mt-1"
                         disabled={!PAYMENTS_ENABLED}
-                        onClick={() => toast.info('Pagamentos chegam em breve!')}
+                        onClick={() => handleStripeCheckout('diamonds', pack.sku)}
                       >
                         {PAYMENTS_ENABLED ? 'Comprar' : 'Em breve'}
                       </Button>
@@ -439,18 +477,25 @@ export function ShopModal({ open, onClose }: ShopModalProps) {
                     </li>
                   </ul>
                   {user?.isPremium ? (
-                    <div className="text-center text-sm font-medium" style={{ color: 'oklch(75% 0.2 310)' }}>
-                      Você já é Premium 🍷
-                      {user.premiumExpiresAt && (
-                        <span className="block text-xs text-[var(--color-text-muted)] mt-0.5">
-                          Renova em {new Date(user.premiumExpiresAt).toLocaleDateString('pt-BR')}
-                        </span>
+                    <div className="flex flex-col gap-2">
+                      <div className="text-center text-sm font-medium" style={{ color: 'oklch(75% 0.2 310)' }}>
+                        Você já é Premium 🍷
+                        {user.premiumExpiresAt && (
+                          <span className="block text-xs text-[var(--color-text-muted)] mt-0.5">
+                            Renova em {new Date(user.premiumExpiresAt).toLocaleDateString('pt-BR')}
+                          </span>
+                        )}
+                      </div>
+                      {PAYMENTS_ENABLED && (
+                        <Button variant="secondary" size="sm" onClick={handleManageSubscription}>
+                          Gerenciar assinatura
+                        </Button>
                       )}
                     </div>
                   ) : (
                     <Button
                       disabled={!PAYMENTS_ENABLED}
-                      onClick={() => toast.info('Premium chega em breve!')}
+                      onClick={() => handleStripeCheckout('premium')}
                       style={!PAYMENTS_ENABLED ? {} : { background: 'oklch(75% 0.2 310)' }}
                     >
                       {PAYMENTS_ENABLED ? 'Assinar Premium' : 'Em breve'}

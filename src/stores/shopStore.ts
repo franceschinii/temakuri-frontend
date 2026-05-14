@@ -15,6 +15,11 @@ interface ShopState {
   setActiveTheme: (key: string | null) => Promise<void>;
   purchaseCoinPack: (sku: string) => Promise<void>;
   useUtility: (sku: string) => Promise<void>;
+
+  // Stripe checkout (Fase A: retorna 503 se PAYMENTS_ENABLED=false)
+  startDiamondCheckout: (sku: string) => Promise<string>;
+  startPremiumCheckout: () => Promise<string>;
+  openCustomerPortal: () => Promise<string>;
 }
 
 async function refreshAll(set: (s: Partial<ShopState>) => void) {
@@ -91,5 +96,20 @@ export const useShopStore = create<ShopState>((set) => ({
     } finally {
       set({ isPurchasing: false });
     }
+  },
+
+  startDiamondCheckout: async (sku) => {
+    const { data } = await api.post('/payments/diamonds/checkout', { sku });
+    return data.url as string;
+  },
+
+  startPremiumCheckout: async () => {
+    const { data } = await api.post('/payments/premium/checkout');
+    return data.url as string;
+  },
+
+  openCustomerPortal: async () => {
+    const { data } = await api.post('/payments/portal');
+    return data.url as string;
   },
 }));

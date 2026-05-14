@@ -13,6 +13,9 @@ const GamePage            = lazy(() => import('@/routes/game/index'));
 const ProfilePage         = lazy(() => import('@/routes/profile/index'));
 const AdminPage           = lazy(() => import('@/routes/admin/index'));
 const RankedPage          = lazy(() => import('@/routes/ranked/index'));
+const PaymentsSuccess     = lazy(() => import('@/routes/payments/success'));
+const PaymentsCancel      = lazy(() => import('@/routes/payments/cancel'));
+const PaymentsPending     = lazy(() => import('@/routes/payments/pending'));
 
 function PageLoader() {
   return (
@@ -93,6 +96,9 @@ export default function App() {
           <Route path="/game/:roomCode" element={<GamePage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/ranked" element={<RankedPage />} />
+          <Route path="/payments/success" element={<PaymentsSuccess />} />
+          <Route path="/payments/cancel" element={<PaymentsCancel />} />
+          <Route path="/payments/pending" element={<PaymentsPending />} />
         </Route>
 
         <Route element={<AdminGuard />}>
