@@ -217,9 +217,16 @@ export default function LobbyPage() {
           <AdBanner className="w-full" />
         </section>
         </div>
+        {/* Mobile: footer rola junto com o conteudo (dentro do main) */}
+        <div className="sm:hidden">
+          <DevFooter />
+        </div>
       </main>
 
-      <DevFooter />
+      {/* Desktop: footer fixo embaixo (fora do main scrollavel) */}
+      <div className="hidden sm:block">
+        <DevFooter />
+      </div>
 
       <CreateRoomModal open={createOpen} onClose={() => setCreateOpen(false)} />
       <MatchmakingDialog open={matchOpen} onClose={() => setMatchOpen(false)} />

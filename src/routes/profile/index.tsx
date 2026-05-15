@@ -322,6 +322,10 @@ export default function ProfilePage() {
 
           <AdBanner className="w-full" />
         </div>
+        {/* Mobile: footer rola junto com o conteudo */}
+        <div className="sm:hidden">
+          <DevFooter />
+        </div>
       </main>
 
       <ShopModal open={shopOpen} onClose={() => setShopOpen(false)} />
@@ -343,7 +347,10 @@ export default function ProfilePage() {
         </div>
       </Modal>
       <RulesModal open={rulesOpen} onClose={() => setRulesOpen(false)} />
-      <DevFooter />
+      {/* Desktop: footer fixo embaixo */}
+      <div className="hidden sm:block">
+        <DevFooter />
+      </div>
     </div>
   );
 }

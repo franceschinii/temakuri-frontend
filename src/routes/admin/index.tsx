@@ -356,7 +356,7 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-dvh bg-[var(--color-base)] flex flex-col">
-      <AppNavbar back="/lobby" hideUsername onHowToPlay={() => setRulesOpen(true)} />
+      <AppNavbar back="/lobby" hideUsername onHowToPlay={() => setRulesOpen(true)} howToPlayDesktopOnly />
 
       <main className="flex-1 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <div className="max-w-5xl mx-auto w-full p-4 sm:p-6 flex flex-col gap-4">
@@ -510,12 +510,12 @@ export default function AdminPage() {
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex flex-col gap-1 min-w-0 flex-1">
-                      <div className="flex items-center gap-1.5 flex-wrap">
+                      <div className="flex items-center gap-1.5 min-w-0">
                         <button
                           type="button"
                           onClick={() => !user.isBot && openPlayerDialog({ userId: user.id, username: user.username, avatarIndex: user.avatarIndex, isAdmin: user.isAdmin, isGuest: user.isGuest, isBot: user.isBot, isPremium: user.isPremium, level: user.level, pds: user.pds })}
                           disabled={user.isBot}
-                          className="font-medium text-[var(--color-text-primary)] truncate hover:text-[var(--color-accent-soft)] disabled:hover:text-[var(--color-text-primary)] disabled:cursor-default transition-colors text-left"
+                          className="font-medium text-[var(--color-text-primary)] truncate min-w-0 hover:text-[var(--color-accent-soft)] disabled:hover:text-[var(--color-text-primary)] disabled:cursor-default transition-colors text-left"
                         >
                           {user.username}
                         </button>
@@ -657,6 +657,10 @@ export default function AdminPage() {
           )}
         </>}
         </div>
+        {/* Mobile: footer rola junto com o conteudo */}
+        <div className="sm:hidden">
+          <DevFooter />
+        </div>
       </main>
 
       <EditUserModal open={modal.type === 'edit'} user={modal.user} onClose={closeModal} onSuccess={invalidate} />
@@ -672,7 +676,10 @@ export default function AdminPage() {
         snapshot={playerDialogSnapshot}
       />
       <RulesModal open={rulesOpen} onClose={() => setRulesOpen(false)} />
-      <DevFooter />
+      {/* Desktop: footer fixo embaixo */}
+      <div className="hidden sm:block">
+        <DevFooter />
+      </div>
     </div>
   );
 }

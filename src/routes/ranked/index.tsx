@@ -259,10 +259,17 @@ export default function RankedPage() {
           </section>
 
         </div>
+        {/* Mobile: footer rola junto com o conteudo */}
+        <div className="sm:hidden">
+          <DevFooter />
+        </div>
       </main>
 
       <RulesModal open={rulesOpen} onClose={() => setRulesOpen(false)} />
-      <DevFooter />
+      {/* Desktop: footer fixo embaixo */}
+      <div className="hidden sm:block">
+        <DevFooter />
+      </div>
     </div>
   );
 }

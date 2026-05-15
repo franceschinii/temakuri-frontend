@@ -45,6 +45,13 @@ interface AppNavbarProps {
   onHowToPlay?: () => void;
 
   /**
+   * Quando true, o botao "Como jogar" so aparece no desktop (sm+). Usado
+   * pela tela de admin, onde no mobile o espaco da navbar e escasso e o
+   * botao nao e essencial.
+   */
+  howToPlayDesktopOnly?: boolean;
+
+  /**
    * Quando true, no mobile (<sm) esconde tudo do grupo direito que nao seja
    * essencial: moedas, premium, loja, info, AccessBar, admin e perfil ficam
    * agrupados em hidden sm:flex. Voltar, center e sair seguem visiveis.
@@ -66,7 +73,7 @@ interface AppNavbarProps {
  * Navbar unica do app. Usada em: lobby, lobby da sala, in-game, perfil,
  * ranked, admin. Auth telas tem layout proprio.
  */
-export function AppNavbar({ center, back, hideUsername, onHowToPlay, mobileMinimal, mobileExtraActions }: AppNavbarProps) {
+export function AppNavbar({ center, back, hideUsername, onHowToPlay, howToPlayDesktopOnly, mobileMinimal, mobileExtraActions }: AppNavbarProps) {
   const navigate = useNavigate();
   const user = useAuthStore(s => s.user);
   const logout = useAuthStore(s => s.logout);
@@ -124,9 +131,9 @@ export function AppNavbar({ center, back, hideUsername, onHowToPlay, mobileMinim
               className={cn(
                 'flex items-center gap-1.5 px-2 py-1.5 rounded-lg transition-colors hover:bg-[var(--color-panel)] text-sm',
                 // In-game mobile (mobileMinimal=true) ja tem HelpCircle nos
-                // mobileExtraActions. Esconder o botao ao lado do logo no
-                // mobile pra nao duplicar; desktop sempre visivel.
-                mobileMinimal ? 'hidden sm:flex' : 'flex',
+                // mobileExtraActions. Admin (howToPlayDesktopOnly) esconde no
+                // mobile por falta de espaco. Desktop sempre visivel.
+                (mobileMinimal || howToPlayDesktopOnly) ? 'hidden sm:flex' : 'flex',
               )}
               style={{ color: 'var(--color-text-muted)' }}
               title="Como jogar"
