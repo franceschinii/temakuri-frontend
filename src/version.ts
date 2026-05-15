@@ -3,4 +3,4 @@
  * changelog.ts (para validar consistencia de entries). Bumpar aqui ao
  * adicionar uma nova entrada no changelog.
  */
-export const APP_VERSION = '0.6.5-beta';
+export const APP_VERSION = '0.6.7-beta';

@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Modal } from '@/components/ui/modal';
 import { CATEGORY_LABELS } from '@/data/changelog';
+import { APP_VERSION } from '@/version';
 import api from '@/lib/api';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -151,7 +152,9 @@ function EntryEditor({ entry, onClose }: { entry: Entry | null; onClose: () => v
   const qc = useQueryClient();
   const isNew = !entry;
   const [date, setDate] = useState(entry?.date ?? new Date().toISOString().slice(0, 10));
-  const [version, setVersion] = useState(entry?.version ?? '');
+  // Pre-preenche com a versao atual do app (fonte unica em src/version.ts).
+  // Pode ser editada para o caso raro de hotfix retroativo.
+  const [version, setVersion] = useState(entry?.version ?? APP_VERSION);
   const [title, setTitle] = useState(entry?.title ?? '');
   const [category, setCategory] = useState<Category>(entry?.category ?? 'feature');
   const [highlights, setHighlights] = useState((entry?.highlights ?? []).join('\n'));

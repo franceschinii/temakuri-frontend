@@ -1,6 +1,6 @@
 {
   "name": "temakuri-frontend",
-  "version": "1.0.0",
+  "version": "0.6.7-beta",
   "description": "Temakuri card game — frontend",
   "type": "module",
   "scripts": {

@@ -521,7 +521,7 @@ export default function RoomPage() {
                   <>
                     {/* Backdrop pra fechar ao clicar fora */}
                     <div className="fixed inset-0 z-30" onClick={() => setBotMenuOpen(false)} />
-                    <div className="absolute z-40 right-0 mt-1 w-48 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] shadow-xl py-1">
+                    <div className="absolute z-40 right-0 bottom-full mb-1 w-48 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] shadow-xl py-1">
                       <button
                         onClick={() => handleAddBot('easy')}
                         className="w-full text-left px-3 py-2 text-sm hover:bg-[var(--color-panel)] transition-colors flex flex-col"
