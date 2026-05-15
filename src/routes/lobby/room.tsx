@@ -114,6 +114,7 @@ export default function RoomPage() {
   const [playerDialogUserId, setPlayerDialogUserId] = useState<string | null>(null);
   const [playerDialogSnapshot, setPlayerDialogSnapshot] = useState<PlayerSnapshot | null>(null);
   const [rulesOpen, setRulesOpen] = useState(false);
+  const [botMenuOpen, setBotMenuOpen] = useState(false);
   const openPlayerDialog = useCallback((snapshot: PlayerSnapshot) => {
     setPlayerDialogSnapshot(snapshot);
     setPlayerDialogUserId(snapshot.userId);
@@ -222,8 +223,6 @@ export default function RoomPage() {
     playSound(current ? 'unready' : 'ready');
     emitSocketEvent('lobby:set_ready', { roomCode, ready: !current });
   };
-
-  const [botMenuOpen, setBotMenuOpen] = useState(false);
 
   const handleAddBot = async (difficulty: 'easy' | 'medium' | 'hard' = 'easy') => {
     setBotMenuOpen(false);
