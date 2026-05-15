@@ -104,31 +104,36 @@
 /* ============================================================
  * CORINTHIANS — preto e branco (hue neutro, chroma 0)
  *
- * Paleta monocromatica preto/branco. O brasao de fundo NAO e embutido
- * aqui (marca registrada). Se existir /corinthians.png em public/, ele
- * aparece centralizado e bem sutil; se nao existir, o tema funciona
- * apenas com as cores + listras (degrada sem quebrar).
+ * Paleta monocromatica preto/branco. A imagem de fundo NAO e embutida
+ * aqui; o CSS apenas referencia o asset fornecido pelo dono do app em
+ * /assets/png/brasao-corinthians.png. Se o arquivo nao existir, o tema
+ * funciona apenas com as cores + listras (degrada sem quebrar).
  * ============================================================ */
 [data-theme="corinthians"] {
   --color-base:          oklch(16% 0 0);
   --color-surface:       oklch(22% 0 0);
   --color-panel:         oklch(30% 0 0);
-  --color-accent-strong: oklch(85% 0 0);
-  --color-accent-strong-translucent: oklch(85% 0 0 / 0.35);
+  --color-accent-strong: oklch(90% 0 0);
+  --color-accent-strong-translucent: oklch(90% 0 0 / 0.35);
   --color-accent-strong-glow: oklch(95% 0 0 / 0.5);
-  --color-accent-mid:    oklch(92% 0 0);
+  --color-accent-mid:    oklch(80% 0 0);
   --color-accent-soft:   oklch(96% 0 0);
   --color-accent-glow:   oklch(98% 0 0);
   --color-border:        oklch(40% 0 0);
   --color-text-primary:  oklch(97% 0 0);
   --color-text-muted:    oklch(68% 0 0);
+  /* Acento e quase branco — texto sobre botao primary precisa ser preto. */
+  --color-on-accent:     oklch(15% 0 0);
 }
 [data-theme="corinthians"] body,
 [data-theme="corinthians"] .min-h-dvh,
 [data-theme="corinthians"] .h-dvh {
   background-color: oklch(13% 0 0);
+  /* Listras diagonais cobrindo a tela toda. A imagem (asset fornecido
+     pelo dono em /assets/png/brasao-corinthians.png) fica fixa no canto
+     inferior direito, discreta. */
   background-image:
-    image-set(url("/corinthians.png") 1x),
+    url("/assets/png/brasao-corinthians.png"),
     repeating-linear-gradient(
       135deg,
       oklch(22% 0 0) 0,
@@ -137,7 +142,7 @@
       oklch(17% 0 0) 56px
     );
   background-repeat: no-repeat, repeat;
-  background-position: center center, center center;
-  background-size: min(40vw, 360px) auto, auto;
-  background-blend-mode: soft-light, normal;
+  background-position: right -40px bottom -40px, center center;
+  background-size: min(45vw, 380px) auto, auto;
+  background-attachment: fixed, scroll;
 }

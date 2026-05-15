@@ -8,6 +8,9 @@
   --color-accent-mid:     oklch(68% 0.15 145);
   --color-accent-soft:    oklch(82% 0.10 145);
   --color-accent-glow:    oklch(88% 0.12 140);
+  /* Texto sobre superficies de acento (botao primary). Branco por padrao;
+     temas de acento claro (ex: Corinthians) sobrescrevem pra preto. */
+  --color-on-accent:      oklch(98% 0.01 145);
   --color-text-primary:   oklch(96% 0.02 145);
   --color-text-muted:     oklch(72% 0.05 145);
   --color-danger:         oklch(55% 0.22 25);
@@ -38,6 +41,7 @@
   --color-accent-mid:     oklch(68% 0.15 145);
   --color-accent-soft:    oklch(82% 0.10 145);
   --color-accent-glow:    oklch(88% 0.12 140);
+  --color-on-accent:      oklch(98% 0.01 145);
   --color-text-primary:   oklch(96% 0.02 145);
   --color-text-muted:     oklch(72% 0.05 145);
   --color-danger:         oklch(55% 0.22 25);

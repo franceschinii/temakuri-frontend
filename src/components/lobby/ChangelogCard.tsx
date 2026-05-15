@@ -5,6 +5,7 @@ import { X, ScrollText } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { CATEGORY_LABELS, type ChangelogEntry } from '@/data/changelog';
 import { formatDate } from '@/lib/formatTime';
+import { MiniMarkdown } from '@/lib/miniMarkdown';
 import api from '@/lib/api';
 
 export function ChangelogCard() {
@@ -125,9 +126,7 @@ export function ChangelogCard() {
                       </li>
                     ))}
                   </ul>
-                  <pre className="text-xs whitespace-pre-wrap font-sans leading-relaxed text-[var(--color-text-muted)]">
-                    {selected.details}
-                  </pre>
+                  <MiniMarkdown text={selected.details} />
                 </div>
               </motion.div>
             </motion.div>
