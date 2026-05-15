@@ -969,19 +969,24 @@ export function GameBoard() {
           )}
         </div>
 
-        {!pickMode && !marketSwapMode && !me?.isOutOfRound && (
+        {!pickMode && !marketSwapMode && (
           <div className="mt-1.5 flex flex-col gap-1.5">
-            <ActionBar
-              isMyTurn={isMyTurn}
-              pile={pile}
-              drawPileCount={drawPileCount}
-              onPlay={playSelectedCards}
-              onPass={handlePass}
-              canPlay={canPlay}
-              isDuel={isDuel}
-              myDuelPlatesCount={myDuelPlates?.length ?? 0}
-            />
-            {/* Linha inferior: historico (esq) + emojis (centro) + chat (dir) */}
+            {/* ActionBar (jogar/passar) some quando o jogador esta out-of-round
+                — ele nao tem acoes. Mas historico/reacoes/chat continuam. */}
+            {!me?.isOutOfRound && (
+              <ActionBar
+                isMyTurn={isMyTurn}
+                pile={pile}
+                drawPileCount={drawPileCount}
+                onPlay={playSelectedCards}
+                onPass={handlePass}
+                canPlay={canPlay}
+                isDuel={isDuel}
+                myDuelPlatesCount={myDuelPlates?.length ?? 0}
+              />
+            )}
+            {/* Linha inferior: historico (esq) + emojis (centro) + chat (dir).
+                Sempre visivel — mesmo fora da rodada o jogador interage. */}
             <div className="flex items-center justify-between gap-2">
               <button
                 onClick={() => historyRef.current?.toggle()}
