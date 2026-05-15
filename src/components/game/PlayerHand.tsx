@@ -41,10 +41,12 @@ export function PlayerHand({
     return false;
   };
 
-  // Pick mode — inserir carta do monte; escolha a posição na mão
+  // Pick mode — inserir carta do monte; escolha a posição na mão.
+  // Mobile: scroll horizontal sempre (touch-pan-x) sem justify-center,
+  // que cortava as pontas e travava o scroll. Desktop: centralizado.
   if (pickMode) {
     return (
-      <div className={cn('flex gap-1 items-center justify-center py-2', hand.length > 7 && 'overflow-x-auto')}>
+      <div className="flex gap-1 items-center py-2 px-2 overflow-x-auto sm:justify-center sm:overflow-visible [scrollbar-width:none] [&::-webkit-scrollbar]:hidden [touch-action:pan-x]">
         {[...Array(hand.length + 1)].map((_, insertIdx) => (
           <div key={insertIdx} className="flex items-center shrink-0">
             <button
@@ -52,7 +54,7 @@ export function PlayerHand({
               onMouseEnter={() => setHoveredInsert(insertIdx)}
               onMouseLeave={() => setHoveredInsert(null)}
               className={cn(
-                'w-3 sm:w-1.5 min-h-[44px] h-16 rounded-full transition-all mx-0.5',
+                'w-4 sm:w-1.5 min-h-[44px] h-16 rounded-full transition-all mx-0.5 shrink-0',
                 hoveredInsert === insertIdx
                   ? 'bg-[var(--color-warning)] sm:w-2.5 scale-110'
                   : 'bg-[var(--color-border)]',
