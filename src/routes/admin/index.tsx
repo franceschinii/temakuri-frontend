@@ -361,7 +361,7 @@ export default function AdminPage() {
     <div className="h-dvh bg-[var(--color-base)] flex flex-col overflow-hidden">
       <AppNavbar back="/lobby" onHowToPlay={() => setRulesOpen(true)} howToPlayDesktopOnly />
 
-      <main className="flex-1 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <main className="flex-1 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden flex flex-col min-h-0">
         <div className="max-w-5xl mx-auto w-full p-4 sm:p-6 flex flex-col gap-4">
 
         {/* Tabs — mobile: scroll horizontal (4 tabs nao cabem espremidas em
@@ -686,8 +686,8 @@ export default function AdminPage() {
           )}
         </>}
         </div>
-        {/* Mobile: footer rola junto com o conteudo */}
-        <div className="sm:hidden">
+        {/* Mobile: footer no fim. mt-auto evita footer flutuando. */}
+        <div className="sm:hidden mt-auto">
           <DevFooter />
         </div>
       </main>

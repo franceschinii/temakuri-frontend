@@ -126,7 +126,7 @@ export default function ProfilePage() {
     <div className="h-dvh bg-[var(--color-base)] flex flex-col overflow-hidden">
       <AppNavbar back="/lobby" onHowToPlay={() => setRulesOpen(true)} />
 
-      <main className="flex-1 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <main className="flex-1 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden flex flex-col min-h-0">
         <div className="max-w-md mx-auto w-full p-5 flex flex-col gap-6">
 
           {/* Avatar atual + nome */}
@@ -324,8 +324,9 @@ export default function ProfilePage() {
 
           <AdBanner className="w-full" />
         </div>
-        {/* Mobile: footer rola junto com o conteudo */}
-        <div className="sm:hidden">
+        {/* Mobile: footer no fim. mt-auto evita footer flutuando quando
+            o conteudo nao preenche a viewport. */}
+        <div className="sm:hidden mt-auto">
           <DevFooter />
         </div>
       </main>

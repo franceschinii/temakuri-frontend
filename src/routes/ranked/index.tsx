@@ -88,7 +88,7 @@ export default function RankedPage() {
         }
       />
 
-      <main className="flex-1 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <main className="flex-1 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden flex flex-col min-h-0">
         <div className="max-w-2xl mx-auto w-full p-4 sm:p-6 flex flex-col gap-8">
 
           {/* Colinha de ranks */}
@@ -259,8 +259,8 @@ export default function RankedPage() {
           </section>
 
         </div>
-        {/* Mobile: footer rola junto com o conteudo */}
-        <div className="sm:hidden">
+        {/* Mobile: footer no fim. mt-auto evita footer flutuando. */}
+        <div className="sm:hidden mt-auto">
           <DevFooter />
         </div>
       </main>

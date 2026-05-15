@@ -88,7 +88,7 @@ export default function LobbyPage() {
       {/* Header — AppNavbar comum a todas as telas, com "Como jogar" ao lado do logo */}
       <AppNavbar onHowToPlay={() => setRulesOpen(true)} />
 
-      <main className="flex-1 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <main className="flex-1 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden flex flex-col min-h-0">
         <div className="max-w-7xl mx-auto w-full p-4 sm:p-6 grid grid-cols-1 lg:grid-cols-[340px_1fr] gap-5 sm:gap-6">
 
         {/* Sidebar esquerda: Noticias + Changelog (so visivel em lg+; abaixo, fica embaixo) */}
@@ -217,8 +217,9 @@ export default function LobbyPage() {
           <AdBanner className="w-full" />
         </section>
         </div>
-        {/* Mobile: footer rola junto com o conteudo (dentro do main) */}
-        <div className="sm:hidden">
+        {/* Mobile: footer no fim. mt-auto empurra pra baixo quando o
+            conteudo nao preenche a viewport (evita footer flutuando). */}
+        <div className="sm:hidden mt-auto">
           <DevFooter />
         </div>
       </main>
