@@ -97,6 +97,8 @@ export interface ShopCatalogAvatar {
   index: number;
   name: string;
   price: number;
+  /** Preco base, sem override do admin. Se diferente de price, ha desconto. */
+  defaultPrice?: number;
   currency: 'coins' | 'diamonds';
   owned: boolean;
   free: boolean;
@@ -107,6 +109,7 @@ export interface ShopCatalogMode {
   mode: string;
   name: string;
   price: number;
+  defaultPrice?: number;
   currency: 'coins';
   owned: boolean;
 }
@@ -116,6 +119,7 @@ export interface ShopCatalogTheme {
   key: string;
   name: string;
   price: number;
+  defaultPrice?: number;
   currency: 'diamonds';
   owned: boolean;
   free: boolean;
@@ -126,6 +130,7 @@ export interface ShopCatalogCoinPack {
   sku: string;
   coins: number;
   price: number;
+  defaultPrice?: number;
   currency: 'diamonds';
 }
 
@@ -134,6 +139,7 @@ export interface ShopCatalogUtility {
   sku: 'RESET_RANKED_WARNINGS' | 'RESET_LOSS_STREAK';
   name: string;
   price: number;
+  defaultPrice?: number;
   currency: 'diamonds';
 }
 

@@ -7,6 +7,7 @@ import { AvatarImage } from '@/components/ui/Avatar';
 import { CoinDisplay } from '@/components/ui/CoinDisplay';
 import { DiamondDisplay } from '@/components/ui/DiamondDisplay';
 import { DiamondIcon } from '@/components/ui/DiamondIcon';
+import { PriceTag } from '@/components/shop/PriceTag';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { useShopStore } from '@/stores/shopStore';
 import { useAuthStore } from '@/stores/authStore';
@@ -242,28 +243,26 @@ export function ShopModal({ open, onClose }: ShopModalProps) {
                         onClick={() => setConfirmItem({ type: 'avatar', key: item.index, name: item.name, price: item.price, currency: 'diamonds' })}
                         disabled={isPurchasing || (user?.diamonds ?? 0) < item.price}
                         className={cn(
-                          'flex items-center gap-1 text-[9px] font-semibold px-1.5 py-0.5 rounded-full transition-all',
+                          'flex items-center text-[9px] px-1.5 py-0.5 rounded-full transition-all',
                           (user?.diamonds ?? 0) >= item.price
                             ? 'bg-[oklch(80%_0.16_220)]/15 text-[oklch(80%_0.16_220)] hover:bg-[oklch(80%_0.16_220)]/25'
                             : 'opacity-40 cursor-not-allowed text-[var(--color-text-muted)]',
                         )}
                       >
-                        <DiamondIcon size={10} />
-                        {item.price}
+                        <PriceTag price={item.price} defaultPrice={item.defaultPrice} currency="diamonds" compact />
                       </button>
                     ) : (
                       <button
                         onClick={() => setConfirmItem({ type: 'avatar', key: item.index, name: item.name, price: item.price, currency: 'coins' })}
                         disabled={isPurchasing || (user?.coins ?? 0) < item.price}
                         className={cn(
-                          'flex items-center gap-0.5 text-[9px] font-semibold px-1.5 py-0.5 rounded-full transition-all',
+                          'flex items-center text-[9px] px-1.5 py-0.5 rounded-full transition-all',
                           (user?.coins ?? 0) >= item.price
                             ? 'bg-[oklch(78%_0.2_75)]/20 text-[oklch(78%_0.2_75)] hover:bg-[oklch(78%_0.2_75)]/30'
                             : 'opacity-40 cursor-not-allowed text-[var(--color-text-muted)]',
                         )}
                       >
-                        <span style={{ color: 'oklch(78% 0.2 75)' }}>金</span>
-                        {item.price}
+                        <PriceTag price={item.price} defaultPrice={item.defaultPrice} currency="coins" compact />
                       </button>
                     )}
                   </div>
@@ -300,13 +299,13 @@ export function ShopModal({ open, onClose }: ShopModalProps) {
                           onClick={() => setConfirmItem({ type: 'mode', key: item.mode, name: item.name, price: item.price, currency: 'coins' })}
                           disabled={isPurchasing || (user?.coins ?? 0) < item.price}
                           className={cn(
-                            'flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-lg shrink-0 transition-all border',
+                            'flex items-center text-xs px-3 py-1.5 rounded-lg shrink-0 transition-all border',
                             (user?.coins ?? 0) >= item.price
                               ? 'border-[oklch(78%_0.2_75)]/40 text-[oklch(78%_0.2_75)] hover:bg-[oklch(78%_0.2_75)]/10'
                               : 'opacity-40 cursor-not-allowed border-[var(--color-border)] text-[var(--color-text-muted)]',
                           )}
                         >
-                          <span>金</span>{item.price}
+                          <PriceTag price={item.price} defaultPrice={item.defaultPrice} currency="coins" />
                         </button>
                       )}
                     </div>
@@ -361,13 +360,13 @@ export function ShopModal({ open, onClose }: ShopModalProps) {
                           onClick={() => setConfirmItem({ type: 'theme', key: item.key, name: item.name, price: item.price, currency: 'diamonds' })}
                           disabled={isPurchasing || (user?.diamonds ?? 0) < item.price}
                           className={cn(
-                            'flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-lg shrink-0 transition-all border',
+                            'flex items-center text-xs px-3 py-1.5 rounded-lg shrink-0 transition-all border',
                             (user?.diamonds ?? 0) >= item.price
                               ? 'border-[oklch(80%_0.16_220)]/40 text-[oklch(80%_0.16_220)] hover:bg-[oklch(80%_0.16_220)]/10'
                               : 'opacity-40 cursor-not-allowed border-[var(--color-border)] text-[var(--color-text-muted)]',
                           )}
                         >
-                          <DiamondIcon size={12} />{item.price}
+                          <PriceTag price={item.price} defaultPrice={item.defaultPrice} currency="diamonds" />
                         </button>
                       )}
                     </div>
@@ -491,8 +490,8 @@ export function ShopModal({ open, onClose }: ShopModalProps) {
                       )}
                     >
                       <CoinDisplay amount={pack.coins} size="sm" />
-                      <div className="flex items-center gap-0.5 text-[10px] text-[var(--color-text-muted)]">
-                        por <DiamondIcon size={9} /> {pack.price}
+                      <div className="flex items-center gap-1 text-[10px] text-[var(--color-text-muted)]">
+                        por <PriceTag price={pack.price} defaultPrice={pack.defaultPrice} currency="diamonds" compact />
                       </div>
                     </button>
                   ))}
@@ -515,13 +514,13 @@ export function ShopModal({ open, onClose }: ShopModalProps) {
                             onClick={() => setConfirmItem({ type: 'utility', key: u.sku, name: u.name, price: u.price, currency: 'diamonds' })}
                             disabled={isPurchasing || (user?.diamonds ?? 0) < u.price}
                             className={cn(
-                              'flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-lg shrink-0 transition-all border',
+                              'flex items-center text-[11px] px-2.5 py-1 rounded-lg shrink-0 transition-all border',
                               (user?.diamonds ?? 0) >= u.price
                                 ? 'border-[oklch(80%_0.16_220)]/40 text-[oklch(80%_0.16_220)] hover:bg-[oklch(80%_0.16_220)]/10'
                                 : 'opacity-40 cursor-not-allowed border-[var(--color-border)] text-[var(--color-text-muted)]',
                             )}
                           >
-                            <DiamondIcon size={10} />{u.price}
+                            <PriceTag price={u.price} defaultPrice={u.defaultPrice} currency="diamonds" compact />
                           </button>
                         </div>
                       ))}
