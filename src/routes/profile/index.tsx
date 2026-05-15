@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Check, X, Loader2, Pencil, Wine, ShoppingBag } from 'lucide-react';
+import { Check, X, Loader2, Pencil, Wine, ShoppingBag, Lock } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -239,7 +239,7 @@ export default function ProfilePage() {
                   >
                     <AvatarImage index={i} size={52} />
                     <span className="text-[10px] text-[var(--color-text-muted)] font-medium">{AVATAR_NAMES[i]}</span>
-                    {locked && <span className="text-[9px] text-[var(--color-text-muted)]">🔒</span>}
+                    {locked && <Lock size={10} className="text-[var(--color-text-muted)]" />}
                   </button>
                 );
               })}

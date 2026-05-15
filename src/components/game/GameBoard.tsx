@@ -99,10 +99,13 @@ export function GameBoard() {
   const prevTurnRef = useRef<string>('');
   const [roomHostId, setRoomHostId] = useState<string | null>(null);
 
-  const isMyTurn = user?.id === currentTurnUserId;
   const me = players.find(p => p.userId === user?.id);
+  // Quem ja zerou a mao nesta rodada (isOutOfRound) NAO pode ter botoes
+  // ativos mesmo que currentTurnUserId momentaneamente aponte pra ele
+  // (race entre cards_played e turn_started com ACTION_VIEW_DELAY).
+  const isMyTurn = user?.id === currentTurnUserId && !me?.isOutOfRound;
   const opponents = players.filter(p => p.userId !== user?.id);
-  const isWipeWinner = phase === 'PLAYER_TURN' && market !== null && currentTurnUserId === user?.id && pile.length === 0;
+  const isWipeWinner = phase === 'PLAYER_TURN' && market !== null && currentTurnUserId === user?.id && pile.length === 0 && !me?.isOutOfRound;
   const isDuel = players.filter(p => !p.isEliminated).length === 2 || duelPlates !== null;
 
   useEffect(() => {
@@ -247,7 +250,7 @@ export function GameBoard() {
       type: 'play',
       userId,
       username: name,
-      text: `${name} jogou ${cardDesc}${plateNote}${isSabor ? ' 🔥' : ''}`,
+      text: `${name} jogou ${cardDesc}${plateNote}${isSabor ? ' (Sabor!)' : ''}`,
     });
   }, [applyCardsPlayed, addLog, user?.id]));
 
@@ -280,7 +283,7 @@ export function GameBoard() {
     applyWipe(winnerId);
     playSound('wipe');
     const name = useGameStore.getState().players.find(p => p.userId === winnerId)?.username ?? winnerId;
-    addLog({ type: 'wipe', userId: winnerId, username: name, text: `${name} ganhou a vaza! 🧹` });
+    addLog({ type: 'wipe', userId: winnerId, username: name, text: `${name} ganhou a vaza` });
     const isMe = winnerId === user?.id;
     setTurnBanner({ name: isMe ? 'Você ganhou a vaza!' : `${name} ganhou a vaza`, isMe });
     setTimeout(() => setTurnBanner(null), 2200);
@@ -290,7 +293,7 @@ export function GameBoard() {
     const name = players.find(p => p.userId === triggeredBy)?.username ?? triggeredBy;
     setSaborActive(true, minRequired, name);
     playSound('sabor');
-    addLog({ type: 'sabor', userId: triggeredBy, username: name, text: `🔥 Sabor ativo! Mínimo de ${minRequired} carta(s) por ${name}` });
+    addLog({ type: 'sabor', userId: triggeredBy, username: name, text: `Sabor ativo! Mínimo de ${minRequired} carta(s) por ${name}` });
   }, [setSaborActive, players, addLog]));
 
   useSocketEvent<{ brokenBy: string }>('game:sabor_broken', useCallback(({ brokenBy }) => {
@@ -309,7 +312,7 @@ export function GameBoard() {
     const allPlayers = useGameStore.getState().players;
     const loserName = allPlayers.find(p => p.userId === realLoserId)?.username ?? realLoserId;
     // Texto correto: o jogador que ficou com cartas eh quem PERDEU 1 prato.
-    addLog({ type: 'round_end', text: `🏁 Rodada encerrada — ${loserName} ficou com cartas e perdeu 1 prato` });
+    addLog({ type: 'round_end', text: `Rodada encerrada — ${loserName} ficou com cartas e perdeu 1 prato` });
     const isMe = user?.id === realLoserId;
     setTurnBanner({ name: isMe ? 'Você perdeu 1 prato' : `${loserName} perdeu 1 prato`, isMe });
     setTimeout(() => setTurnBanner(null), 2600);
@@ -336,8 +339,8 @@ export function GameBoard() {
       userId,
       username: name,
       text: isMe
-        ? `🍣 Você esvaziou a mão — fora da rodada (${remainingLabel})`
-        : `🍣 ${name} esvaziou a mão — fora da rodada (${remainingLabel})`,
+        ? `Você esvaziou a mão — fora da rodada (${remainingLabel})`
+        : `${name} esvaziou a mão — fora da rodada (${remainingLabel})`,
     });
   }, [addLog, user?.id]));
 
@@ -365,7 +368,7 @@ export function GameBoard() {
     }));
     // Log marcando inicio de rodada — sem isso, quem zerou na rodada anterior
     // ve a mao nova aparecer "do nada" e nao entende a sequencia.
-    addLog({ type: 'system', text: `▶️ Rodada ${round} iniciada — todos receberam novas cartas` });
+    addLog({ type: 'system', text: `Rodada ${round} iniciada — todos receberam novas cartas` });
   }, [addLog]));
 
   useSocketEvent<{ rankings: GameRanking[]; stats: GameStats }>('game:game_over', useCallback(({ rankings, stats }) => {

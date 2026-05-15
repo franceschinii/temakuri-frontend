@@ -1,6 +1,9 @@
 import { useRef, useEffect, useState, useImperativeHandle, type Ref } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { History, X } from 'lucide-react';
+import {
+  History, X, Layers, Undo2, Wind, Flame, Flag, LogOut,
+  MessageCircle, Megaphone, Info, type LucideIcon,
+} from 'lucide-react';
 import { useGameStore } from '@/stores/gameStore';
 import type { LogEntry } from '@/stores/gameStore';
 import { cn } from '@/lib/utils';
@@ -18,16 +21,16 @@ const TYPE_COLOR: Record<LogEntry['type'], string> = {
   info: 'text-[var(--color-text-muted)]',
 };
 
-const TYPE_ICON: Record<LogEntry['type'], string> = {
-  play: '🎴',
-  pass: '↩️',
-  wipe: '🧹',
-  sabor: '🔥',
-  round_end: '🏁',
-  player_out: '🍣',
-  chat: '💬',
-  system: '📢',
-  info: 'ℹ️',
+const TYPE_ICON: Record<LogEntry['type'], LucideIcon> = {
+  play: Layers,
+  pass: Undo2,
+  wipe: Wind,
+  sabor: Flame,
+  round_end: Flag,
+  player_out: LogOut,
+  chat: MessageCircle,
+  system: Megaphone,
+  info: Info,
 };
 
 const IDLE_OPACITY = 0.22;
@@ -138,7 +141,9 @@ export function ActionHistoryPanel({ hideTriggers, externalToggleRef }: ActionHi
               transition={{ duration: 0.18 }}
               className="flex items-center gap-0 overflow-hidden"
             >
-              <span className="text-sm leading-none shrink-0 w-6 text-center">{TYPE_ICON[entry.type]}</span>
+              <span className={cn('shrink-0 w-6 flex items-center justify-center', TYPE_COLOR[entry.type])}>
+                {(() => { const Ic = TYPE_ICON[entry.type]; return <Ic size={13} />; })()}
+              </span>
               <div className="bg-[var(--color-panel)]/80 backdrop-blur-md border border-[var(--color-border)]/50 rounded-lg px-2.5 py-1.5 shadow-sm min-w-0">
                 <span className={cn('text-xs leading-tight line-clamp-1 block min-w-0 font-medium', TYPE_COLOR[entry.type])}>
                   {entry.text}
@@ -254,7 +259,9 @@ function LogList({ entries, bottomRef }: { entries: LogEntry[]; bottomRef: React
           <span className={cn('flex-1 text-[11px] leading-relaxed break-words min-w-0', TYPE_COLOR[entry.type])}>
             {entry.text}
           </span>
-          <span className="text-[10px] shrink-0 mt-0.5">{TYPE_ICON[entry.type]}</span>
+          <span className={cn('shrink-0 mt-0.5', TYPE_COLOR[entry.type])}>
+            {(() => { const Ic = TYPE_ICON[entry.type]; return <Ic size={12} />; })()}
+          </span>
           <span className="text-[9px] text-[var(--color-text-muted)] shrink-0 mt-0.5 tabular-nums">
             {new Date(entry.timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
           </span>

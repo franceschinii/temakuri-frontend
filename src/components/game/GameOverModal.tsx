@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { CoinDisplay } from '@/components/ui/CoinDisplay';
 import { AdBanner } from '@/components/ui/AdBanner';
 import { useNavigate } from 'react-router-dom';
+import { Trophy, Skull } from 'lucide-react';
 import type { GameRanking } from '@/types/game';
 import type { MatchReward } from '@/types/api';
 import { useAuthStore } from '@/stores/authStore';
@@ -53,7 +54,9 @@ export function GameOverModal({ rankings, myUserId, onPlayAgain }: GameOverModal
                   data-testid={`game-over-ranking-row-${i + 1}`}
                   className={`flex items-center gap-3 px-3 py-2 rounded-lg ${r.userId === myUserId ? 'bg-[var(--color-accent-strong)]/20 ring-1 ring-[var(--color-accent-strong)]' : 'bg-[var(--color-panel)]'}`}
                 >
-                  <span className="text-xl">{won ? '🍣' : '💀'}</span>
+                  {won
+                    ? <Trophy size={20} style={{ color: 'var(--color-accent-mid)' }} />
+                    : <Skull size={20} style={{ color: 'var(--color-danger)' }} />}
                   <span className={`flex-1 font-medium ${won ? 'text-[var(--color-text-primary)]' : 'text-[var(--color-text-muted)]'}`}>
                     {r.username}
                   </span>

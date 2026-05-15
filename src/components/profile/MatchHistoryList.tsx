@@ -1,5 +1,5 @@
 import { useInfiniteQuery } from '@tanstack/react-query';
-import { Trophy, Calendar, Bot } from 'lucide-react';
+import { Calendar, Bot, Trophy, Skull } from 'lucide-react';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { CoinDisplay } from '@/components/ui/CoinDisplay';
 import { AvatarImage } from '@/components/ui/Avatar';
@@ -21,6 +21,7 @@ interface MatchHistoryItem {
   mode: string;
   isRanked: boolean;
   placement: number;
+  isWinner: boolean;
   totalPlayers: number;
   xpEarned: number;
   coinsEarned: number;
@@ -63,12 +64,6 @@ function formatDuration(sec: number | null): string {
   return rem ? `${min}min${rem}s` : `${min}min`;
 }
 
-function placementColor(placement: number): string {
-  if (placement === 1) return 'oklch(78% 0.18 80)'; // ouro
-  if (placement === 2) return 'oklch(70% 0.04 250)'; // prata
-  if (placement === 3) return 'oklch(60% 0.12 50)'; // bronze
-  return 'var(--color-text-muted)';
-}
 
 interface MatchHistoryListProps {
   userId: string;
@@ -138,24 +133,26 @@ export function MatchHistoryList({
 }
 
 function MatchRow({ item }: { item: MatchHistoryItem }) {
-  const won = item.placement === 1;
+  const won = item.isWinner;
   return (
     <div
       className={cn(
         'rounded-xl border p-2 sm:p-2.5 flex items-center gap-2 sm:gap-3 bg-[var(--color-surface)]',
-        won ? 'border-[oklch(78%_0.18_80)]/40' : 'border-[var(--color-border)]',
+        won ? 'border-[var(--color-accent-mid)]/40' : 'border-[var(--color-danger)]/30',
       )}
     >
       <div className="flex flex-col items-center min-w-[36px] sm:min-w-[42px] shrink-0">
-        <Trophy size={14} style={{ color: placementColor(item.placement) }} />
+        {won
+          ? <Trophy size={16} style={{ color: 'var(--color-accent-mid)' }} />
+          : <Skull size={16} style={{ color: 'var(--color-danger)' }} />}
         <span
-          className="text-[10px] font-bold tabular-nums leading-none"
-          style={{ color: placementColor(item.placement) }}
+          className="text-[10px] font-bold leading-none mt-0.5"
+          style={{ color: won ? 'var(--color-accent-mid)' : 'var(--color-danger)' }}
         >
-          {item.placement}º
+          {won ? 'Venceu' : 'Perdeu'}
         </span>
         <span className="text-[9px] text-[var(--color-text-muted)] tabular-nums leading-none mt-0.5">
-          de {item.totalPlayers}
+          {item.totalPlayers}p
         </span>
       </div>
 
