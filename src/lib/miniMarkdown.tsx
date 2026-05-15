@@ -2,8 +2,9 @@ import { Fragment, type ReactNode } from 'react';
 
 /**
  * Renderizador minimo de markdown para o campo "detalhes" do changelog.
- * Suporta apenas duas regras (sem dependencia externa):
+ * Suporta (sem dependencia externa):
  *
+ *   - "# ", "## ", "### "  -> subtitulo (header)
  *   - **texto**  -> negrito
  *   - linha iniciada por "* ", "- " ou "• "  -> item de lista (bolinha)
  *
@@ -45,6 +46,22 @@ export function MiniMarkdown({ text }: { text: string }) {
 
   for (const raw of lines) {
     const line = raw.trimEnd();
+
+    // Header: "# ", "## " ou "### " no inicio da linha.
+    const headerMatch = line.match(/^(#{1,3})\s+(.*)$/);
+    if (headerMatch) {
+      flushBullets();
+      blocks.push(
+        <p
+          key={`h-${key++}`}
+          className="text-[var(--color-text-primary)] font-semibold text-sm mt-3 mb-1 first:mt-0"
+        >
+          {renderInline(headerMatch[2], `h${key}`)}
+        </p>,
+      );
+      continue;
+    }
+
     const bulletMatch = line.match(/^\s*[*\-•]\s+(.*)$/);
 
     if (bulletMatch) {
