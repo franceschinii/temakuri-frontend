@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom';
+import { Scale } from 'lucide-react';
 import { APP_VERSION } from '@/version';
 
 export function DevFooter() {
@@ -20,12 +22,12 @@ export function DevFooter() {
           >
             André Franceschini
           </a>
-          <a
-            href="mailto:contato@andrefranceschini.com.br"
-            className="text-[10px] text-[var(--color-text-muted)] opacity-40 hover:opacity-80 hover:text-[var(--color-accent-mid)] transition-all"
+          <Link
+            to="/legal"
+            className="flex items-center gap-1 text-[10px] text-[var(--color-text-muted)] opacity-40 hover:opacity-80 hover:text-[var(--color-accent-mid)] transition-all"
           >
-            contato@andrefranceschini.com.br
-          </a>
+            <Scale size={10} /> Termos
+          </Link>
         </div>
       </div>
       {/* Desktop: uma linha */}
@@ -56,6 +58,13 @@ export function DevFooter() {
           >
             contato@andrefranceschini.com.br
           </a>
+          <span className="text-[10px] text-[var(--color-text-muted)]">·</span>
+          <Link
+            to="/legal"
+            className="text-[10px] text-[var(--color-text-muted)] hover:opacity-100 hover:text-[var(--color-accent-mid)] transition-all"
+          >
+            Termos
+          </Link>
         </div>
       </div>
     </div>

@@ -7,6 +7,7 @@ const LoginPage           = lazy(() => import('@/routes/auth/login'));
 const RegisterPage        = lazy(() => import('@/routes/auth/register'));
 const ForgotPasswordPage  = lazy(() => import('@/routes/auth/forgot-password'));
 const ResetPasswordPage   = lazy(() => import('@/routes/auth/reset-password'));
+const LegalPage           = lazy(() => import('@/routes/legal/index'));
 const LobbyPage           = lazy(() => import('@/routes/lobby/index'));
 const RoomPage            = lazy(() => import('@/routes/lobby/room'));
 const GamePage            = lazy(() => import('@/routes/game/index'));
@@ -107,6 +108,7 @@ export default function App() {
         <Route path="/auth/register" element={<RegisterPage />} />
         <Route path="/auth/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
+        <Route path="/legal" element={<LegalPage />} />
 
         <Route element={<AuthGuard />}>
           <Route path="/lobby" element={<LobbyPage />} />

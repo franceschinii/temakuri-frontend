@@ -141,6 +141,13 @@ export default function RegisterPage() {
                 <UserPlus size={16} />
                 {isSubmitting ? 'Criando...' : 'Criar Conta'}
               </Button>
+
+              <p className="text-[11px] leading-relaxed text-[var(--color-text-muted)] text-center mt-1">
+                Ao criar sua conta, você concorda com os{' '}
+                <Link to="/legal" className="text-[var(--color-accent-mid)] hover:underline">
+                  Termos de Uso e a Política de Privacidade
+                </Link>.
+              </p>
             </form>
           </div>
 
