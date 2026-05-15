@@ -1,8 +1,9 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Pencil, KeyRound, Trash2, BarChart2, Search, X, Ban, Clock, ShieldCheck, Users, DoorOpen, UserX, RefreshCw, TrendingUp, Wine, Ticket } from 'lucide-react';
+import { Pencil, KeyRound, Trash2, BarChart2, Search, X, Ban, Clock, ShieldCheck, Users, DoorOpen, UserX, RefreshCw, TrendingUp, Wine, Ticket, ScrollText } from 'lucide-react';
 import { CouponsAdmin } from '@/components/admin/CouponsAdmin';
+import { ChangelogAdmin } from '@/components/admin/ChangelogAdmin';
 import { AppNavbar } from '@/components/ui/AppNavbar';
 import { RulesModal } from '@/components/ui/RulesModal';
 import { Button } from '@/components/ui/button';
@@ -52,7 +53,7 @@ interface AdminUser {
 
 type ModalType = 'edit' | 'password' | 'stats' | 'delete' | 'moderation' | 'progression' | null;
 type FilterType = 'all' | 'registered' | 'guest' | 'admin' | 'banned' | 'suspended';
-type AdminTab = 'users' | 'rooms' | 'coupons';
+type AdminTab = 'users' | 'rooms' | 'coupons' | 'changelog';
 
 interface AdminRoomPlayer {
   userId: string;
@@ -362,7 +363,7 @@ export default function AdminPage() {
 
         {/* Tabs */}
         <div className="flex w-full sm:w-auto sm:self-start items-center gap-1 rounded-lg bg-[var(--color-panel)] border border-[var(--color-border)] p-1">
-          {(['users', 'rooms', 'coupons'] as AdminTab[]).map(t => (
+          {(['users', 'rooms', 'coupons', 'changelog'] as AdminTab[]).map(t => (
             <button
               key={t}
               onClick={() => setTab(t)}
@@ -374,8 +375,8 @@ export default function AdminPage() {
               )}
               style={tab !== t ? { color: 'var(--color-text-muted)' } : {}}
             >
-              {t === 'users' ? <Users size={14} /> : t === 'rooms' ? <DoorOpen size={14} /> : <Ticket size={14} />}
-              <span>{t === 'users' ? 'Usuários' : t === 'rooms' ? 'Salas' : 'Cupons'}</span>
+              {t === 'users' ? <Users size={14} /> : t === 'rooms' ? <DoorOpen size={14} /> : t === 'coupons' ? <Ticket size={14} /> : <ScrollText size={14} />}
+              <span>{t === 'users' ? 'Usuários' : t === 'rooms' ? 'Salas' : t === 'coupons' ? 'Cupons' : 'Changelog'}</span>
             </button>
           ))}
         </div>
@@ -433,6 +434,8 @@ export default function AdminPage() {
         )}
 
         {tab === 'coupons' && <CouponsAdmin />}
+
+        {tab === 'changelog' && <ChangelogAdmin />}
 
         {tab === 'users' && <>
           {/* Search + filters */}

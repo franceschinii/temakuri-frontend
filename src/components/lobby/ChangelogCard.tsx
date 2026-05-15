@@ -2,12 +2,20 @@ import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ScrollText } from 'lucide-react';
-import { CHANGELOG, CATEGORY_LABELS, type ChangelogEntry } from '@/data/changelog';
+import { useQuery } from '@tanstack/react-query';
+import { CATEGORY_LABELS, type ChangelogEntry } from '@/data/changelog';
 import { formatDate } from '@/lib/formatTime';
+import api from '@/lib/api';
 
 export function ChangelogCard() {
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState<ChangelogEntry | null>(null);
+
+  const { data: CHANGELOG = [] } = useQuery<ChangelogEntry[]>({
+    queryKey: ['changelog'],
+    queryFn: async () => (await api.get('/changelog')).data,
+    staleTime: 5 * 60 * 1000,
+  });
 
   const visible = CHANGELOG.slice(0, 5);
 
