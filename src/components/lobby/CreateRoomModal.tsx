@@ -14,7 +14,7 @@ import api from '@/lib/api';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
-import { Lock, Swords, Eye, EyeOff } from 'lucide-react';
+import { Lock, Swords, Eye, EyeOff, ChevronDown } from 'lucide-react';
 
 const BIAS_STEPS = [
   { value: 0,    label: 'Aleatória' },
@@ -152,49 +152,61 @@ export function CreateRoomModal({ open, onClose }: CreateRoomModalProps) {
           </label>
         )}
 
-        {/* Jogadores + Vidas + Privada — empilhado no mobile, lado a lado no sm+ */}
-        <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3 sm:items-center">
-          <div className="flex items-center gap-2 flex-1 sm:flex-initial">
-            <label className="text-sm text-[var(--color-text-muted)] shrink-0">Jogadores:</label>
-            <select
-              {...register('maxPlayers')}
-              className="bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text-primary)] rounded-lg px-3 py-2 text-sm flex-1 sm:flex-initial"
-              data-testid="create-room-max-players"
-            >
-              {[2, 3, 4, 5, 6].map(n => <option key={n} value={n}>{n}</option>)}
-            </select>
+        {/* Jogadores + Vidas + Privada — grid: 1 coluna no mobile, 3 no sm+.
+            Larguras fixas evitam quebra de linha quando o texto do toggle
+            muda de tamanho (Publica <-> Privada). */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:items-end">
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs uppercase tracking-wider text-[var(--color-text-muted)]">Jogadores</label>
+            <div className="relative">
+              <select
+                {...register('maxPlayers')}
+                className="w-full appearance-none bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text-primary)] rounded-lg pl-3 pr-8 py-2 text-sm cursor-pointer hover:border-[var(--color-accent-mid)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-glow)] transition-all"
+                data-testid="create-room-max-players"
+              >
+                {[2, 3, 4, 5, 6].map(n => <option key={n} value={n}>{n} jogadores</option>)}
+              </select>
+              <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)] pointer-events-none" />
+            </div>
           </div>
 
-          <div className="flex items-center gap-2 flex-1 sm:flex-initial">
-            <label className="text-sm text-[var(--color-text-muted)] shrink-0">Vidas:</label>
-            <select
-              {...register('initialTokens')}
-              className="bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text-primary)] rounded-lg px-3 py-2 text-sm flex-1 sm:flex-initial"
-              data-testid="create-room-initial-tokens"
-            >
-              <option value={1}>1 prato</option>
-              <option value={2}>2 pratos</option>
-              <option value={3}>3 pratos</option>
-            </select>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs uppercase tracking-wider text-[var(--color-text-muted)]">Vidas</label>
+            <div className="relative">
+              <select
+                {...register('initialTokens')}
+                className="w-full appearance-none bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text-primary)] rounded-lg pl-3 pr-8 py-2 text-sm cursor-pointer hover:border-[var(--color-accent-mid)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-glow)] transition-all"
+                data-testid="create-room-initial-tokens"
+              >
+                <option value={1}>1 prato</option>
+                <option value={2}>2 pratos</option>
+                <option value={3}>3 pratos</option>
+              </select>
+              <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)] pointer-events-none" />
+            </div>
           </div>
 
-          {/* Toggle estilizado para Privada — checkbox nativo era invisivel no mobile.
-              O register('isPrivate') mantem o estado no RHF; o botao apenas comuta. */}
-          <button
-            type="button"
-            onClick={() => setValue('isPrivate', !isPrivate, { shouldDirty: true })}
-            data-testid="create-room-private-toggle"
-            aria-pressed={isPrivate}
-            className={cn(
-              'flex items-center justify-center gap-2 px-4 py-2 rounded-lg border text-sm font-medium transition-all w-full sm:w-auto sm:ml-auto',
-              isPrivate
-                ? 'border-[var(--color-accent-strong)] bg-[var(--color-accent-strong)]/15 text-[var(--color-accent-soft)]'
-                : 'border-[var(--color-border)] text-[var(--color-text-muted)] hover:border-[var(--color-accent-mid)]',
-            )}
-          >
-            <Lock size={13} />
-            {isPrivate ? 'Privada' : 'Pública'}
-          </button>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs uppercase tracking-wider text-[var(--color-text-muted)]">Visibilidade</label>
+            {/* Toggle estilizado para Privada — checkbox nativo era invisivel no
+                mobile. register('isPrivate') mantem o estado no RHF; botao comuta.
+                w-full no grid garante largura estavel (sem pulo ao trocar texto). */}
+            <button
+              type="button"
+              onClick={() => setValue('isPrivate', !isPrivate, { shouldDirty: true })}
+              data-testid="create-room-private-toggle"
+              aria-pressed={isPrivate}
+              className={cn(
+                'flex items-center justify-center gap-2 px-4 py-2 rounded-lg border text-sm font-medium transition-all w-full',
+                isPrivate
+                  ? 'border-[var(--color-accent-strong)] bg-[var(--color-accent-strong)]/15 text-[var(--color-accent-soft)]'
+                  : 'border-[var(--color-border)] text-[var(--color-text-muted)] hover:border-[var(--color-accent-mid)]',
+              )}
+            >
+              <Lock size={13} />
+              {isPrivate ? 'Privada' : 'Pública'}
+            </button>
+          </div>
         </div>
 
         {/* Hand bias */}
