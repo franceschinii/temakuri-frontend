@@ -935,25 +935,38 @@ export function GameBoard() {
         {/* Hand — sempre renderiza o mesmo componente para evitar remount/flick
             quando entra/sai pickMode. */}
         <div className="relative pb-1.5 pt-1 [@media(min-height:900px)]:pb-3 [@media(min-height:900px)]:pt-2 overflow-visible">
-          <PlayerHand
-            hand={myHand}
-            isMyTurn={isMyTurn}
-            pickMode={pickMode}
-            onPickInsert={pickMode ? handleInsertAtIndex : undefined}
-          />
-          {/* Overlay flutuante: aviso de jogada inválida acima da mão.
-              Absolute para não empurrar o ActionBar e não causar resize
-              da mesa. Posicionado acima do container da mão. */}
-          {isMyTurn && selectedIndices.length > 0 && !canPlay && pile.length > 0 && (
-            <div className="pointer-events-none absolute left-1/2 -translate-x-1/2 -top-3 -translate-y-full z-20">
-              <span className="inline-flex items-center text-[11px] font-semibold px-2.5 py-1 rounded-full bg-[var(--color-surface)]/95 backdrop-blur-sm border border-[var(--color-warning)]/50 text-[var(--color-warning)] shadow-lg whitespace-nowrap">
-                Jogada inválida — precisa de mais cartas ou valor maior
+          {me?.isOutOfRound ? (
+            // Quando o jogador zerou a mao, mostra um banner grande em vez
+            // da area de cartas vazia. Esclarece o estado e seta expectativa.
+            <div className="flex flex-col items-center justify-center gap-2 py-6 px-4 rounded-2xl border-2 border-dashed border-[var(--color-accent-soft)]/40 bg-[var(--color-accent-strong)]/5">
+              <span className="text-2xl">🍣</span>
+              <span className="text-sm font-semibold text-[var(--color-accent-mid)]">
+                Você zerou a mão — fora da rodada
+              </span>
+              <span className="text-xs text-[var(--color-text-muted)] text-center max-w-xs leading-relaxed">
+                Você escapou. Aguarde a rodada terminar — quem ficar com cartas vai perder 1 prato.
               </span>
             </div>
+          ) : (
+            <>
+              <PlayerHand
+                hand={myHand}
+                isMyTurn={isMyTurn}
+                pickMode={pickMode}
+                onPickInsert={pickMode ? handleInsertAtIndex : undefined}
+              />
+              {isMyTurn && selectedIndices.length > 0 && !canPlay && pile.length > 0 && (
+                <div className="pointer-events-none absolute left-1/2 -translate-x-1/2 -top-3 -translate-y-full z-20">
+                  <span className="inline-flex items-center text-[11px] font-semibold px-2.5 py-1 rounded-full bg-[var(--color-surface)]/95 backdrop-blur-sm border border-[var(--color-warning)]/50 text-[var(--color-warning)] shadow-lg whitespace-nowrap">
+                    Jogada inválida — precisa de mais cartas ou valor maior
+                  </span>
+                </div>
+              )}
+            </>
           )}
         </div>
 
-        {!pickMode && !marketSwapMode && (
+        {!pickMode && !marketSwapMode && !me?.isOutOfRound && (
           <div className="mt-1.5 flex flex-col gap-1.5">
             <ActionBar
               isMyTurn={isMyTurn}
