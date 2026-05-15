@@ -389,7 +389,7 @@ export function ShopModal({ open, onClose }: ShopModalProps) {
                     {appliedCoupon ? (
                       <div className="flex items-center justify-between gap-2">
                         <div className="flex items-center gap-2 min-w-0">
-                          <Ticket size={14} className="text-[var(--color-accent-mid)] shrink-0" />
+                          <Ticket size={20} className="text-[var(--color-accent-mid)] shrink-0" />
                           <span className="text-sm font-mono font-bold text-[var(--color-text-primary)] truncate">{appliedCoupon.code}</span>
                           <span className="text-xs text-[var(--color-accent-mid)] font-semibold shrink-0">−{appliedCoupon.discountPercent}%</span>
                         </div>
@@ -403,16 +403,16 @@ export function ShopModal({ open, onClose }: ShopModalProps) {
                       </div>
                     ) : (
                       <div className="flex items-center gap-2">
-                        <Ticket size={14} className="text-[var(--color-text-muted)] shrink-0" />
-                        <Input
+                        <Ticket size={20} className="text-[var(--color-text-muted)] shrink-0" />
+                        <input
                           value={couponInput}
                           onChange={e => setCouponInput(e.target.value.toUpperCase())}
                           placeholder="Tem cupom? Cole aqui"
                           maxLength={32}
-                          className="flex-1 h-8 text-sm"
                           onKeyDown={e => { if (e.key === 'Enter') handleApplyCoupon(); }}
+                          className="flex-1 min-w-0 h-9 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-3 text-sm text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-strong)] transition-all"
                         />
-                        <Button size="sm" variant="secondary" onClick={handleApplyCoupon} disabled={!couponInput.trim()}>
+                        <Button size="sm" variant="secondary" className="h-9 shrink-0" onClick={handleApplyCoupon} disabled={!couponInput.trim()}>
                           Aplicar
                         </Button>
                       </div>
