@@ -294,25 +294,44 @@ export function GameBoard() {
     addLog({ type: 'sabor', userId: brokenBy, username: name, text: `${name} quebrou o Sabor` });
   }, [setSaborActive, addLog]));
 
-  useSocketEvent<{ loserIds: string[]; playerTokens: Record<string, number> }>('game:round_ended', useCallback(({ loserIds, playerTokens }) => {
-    applyRoundEnd(loserIds, playerTokens);
+  useSocketEvent<{ loserId?: string; loserIds?: string[]; playerTokens: Record<string, number> }>('game:round_ended', useCallback(({ loserId, loserIds, playerTokens }) => {
+    // Backend novo manda loserId (singular). loserIds (array) mantido por
+    // compat — pega o primeiro como fallback.
+    const realLoserId = loserId ?? loserIds?.[0];
+    if (!realLoserId) return;
+    applyRoundEnd([realLoserId], playerTokens);
     playSound('round_end');
     const allPlayers = useGameStore.getState().players;
-    const loserNames = loserIds.map(id => allPlayers.find(p => p.userId === id)?.username ?? id);
-    addLog({ type: 'round_end', text: `🏁 Rodada encerrada — ${loserNames.join(', ')} esvaziou a mão e ganhou a rodada` });
-    // Banner no topo da mesa
-    const isMe = user?.id ? loserIds.includes(user.id) : false;
-    setTurnBanner({ name: isMe ? 'Você venceu a rodada!' : `${loserNames.join(', ')} venceu a rodada`, isMe });
+    const loserName = allPlayers.find(p => p.userId === realLoserId)?.username ?? realLoserId;
+    // Texto correto: o jogador que ficou com cartas eh quem PERDEU 1 prato.
+    addLog({ type: 'round_end', text: `🏁 Rodada encerrada — ${loserName} ficou com cartas e perdeu 1 prato` });
+    const isMe = user?.id === realLoserId;
+    setTurnBanner({ name: isMe ? 'Você perdeu 1 prato' : `${loserName} perdeu 1 prato`, isMe });
     setTimeout(() => setTurnBanner(null), 2600);
-    // Auto-close do RoundSummary depois de 6s. Antes o modal sumia
-    // instantaneamente porque game:round_started chegava em seguida e
-    // sobrescrevia roundSummaryData=null — agora a proxima rodada nao mexe
-    // mais nesse campo (so o usuario fecha clicando Continuar ou o timeout).
     setTimeout(() => {
       const state = useGameStore.getState();
       if (state.roundSummaryData) state.clearRoundSummary();
     }, 6000);
   }, [applyRoundEnd, addLog, user?.id]));
+
+  // Jogador zerou a mao e SAIU da rodada (escapou — nao perde prato).
+  // Marca o jogador no store pra UI mudar (opacity reduzida, badge "fora").
+  useSocketEvent<{ userId: string; remainingInRound: number }>('game:player_out_of_round', useCallback(({ userId, remainingInRound }) => {
+    useGameStore.setState(s => ({
+      players: s.players.map(p => p.userId === userId ? { ...p, isOutOfRound: true, cardCount: 0 } : p),
+    }));
+    const allPlayers = useGameStore.getState().players;
+    const name = allPlayers.find(p => p.userId === userId)?.username ?? userId;
+    const isMe = user?.id === userId;
+    addLog({
+      type: 'player_out',
+      userId,
+      username: name,
+      text: isMe
+        ? `🍣 Você esvaziou a mão — fora da rodada (${remainingInRound} restantes)`
+        : `🍣 ${name} esvaziou a mão — fora da rodada (${remainingInRound} restantes)`,
+    });
+  }, [addLog, user?.id]));
 
   useSocketEvent<{ round: number; drawPileCount: number; cardCounts: Record<string, number>; market: Card[] | null }>('game:round_started', useCallback(({ round, drawPileCount, cardCounts, market }) => {
     useGameStore.setState(s => ({
@@ -332,6 +351,8 @@ export function GameBoard() {
       players: s.players.map(p => ({
         ...p,
         cardCount: cardCounts[p.userId] ?? p.cardCount,
+        // Nova rodada — limpa o estado "fora da rodada" para todos.
+        isOutOfRound: false,
       })),
     }));
   }, []));

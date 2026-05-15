@@ -6,7 +6,7 @@ import { setMusicMuted } from '@/lib/music';
 export interface LogEntry {
   id: string;
   timestamp: number;
-  type: 'play' | 'pass' | 'wipe' | 'sabor' | 'round_end' | 'chat' | 'system' | 'info';
+  type: 'play' | 'pass' | 'wipe' | 'sabor' | 'round_end' | 'player_out' | 'chat' | 'system' | 'info';
   userId?: string;
   username?: string;
   text: string;

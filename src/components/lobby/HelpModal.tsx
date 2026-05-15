@@ -64,7 +64,7 @@ const ICON_INFO: { Icon: ComponentType<{ size?: number; className?: string }>; i
     Icon: Utensils,
     iconStyle: { color: 'var(--color-token-gold)' },
     name: 'Prato',
-    description: 'Tokens da partida. Cada jogador começa com 2 pratos. Quando você perde uma rodada (sobra com cartas na mão), perde 1 prato. Sem pratos = eliminado do jogo.',
+    description: 'Tokens da partida. Cada jogador começa com 2 pratos. Zerar a mão te tira da rodada sem prejuízo. Quem ficar com cartas quando todos os outros zerarem perde 1 prato. Sem pratos = derrota.',
   },
   {
     Icon: Flame,
@@ -155,18 +155,16 @@ export function HelpModal({ open, onClose }: HelpModalProps) {
                   <section>
                     <h3 className="font-semibold mb-2 text-base" style={{ color: 'var(--color-text-primary)' }}>Como ganhar moedas</h3>
                     <p className="leading-relaxed mb-3" style={{ color: 'var(--color-text-muted)' }}>
-                      Moedas são recompensa de cada partida finalizada. O valor depende da sua colocação e do número de jogadores.
+                      Só existe um perdedor por partida — quem fica sem pratos. Todos os outros são vencedores e ganham a mesma quantia. O perdedor leva apenas um valor simbólico.
                     </p>
 
                     <div className="space-y-3">
                       <div>
                         <p className="text-xs uppercase tracking-wider font-medium mb-1.5" style={{ color: 'var(--color-text-muted)' }}>Partida de 4 jogadores</p>
-                        <div className="grid grid-cols-4 gap-2">
+                        <div className="grid grid-cols-2 gap-2">
                           {[
-                            { place: '1º', value: 6 },
-                            { place: '2º', value: 3 },
-                            { place: '3º', value: 2 },
-                            { place: '4º', value: 1 },
+                            { place: 'Vencedores', value: 6 },
+                            { place: 'Perdedor', value: 1 },
                           ].map(p => (
                             <div key={p.place} className="bg-[var(--color-panel)] rounded-lg p-2 text-center">
                               <p className="text-[10px]" style={{ color: 'var(--color-text-muted)' }}>{p.place}</p>
@@ -178,11 +176,10 @@ export function HelpModal({ open, onClose }: HelpModalProps) {
 
                       <div>
                         <p className="text-xs uppercase tracking-wider font-medium mb-1.5" style={{ color: 'var(--color-text-muted)' }}>Partida de 3 jogadores</p>
-                        <div className="grid grid-cols-3 gap-2">
+                        <div className="grid grid-cols-2 gap-2">
                           {[
-                            { place: '1º', value: 4 },
-                            { place: '2º', value: 2 },
-                            { place: '3º', value: 1 },
+                            { place: 'Vencedores', value: 4 },
+                            { place: 'Perdedor', value: 1 },
                           ].map(p => (
                             <div key={p.place} className="bg-[var(--color-panel)] rounded-lg p-2 text-center">
                               <p className="text-[10px]" style={{ color: 'var(--color-text-muted)' }}>{p.place}</p>
@@ -193,11 +190,11 @@ export function HelpModal({ open, onClose }: HelpModalProps) {
                       </div>
 
                       <div>
-                        <p className="text-xs uppercase tracking-wider font-medium mb-1.5" style={{ color: 'var(--color-text-muted)' }}>Duelo (2 jogadores)</p>
+                        <p className="text-xs uppercase tracking-wider font-medium mb-1.5" style={{ color: 'var(--color-text-muted)' }}>1v1 (casual)</p>
                         <div className="grid grid-cols-2 gap-2">
                           {[
-                            { place: 'Vencedor', value: 4 },
-                            { place: 'Perdedor', value: 1 },
+                            { place: 'Vencedor', value: 6 },
+                            { place: 'Perdedor', value: 2 },
                           ].map(p => (
                             <div key={p.place} className="bg-[var(--color-panel)] rounded-lg p-2 text-center">
                               <p className="text-[10px]" style={{ color: 'var(--color-text-muted)' }}>{p.place}</p>
@@ -205,6 +202,23 @@ export function HelpModal({ open, onClose }: HelpModalProps) {
                             </div>
                           ))}
                         </div>
+                        <p className="text-[10px] mt-1.5" style={{ color: 'var(--color-text-muted)' }}>1v1 paga +50% por ser formato com vencedor único.</p>
+                      </div>
+
+                      <div>
+                        <p className="text-xs uppercase tracking-wider font-medium mb-1.5" style={{ color: 'var(--color-accent-mid)' }}>1v1 Ranqueada</p>
+                        <div className="grid grid-cols-2 gap-2">
+                          {[
+                            { place: 'Vencedor', value: 9 },
+                            { place: 'Perdedor', value: 2 },
+                          ].map(p => (
+                            <div key={p.place} className="bg-[var(--color-panel)] rounded-lg p-2 text-center">
+                              <p className="text-[10px]" style={{ color: 'var(--color-text-muted)' }}>{p.place}</p>
+                              <p className="text-base font-bold" style={{ color: 'var(--color-token-gold)' }}>+{p.value}</p>
+                            </div>
+                          ))}
+                        </div>
+                        <p className="text-[10px] mt-1.5" style={{ color: 'var(--color-text-muted)' }}>Ranqueada paga +50% sobre a tabela base. Combinado com bônus de 1v1, é o formato mais lucrativo.</p>
                       </div>
                     </div>
                   </section>

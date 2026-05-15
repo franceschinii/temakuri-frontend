@@ -24,14 +24,14 @@ export function RulesModal({ open, onClose }: RulesModalProps) {
         <section className="flex flex-col gap-1.5">
           <p className="text-xs font-semibold uppercase tracking-wider text-[var(--color-accent-mid)]">Objetivo</p>
           <p className="text-[var(--color-text-muted)] leading-relaxed">
-            Quem ficar com cartas na mão ao fim da rodada perde <strong className="text-[var(--color-text-primary)]">1 Prato</strong>. Os demais sobrevivem. O primeiro a perder todos os Pratos vence.
+            <strong className="text-[var(--color-text-primary)]">Escape da rodada</strong> esvaziando sua mão. Quem zera a mão sai e fica de fora — não perde nada. A rodada termina quando sobra <strong className="text-[var(--color-text-primary)]">1 jogador com cartas</strong>, e ele perde <strong className="text-[var(--color-text-primary)]">1 prato</strong>. Quem ficar sem pratos primeiro <strong className="text-[var(--color-danger)]">perde o jogo</strong>. Todos os outros vencem.
           </p>
         </section>
 
         <section className="flex flex-col gap-1.5">
           <p className="text-xs font-semibold uppercase tracking-wider text-[var(--color-accent-mid)]">Quem começa</p>
           <p className="text-[var(--color-text-muted)] leading-relaxed">
-            Na <strong className="text-[var(--color-text-primary)]">primeira rodada</strong> o jogador inicial é <strong className="text-[var(--color-text-primary)]">sorteado</strong>. Nas rodadas seguintes, quem <strong className="text-[var(--color-text-primary)]">venceu a rodada anterior</strong> (esvaziou a mão primeiro) começa a próxima.
+            Na <strong className="text-[var(--color-text-primary)]">primeira rodada</strong> o jogador inicial é <strong className="text-[var(--color-text-primary)]">sorteado</strong>. Nas rodadas seguintes, quem <strong className="text-[var(--color-text-primary)]">perdeu o prato na rodada anterior</strong> começa a próxima.
           </p>
           <p className="text-[var(--color-text-muted)] leading-relaxed">
             Dentro da rodada, quem ganha a vaza inicia a próxima vaza.

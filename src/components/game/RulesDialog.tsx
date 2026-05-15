@@ -79,7 +79,7 @@ export function RulesDialog() {
 
                     <section>
                       <h3 className="text-[var(--color-text-primary)] font-medium mb-1">Objetivo</h3>
-                      <p>Quem ficar com cartas na mão no final da rodada perde 1 Prato. Os demais sobrevivem. O primeiro a perder todos os Pratos vence.</p>
+                      <p><strong className="text-[var(--color-text-primary)]">Escape da rodada</strong> esvaziando sua mão. Quem zera sai e fica de fora — não perde nada. A rodada termina quando sobra <strong className="text-[var(--color-text-primary)]">1 jogador com cartas</strong>, e ele perde <strong className="text-[var(--color-text-primary)]">1 prato</strong>. Quem ficar sem pratos primeiro <strong className="text-[var(--color-danger)]">perde o jogo</strong>. Todos os outros vencem.</p>
                     </section>
 
                     <section>

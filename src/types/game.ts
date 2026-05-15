@@ -44,6 +44,8 @@ export interface PublicPlayerState {
   tokensLeft: number;
   isConnected: boolean;
   isEliminated: boolean;
+  /** Zerou a mao na rodada atual — fora da rodada, mas continua no jogo. */
+  isOutOfRound?: boolean;
   isReady: boolean;
   isBot?: boolean;
   isGuest?: boolean;
@@ -78,6 +80,8 @@ export interface GameRanking {
   username: string;
   placement: number;
   tokensLeft: number;
+  /** True se nao perdeu o jogo. Em multi-player todos menos um sao vencedores. */
+  isWinner?: boolean;
   reward?: import('./api').MatchReward;
 }
 

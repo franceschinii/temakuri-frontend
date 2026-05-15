@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -76,8 +76,19 @@ export function CreateRoomModal({ open, onClose }: CreateRoomModalProps) {
   ];
 
   const selectedMode = watch('mode');
+  const selectedMaxPlayers = watch('maxPlayers');
+  const selectedRanked = watch('isRanked');
   const notSuspended = !user?.rankedSuspendedUntil || new Date(user.rankedSuspendedUntil) <= new Date();
   const canRanked = (user?.level ?? 1) >= 10 && !user?.isGuest && notSuspended;
+
+  // Ranqueada so faz sentido em 1v1 (nova regra: so existe 1 perdedor por
+  // partida). Quando o usuario marca ranqueada, forca maxPlayers=2. Quando
+  // sobe maxPlayers acima de 2 com ranqueada marcada, desativa ranqueada.
+  useEffect(() => {
+    if (selectedRanked && selectedMaxPlayers !== 2) {
+      setValue('maxPlayers', 2);
+    }
+  }, [selectedRanked, selectedMaxPlayers, setValue]);
 
   const onSubmit = async (values: FormValues) => {
     setLoading(true);
@@ -166,13 +177,18 @@ export function CreateRoomModal({ open, onClose }: CreateRoomModalProps) {
             <div className="relative">
               <select
                 {...register('maxPlayers')}
-                className="w-full appearance-none bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text-primary)] rounded-lg pl-3 pr-8 py-2 text-sm cursor-pointer hover:border-[var(--color-accent-mid)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-glow)] transition-all"
+                disabled={selectedRanked}
+                title={selectedRanked ? 'Ranqueada disponível apenas em 1v1' : undefined}
+                className="w-full appearance-none bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text-primary)] rounded-lg pl-3 pr-8 py-2 text-sm cursor-pointer hover:border-[var(--color-accent-mid)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-glow)] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 data-testid="create-room-max-players"
               >
                 {[2, 3, 4, 5, 6].map(n => <option key={n} value={n}>{n} jogadores</option>)}
               </select>
               <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)] pointer-events-none" />
             </div>
+            {selectedRanked && (
+              <p className="text-[10px] text-[var(--color-text-muted)]">Ranqueada exige 1v1</p>
+            )}
           </div>
 
           <div className="flex flex-col gap-1.5">

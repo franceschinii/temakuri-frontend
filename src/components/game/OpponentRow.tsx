@@ -42,6 +42,9 @@ export function OpponentRow({ player, isCurrentTurn, compact, onClick }: Opponen
             : 'border-[var(--color-border)] bg-[var(--color-surface)]',
           onClick && 'cursor-pointer hover:bg-[var(--color-panel)] active:scale-[0.98]',
           player.isEliminated && 'opacity-30',
+          // Fora da rodada (zerou a mao) — opacidade reduzida mas nao tao forte
+          // quanto eliminado. Volta ao normal no inicio da proxima rodada.
+          !player.isEliminated && player.isOutOfRound && 'opacity-60',
         )}
         style={{ width: 130 }}
       >
@@ -95,6 +98,7 @@ export function OpponentRow({ player, isCurrentTurn, compact, onClick }: Opponen
         isCurrentTurn && 'ring-2 ring-[var(--color-accent-soft)] bg-[var(--color-surface)]',
         onClick && 'cursor-pointer hover:bg-[var(--color-panel)] active:scale-[0.98]',
         player.isEliminated && 'opacity-30',
+        !player.isEliminated && player.isOutOfRound && 'opacity-60',
       )}
       style={{ width: 200 }}
     >
