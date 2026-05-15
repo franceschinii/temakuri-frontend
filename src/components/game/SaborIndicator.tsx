@@ -1,4 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
+import { Flame } from 'lucide-react';
 
 interface SaborIndicatorProps {
   active: boolean;
@@ -18,7 +19,10 @@ export function SaborIndicator({ active, minRequired, triggeredBy }: SaborIndica
           transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
           className="bg-[var(--color-warning)] text-[var(--color-base)] rounded-lg px-4 py-2 text-sm font-bold text-center shadow-lg"
         >
-          🔥 SABOR ATIVO — jogue pelo menos <span data-testid="sabor-min-required">{minRequired}</span> carta{minRequired > 1 ? 's' : ''}
+          <span className="inline-flex items-center justify-center gap-1.5">
+            <Flame size={15} className="shrink-0" fill="currentColor" />
+            SABOR ATIVO — jogue pelo menos <span data-testid="sabor-min-required">{minRequired}</span> carta{minRequired > 1 ? 's' : ''}
+          </span>
           {triggeredBy && <span className="font-normal opacity-70 block text-xs">ativado por {triggeredBy}</span>}
         </motion.div>
       )}

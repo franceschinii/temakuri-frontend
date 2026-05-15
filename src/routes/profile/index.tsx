@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Check, X, Loader2, Pencil, Wine, ShoppingBag, Lock } from 'lucide-react';
+import { Check, X, Loader2, Pencil, Wine, ShoppingBag, Lock, Flame } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -200,7 +200,9 @@ export default function ProfilePage() {
                   <div className="flex items-center justify-between">
                     <RankBadge pds={user?.pds ?? 0} showPds size="md" />
                     {(user?.winStreak ?? 0) >= 2 && (
-                      <span className="text-xs text-[var(--color-warning)]">🔥 {user?.winStreak}x vitórias</span>
+                      <span className="text-xs text-[var(--color-warning)] inline-flex items-center gap-1">
+                        <Flame size={12} fill="currentColor" /> {user?.winStreak}x vitórias
+                      </span>
                     )}
                   </div>
                   {(user?.rankedWarnings ?? 0) > 0 && (
