@@ -204,8 +204,13 @@ export function GameBoard() {
       setPickMode(false);
       setDrawnCard(null);
       hasSubmittedPickRef.current = false;
-      const { myHand, phase } = useGameStore.getState();
-      if (myHand.length === 0 && phase !== 'GAME_OVER' && phase !== 'ROUND_END') {
+      const { myHand, phase, players } = useGameStore.getState();
+      // Se eu zerei a mao nesta rodada (isOutOfRound), minha mao DEVE estar
+      // vazia — nao pedir resync. Pedir aqui causaria varios state_sync
+      // desnecessarios a cada turn_started ate a rodada acabar.
+      const me = players.find(p => p.userId === user?.id);
+      const iAmOutOfRound = me?.isOutOfRound === true;
+      if (!iAmOutOfRound && myHand.length === 0 && phase !== 'GAME_OVER' && phase !== 'ROUND_END') {
         emitSocketEvent('game:request_state', { roomCode });
       }
     };
@@ -218,7 +223,7 @@ export function GameBoard() {
     } else {
       applyTurnChange();
     }
-  }, [roomCode]));
+  }, [roomCode, user?.id]));
 
   useSocketEvent<{ userId: string; cards: Card[]; isSabor: boolean; usedPlates?: Card[]; remainingPlates?: Card[]; nextPhase?: 'TRICK_PICK' | 'PLAYER_TURN' }>('game:cards_played', useCallback(({ userId, cards, isSabor, usedPlates, remainingPlates, nextPhase }) => {
     lastActionAtRef.current = Date.now();
@@ -323,13 +328,16 @@ export function GameBoard() {
     const allPlayers = useGameStore.getState().players;
     const name = allPlayers.find(p => p.userId === userId)?.username ?? userId;
     const isMe = user?.id === userId;
+    const remainingLabel = remainingInRound === 1
+      ? '1 jogador ainda em rodada'
+      : `${remainingInRound} jogadores ainda em rodada`;
     addLog({
       type: 'player_out',
       userId,
       username: name,
       text: isMe
-        ? `🍣 Você esvaziou a mão — fora da rodada (${remainingInRound} restantes)`
-        : `🍣 ${name} esvaziou a mão — fora da rodada (${remainingInRound} restantes)`,
+        ? `🍣 Você esvaziou a mão — fora da rodada (${remainingLabel})`
+        : `🍣 ${name} esvaziou a mão — fora da rodada (${remainingLabel})`,
     });
   }, [addLog, user?.id]));
 
@@ -355,7 +363,10 @@ export function GameBoard() {
         isOutOfRound: false,
       })),
     }));
-  }, []));
+    // Log marcando inicio de rodada — sem isso, quem zerou na rodada anterior
+    // ve a mao nova aparecer "do nada" e nao entende a sequencia.
+    addLog({ type: 'system', text: `▶️ Rodada ${round} iniciada — todos receberam novas cartas` });
+  }, [addLog]));
 
   useSocketEvent<{ rankings: GameRanking[]; stats: GameStats }>('game:game_over', useCallback(({ rankings, stats }) => {
     applyGameOver(rankings, stats);
