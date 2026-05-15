@@ -219,7 +219,7 @@ export function MatchmakingDialog({ open, onClose }: Props) {
                   <button
                     onClick={() => setType('QUICK')}
                     className={[
-                      'flex flex-col items-center gap-1.5 rounded-xl border p-3 transition-all',
+                      'flex flex-col items-center justify-center gap-1.5 rounded-xl border p-3 transition-all',
                       type === 'QUICK'
                         ? 'border-[var(--color-accent-strong)] bg-[var(--color-accent-strong)]/10 text-[var(--color-accent-soft)]'
                         : 'border-[var(--color-border)] text-[var(--color-text-muted)] hover:border-[var(--color-accent-strong)]/50',
@@ -233,7 +233,7 @@ export function MatchmakingDialog({ open, onClose }: Props) {
                     disabled={(user?.level ?? 1) < 10}
                     title={(user?.level ?? 1) < 10 ? 'Nível 10 necessário' : undefined}
                     className={[
-                      'flex flex-col items-center gap-1.5 rounded-xl border p-3 transition-all',
+                      'flex flex-col items-center justify-center gap-1.5 rounded-xl border p-3 transition-all',
                       (user?.level ?? 1) < 10 && 'opacity-40 cursor-not-allowed',
                       type === 'RANKED'
                         ? 'border-[var(--color-accent-strong)] bg-[var(--color-accent-strong)]/10 text-[var(--color-accent-soft)]'
