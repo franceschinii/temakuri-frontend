@@ -812,6 +812,7 @@ function DeleteUserModal({ open, user, onClose, onSuccess }: { open: boolean; us
 }
 
 const ALL_MODES = ['TRADITIONAL', 'MERCADO', 'RODIZIO', 'DEGUSTACAO'];
+const ALL_THEMES = ['bambu', 'oceano', 'sakura', 'oni'];
 
 function EditProgressionModal({ open, user, onClose, onSuccess }: { open: boolean; user: AdminUser | null; onClose: () => void; onSuccess: () => void }) {
   const [xp, setXp] = useState('');
@@ -821,10 +822,13 @@ function EditProgressionModal({ open, user, onClose, onSuccess }: { open: boolea
   const [rankedWarnings, setRankedWarnings] = useState('');
   const [clearSuspension, setClearSuspension] = useState(false);
   const [isPremium, setIsPremium] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [grantAvatars, setGrantAvatars] = useState('');
   const [revokeAvatars, setRevokeAvatars] = useState('');
   const [grantModes, setGrantModes] = useState<string[]>([]);
   const [revokeModes, setRevokeModes] = useState<string[]>([]);
+  const [grantThemes, setGrantThemes] = useState<string[]>([]);
+  const [revokeThemes, setRevokeThemes] = useState<string[]>([]);
   const [diamondDelta, setDiamondDelta] = useState('');
   const [diamondReason, setDiamondReason] = useState('');
 
@@ -837,10 +841,13 @@ function EditProgressionModal({ open, user, onClose, onSuccess }: { open: boolea
       setRankedWarnings(String(user.rankedWarnings ?? 0));
       setClearSuspension(false);
       setIsPremium(user.isPremium ?? false);
+      setIsAdmin(user.isAdmin ?? false);
       setGrantAvatars('');
       setRevokeAvatars('');
       setGrantModes([]);
       setRevokeModes([]);
+      setGrantThemes([]);
+      setRevokeThemes([]);
       setDiamondDelta('');
       setDiamondReason('');
     }
@@ -874,6 +881,7 @@ function EditProgressionModal({ open, user, onClose, onSuccess }: { open: boolea
         rankedWarnings: Number(rankedWarnings),
         clearRankedSuspension: clearSuspension,
         isPremium,
+        isAdmin,
       };
       if (grantAvatars.trim()) {
         payload.grantAvatars = grantAvatars.split(',').map(s => Number(s.trim())).filter(n => !isNaN(n));
@@ -883,6 +891,8 @@ function EditProgressionModal({ open, user, onClose, onSuccess }: { open: boolea
       }
       if (grantModes.length) payload.grantModes = grantModes;
       if (revokeModes.length) payload.revokeModes = revokeModes;
+      if (grantThemes.length) payload.grantThemes = grantThemes;
+      if (revokeThemes.length) payload.revokeThemes = revokeThemes;
       await api.patch(`/admin/users/${user!.id}/progression`, payload);
     },
     onSuccess: () => { toast.success('Progressão atualizada'); onSuccess(); onClose(); },
@@ -894,6 +904,14 @@ function EditProgressionModal({ open, user, onClose, onSuccess }: { open: boolea
 
   const toggleGrantMode = (m: string) => setGrantModes(prev => prev.includes(m) ? prev.filter(x => x !== m) : [...prev, m]);
   const toggleRevokeMode = (m: string) => setRevokeModes(prev => prev.includes(m) ? prev.filter(x => x !== m) : [...prev, m]);
+  const toggleGrantTheme = (t: string) => setGrantThemes(prev => prev.includes(t) ? prev.filter(x => x !== t) : [...prev, t]);
+  const toggleRevokeTheme = (t: string) => setRevokeThemes(prev => prev.includes(t) ? prev.filter(x => x !== t) : [...prev, t]);
+  const unlockedThemes = user?.inventory?.unlockedThemes ?? [];
+
+  const applyDiamondQuick = (delta: number) => {
+    const current = Number(diamondDelta) || 0;
+    setDiamondDelta(String(current + delta));
+  };
 
   return (
     <Modal open={open} onClose={onClose} title="Editar progressão" description={user?.username} className="max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -907,12 +925,32 @@ function EditProgressionModal({ open, user, onClose, onSuccess }: { open: boolea
           <Input label="Avisos ranked" type="number" min={0} max={10} value={rankedWarnings} onChange={e => setRankedWarnings(e.target.value)} />
         </div>
 
-        <label className="flex items-center gap-2 text-sm text-[var(--color-text-muted)] cursor-pointer">
-          <input type="checkbox" checked={isPremium} onChange={e => setIsPremium(e.target.checked)} className="accent-[oklch(75%_0.2_310)]" />
-          <Wine size={14} className="text-[oklch(75%_0.2_310)]" />
-          <span className="text-[oklch(75%_0.2_310)] font-medium">Premium</span>
-          <span className="text-xs text-[var(--color-text-muted)]">(sem anúncios, ícone especial)</span>
-        </label>
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+          <button
+            type="button"
+            onClick={() => setIsPremium(v => !v)}
+            className={cn(
+              'flex items-center gap-2 px-3 py-2 rounded-lg border text-sm font-medium transition-all',
+              isPremium
+                ? 'border-[oklch(75%_0.2_310)] bg-[oklch(75%_0.2_310)]/15 text-[oklch(80%_0.16_310)]'
+                : 'border-[var(--color-border)] text-[var(--color-text-muted)] hover:border-[oklch(75%_0.2_310)]',
+            )}
+          >
+            <Wine size={14} /> Premium {isPremium ? 'ON' : 'OFF'}
+          </button>
+          <button
+            type="button"
+            onClick={() => setIsAdmin(v => !v)}
+            className={cn(
+              'flex items-center gap-2 px-3 py-2 rounded-lg border text-sm font-medium transition-all',
+              isAdmin
+                ? 'border-[var(--color-warning)] bg-[var(--color-warning)]/15 text-[var(--color-warning)]'
+                : 'border-[var(--color-border)] text-[var(--color-text-muted)] hover:border-[var(--color-warning)]',
+            )}
+          >
+            <ShieldCheck size={14} /> Admin {isAdmin ? 'ON' : 'OFF'}
+          </button>
+        </div>
 
         <label className="flex items-center gap-2 text-sm text-[var(--color-text-muted)] cursor-pointer">
           <input type="checkbox" checked={clearSuspension} onChange={e => setClearSuspension(e.target.checked)} className="accent-[var(--color-accent-strong)]" />
@@ -929,6 +967,25 @@ function EditProgressionModal({ open, user, onClose, onSuccess }: { open: boolea
           <p className="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">
             Diamantes <span className="font-mono text-[oklch(80%_0.16_220)]">(saldo: {user?.diamonds ?? 0})</span>
           </p>
+          {/* Ajuste rapido: clica e vai somando/subtraindo no delta */}
+          <div className="flex flex-wrap gap-1.5">
+            {[100, 500, 1000].map(v => (
+              <button key={`+${v}`} type="button" onClick={() => applyDiamondQuick(v)}
+                className="text-xs px-2.5 py-1 rounded-lg border border-[oklch(80%_0.16_220)]/40 text-[oklch(80%_0.16_220)] hover:bg-[oklch(80%_0.16_220)]/10 transition-all">
+                +{v}
+              </button>
+            ))}
+            {[100, 500, 1000].map(v => (
+              <button key={`-${v}`} type="button" onClick={() => applyDiamondQuick(-v)}
+                className="text-xs px-2.5 py-1 rounded-lg border border-[var(--color-danger)]/40 text-[var(--color-danger)] hover:bg-[var(--color-danger)]/10 transition-all">
+                −{v}
+              </button>
+            ))}
+            <button type="button" onClick={() => setDiamondDelta('')}
+              className="text-xs px-2.5 py-1 rounded-lg border border-[var(--color-border)] text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-all">
+              Zerar
+            </button>
+          </div>
           <div className="grid grid-cols-2 gap-2">
             <Input label="Quantidade (+ ou -)" type="number" value={diamondDelta} onChange={e => setDiamondDelta(e.target.value)} placeholder="ex: 100 ou -50" />
             <Input label="Motivo (opcional)" value={diamondReason} onChange={e => setDiamondReason(e.target.value)} placeholder="ex: compensação por bug" />
@@ -980,6 +1037,24 @@ function EditProgressionModal({ open, user, onClose, onSuccess }: { open: boolea
           <div className="grid grid-cols-2 gap-3">
             <Input label="Conceder avatares (índices, ex: 4,5)" value={grantAvatars} onChange={e => setGrantAvatars(e.target.value)} placeholder="ex: 4,5" />
             <Input label="Revogar avatares (índices, ex: 6)" value={revokeAvatars} onChange={e => setRevokeAvatars(e.target.value)} placeholder="ex: 6" />
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <p className="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">
+            Temas {unlockedThemes.length > 0 && <span className="font-mono text-[var(--color-accent-mid)]">({unlockedThemes.join(', ')})</span>}
+          </p>
+          <div className="flex flex-wrap gap-1.5">
+            {ALL_THEMES.filter(t => !unlockedThemes.includes(t)).map(t => (
+              <button key={t} type="button" onClick={() => toggleGrantTheme(t)} className={cn('text-xs px-2 py-1 rounded-lg border transition-all capitalize', grantThemes.includes(t) ? 'text-[var(--color-accent-mid)] border-[var(--color-accent-mid)] bg-[var(--color-accent-mid)]/15' : 'text-[var(--color-text-muted)] border-[var(--color-border)] hover:border-[var(--color-accent-mid)]')}>
+                + {t}
+              </button>
+            ))}
+            {ALL_THEMES.filter(t => unlockedThemes.includes(t) && t !== 'bambu').map(t => (
+              <button key={t} type="button" onClick={() => toggleRevokeTheme(t)} className={cn('text-xs px-2 py-1 rounded-lg border transition-all capitalize', revokeThemes.includes(t) ? 'text-[var(--color-danger)] border-[var(--color-danger)] bg-[var(--color-danger)]/10' : 'text-[var(--color-text-muted)] border-[var(--color-border)] hover:border-[var(--color-danger)]')}>
+                − {t}
+              </button>
+            ))}
           </div>
         </div>
 
