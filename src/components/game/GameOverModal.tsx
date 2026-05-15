@@ -13,10 +13,11 @@ import { useAuthStore } from '@/stores/authStore';
 interface GameOverModalProps {
   rankings: GameRanking[];
   myUserId: string;
+  isHost?: boolean;
   onPlayAgain?: () => void;
 }
 
-export function GameOverModal({ rankings, myUserId, onPlayAgain }: GameOverModalProps) {
+export function GameOverModal({ rankings, myUserId, isHost, onPlayAgain }: GameOverModalProps) {
   const navigate = useNavigate();
   const refreshUser = useAuthStore(s => s.refreshUser);
 
@@ -115,6 +116,14 @@ export function GameOverModal({ rankings, myUserId, onPlayAgain }: GameOverModal
         </div>
 
         <AdBanner className="w-full rounded-xl overflow-hidden" slot="9876543210" />
+
+        {/* Nao-host: deixa claro que o host controla o "jogar novamente",
+            pra ele nao achar que so resta sair. */}
+        {!isHost && (
+          <p className="text-xs text-center text-[var(--color-text-muted)]">
+            O host pode reiniciar a partida. Se reiniciar, você volta junto automaticamente.
+          </p>
+        )}
 
         <div className="flex gap-2 flex-wrap">
           <Button variant="secondary" className="flex-1" onClick={() => navigate('/lobby')} data-testid="game-over-leave-btn">

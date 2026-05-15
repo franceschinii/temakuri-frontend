@@ -1089,9 +1089,12 @@ export function GameBoard() {
         <GameOverModal
           rankings={gameOverData.rankings}
           myUserId={user?.id ?? ''}
+          isHost={roomHostId === user?.id}
           onPlayAgain={roomHostId === user?.id ? () => {
+            // So emite o reset. O redirect acontece pra TODOS via o
+            // broadcast lobby:room_reset (inclusive pro proprio host),
+            // garantindo que ninguem navegue antes da sala resetar.
             emitSocketEvent('lobby:reset_room', { roomCode });
-            navigate(`/lobby/${roomCode}`, { state: { isMatchmaking: false } });
           } : undefined}
         />
       )}
