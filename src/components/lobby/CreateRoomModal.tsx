@@ -23,12 +23,6 @@ const BIAS_STEPS = [
   { value: 1,    label: 'Máxima' },
 ];
 
-const MODE_PRICES: Record<string, number> = {
-  MERCADO: 20,
-  RODIZIO: 30,
-  DEGUSTACAO: 50,
-};
-
 const schema = z.object({
   mode: z.string(),
   maxPlayers: z.coerce.number().min(2).max(6),
@@ -59,16 +53,27 @@ export function CreateRoomModal({ open, onClose }: CreateRoomModalProps) {
   register('isPrivate');
   const isPrivate = watch('isPrivate');
 
-  const { data: inventory } = useQuery({
-    queryKey: ['shop', 'inventory'],
+  // Busca catalogo: usa unlockedModes (do inventory) + precos efetivos
+  // dos modos (com override admin aplicado).
+  const { data: catalog } = useQuery({
+    queryKey: ['shop', 'catalog'],
     queryFn: async () => {
-      const { data } = await api.get('/shop/inventory');
-      return data as { unlockedAvatars: number[]; unlockedModes: string[] };
+      const { data } = await api.get('/shop/catalog');
+      return data as {
+        modes: { mode: string; price: number; defaultPrice?: number; owned: boolean }[];
+      };
     },
     enabled: open && !user?.isGuest,
+    staleTime: 30_000,
   });
 
-  const unlockedModes = inventory?.unlockedModes ?? ['TRADITIONAL'];
+  const modePriceMap = new Map<string, number>(
+    (catalog?.modes ?? []).map(m => [m.mode, m.price]),
+  );
+  const unlockedModes = [
+    'TRADITIONAL',
+    ...((catalog?.modes ?? []).filter(m => m.owned).map(m => m.mode)),
+  ];
 
   const selectedMode = watch('mode');
   const notSuspended = !user?.rankedSuspendedUntil || new Date(user.rankedSuspendedUntil) <= new Date();
@@ -106,7 +111,7 @@ export function CreateRoomModal({ open, onClose }: CreateRoomModalProps) {
           <div className="grid grid-cols-2 gap-2">
             {GAME_MODES.map(m => {
               const locked = !unlockedModes.includes(m.value);
-              const price = MODE_PRICES[m.value];
+              const price = modePriceMap.get(m.value);
               return (
                 <label
                   key={m.value}
