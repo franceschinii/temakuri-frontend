@@ -138,7 +138,7 @@ export default function ProfilePage() {
                 className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-[var(--color-accent-strong)] flex items-center justify-center hover:opacity-80 transition-opacity"
                 data-testid="profile-edit-avatar-btn"
               >
-                <Pencil size={11} className="text-white" />
+                <Pencil size={11} className="text-[var(--color-on-accent)]" />
               </button>
             </div>
             <div className="text-center flex flex-col items-center gap-1.5">
