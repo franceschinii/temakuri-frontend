@@ -70,7 +70,7 @@ export function PlayArea({ pile, drawPileCount, discardPile, saborActive, saborM
         pile.length === 0
           ? 'border-dashed border-[var(--color-border)]'
           : saborActive
-            ? 'border-[var(--color-warning)] shadow-[0_0_16px_oklch(78%_0.18_80_/_0.3)]'
+            ? 'border-[var(--color-warning)] bg-[var(--color-surface)] shadow-[0_0_16px_oklch(78%_0.18_80_/_0.3)]'
             : 'border-[var(--color-border)] bg-[var(--color-surface)]',
       )}>
         {pile.length === 0 ? (
