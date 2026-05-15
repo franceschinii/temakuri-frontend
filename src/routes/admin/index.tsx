@@ -50,6 +50,7 @@ interface AdminUser {
     unlockedModes: string[];
     unlockedThemes: string[];
   } | null;
+  isOnline?: boolean;
 }
 
 type ModalType = 'edit' | 'password' | 'stats' | 'delete' | 'moderation' | 'progression' | null;
@@ -514,6 +515,16 @@ export default function AdminPage() {
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex flex-col gap-1 min-w-0 flex-1">
                       <div className="flex items-center gap-1.5 min-w-0">
+                        <span
+                          aria-label={user.isOnline ? 'Online' : 'Offline'}
+                          title={user.isOnline ? 'Online' : 'Offline'}
+                          className={cn(
+                            'inline-block w-2 h-2 rounded-full shrink-0',
+                            user.isOnline
+                              ? 'bg-[oklch(72%_0.18_145)] shadow-[0_0_6px_oklch(72%_0.18_145)]'
+                              : 'bg-[var(--color-text-muted)]/40',
+                          )}
+                        />
                         <button
                           type="button"
                           onClick={() => !user.isBot && openPlayerDialog({ userId: user.id, username: user.username, avatarIndex: user.avatarIndex, isAdmin: user.isAdmin, isGuest: user.isGuest, isBot: user.isBot, isPremium: user.isPremium, level: user.level, pds: user.pds })}
@@ -597,14 +608,26 @@ export default function AdminPage() {
                       )}
                     >
                       <td className="px-4 py-3 font-medium text-[var(--color-text-primary)]">
-                        <button
-                          type="button"
-                          onClick={() => !user.isBot && openPlayerDialog({ userId: user.id, username: user.username, avatarIndex: user.avatarIndex, isAdmin: user.isAdmin, isGuest: user.isGuest, isBot: user.isBot, isPremium: user.isPremium, level: user.level, pds: user.pds })}
-                          disabled={user.isBot}
-                          className="hover:text-[var(--color-accent-soft)] disabled:hover:text-current disabled:cursor-default transition-colors"
-                        >
-                          {user.username}
-                        </button>
+                        <div className="flex items-center gap-2">
+                          <span
+                            aria-label={user.isOnline ? 'Online' : 'Offline'}
+                            title={user.isOnline ? 'Online' : 'Offline'}
+                            className={cn(
+                              'inline-block w-2 h-2 rounded-full shrink-0',
+                              user.isOnline
+                                ? 'bg-[oklch(72%_0.18_145)] shadow-[0_0_6px_oklch(72%_0.18_145)]'
+                                : 'bg-[var(--color-text-muted)]/40',
+                            )}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => !user.isBot && openPlayerDialog({ userId: user.id, username: user.username, avatarIndex: user.avatarIndex, isAdmin: user.isAdmin, isGuest: user.isGuest, isBot: user.isBot, isPremium: user.isPremium, level: user.level, pds: user.pds })}
+                            disabled={user.isBot}
+                            className="hover:text-[var(--color-accent-soft)] disabled:hover:text-current disabled:cursor-default transition-colors"
+                          >
+                            {user.username}
+                          </button>
+                        </div>
                       </td>
                       <td className="px-4 py-3 text-[var(--color-text-muted)] hidden sm:table-cell max-w-[160px]">
                         <span className="block truncate" title={user.email ?? ''}>{user.email ?? '—'}</span>

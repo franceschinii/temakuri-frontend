@@ -93,6 +93,8 @@ export interface RoomPlayer extends PublicPlayerState {
   isAdmin?: boolean;
   isSpectator: boolean;
   sessionWins: number;
+  /** So definido para bots: 'easy' | 'medium' | 'hard'. */
+  botDifficulty?: string | null;
 }
 
 export interface RoomPublicState {

@@ -223,10 +223,13 @@ export default function RoomPage() {
     emitSocketEvent('lobby:set_ready', { roomCode, ready: !current });
   };
 
-  const handleAddBot = async () => {
+  const [botMenuOpen, setBotMenuOpen] = useState(false);
+
+  const handleAddBot = async (difficulty: 'easy' | 'medium' | 'hard' = 'easy') => {
+    setBotMenuOpen(false);
     setAddingBot(true);
     try {
-      const { data } = await api.post(`/rooms/${roomCode}/bots`);
+      const { data } = await api.post(`/rooms/${roomCode}/bots`, { difficulty });
       updateRoom(data);
     } catch (e: any) {
       toast.error(e?.response?.data?.message ?? 'Erro ao adicionar bot');
@@ -379,7 +382,23 @@ export default function RoomPage() {
                             <MedalBadge count={p.sessionWins ?? 0} />
                           </div>
                           {p.isBot
-                            ? <span className="text-[9px] text-[var(--color-text-muted)] uppercase tracking-wider">bot</span>
+                            ? (
+                              <span className="flex items-center gap-1 text-[9px] uppercase tracking-wider">
+                                <span className="text-[var(--color-text-muted)]">bot</span>
+                                <span
+                                  className={cn(
+                                    'px-1 py-0.5 rounded-full font-semibold border',
+                                    p.botDifficulty === 'hard'
+                                      ? 'text-[var(--color-danger-soft)] border-[var(--color-danger)]/40 bg-[var(--color-danger)]/10'
+                                      : p.botDifficulty === 'medium'
+                                      ? 'text-[var(--color-warning)] border-[var(--color-warning)]/40 bg-[var(--color-warning)]/10'
+                                      : 'text-[var(--color-accent-mid)] border-[var(--color-accent-mid)]/40 bg-[var(--color-accent-mid)]/10',
+                                  )}
+                                >
+                                  {p.botDifficulty === 'hard' ? 'Difícil' : p.botDifficulty === 'medium' ? 'Médio' : 'Fácil'}
+                                </span>
+                              </span>
+                            )
                             : p.isGuest
                             ? <span
                                 className="text-[9px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded-full w-fit mt-0.5"
@@ -490,15 +509,45 @@ export default function RoomPage() {
               >
                 {readyMap[user?.id ?? ''] ? 'Cancelar' : 'Pronto'}
               </Button>
-              <Button
-                variant="outline"
-                onClick={handleAddBot}
-                disabled={addingBot || activePlayers.length >= room.maxPlayers}
-                className="shrink-0"
-                data-testid="room-add-bot-btn"
-              >
-                <PlusCircle size={14} /> Bot
-              </Button>
+              <div className="relative shrink-0">
+                <Button
+                  variant="outline"
+                  onClick={() => setBotMenuOpen(v => !v)}
+                  disabled={addingBot || activePlayers.length >= room.maxPlayers}
+                  data-testid="room-add-bot-btn"
+                >
+                  <PlusCircle size={14} /> Bot
+                </Button>
+                {botMenuOpen && (
+                  <>
+                    {/* Backdrop pra fechar ao clicar fora */}
+                    <div className="fixed inset-0 z-30" onClick={() => setBotMenuOpen(false)} />
+                    <div className="absolute z-40 right-0 mt-1 w-48 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] shadow-xl py-1">
+                      <button
+                        onClick={() => handleAddBot('easy')}
+                        className="w-full text-left px-3 py-2 text-sm hover:bg-[var(--color-panel)] transition-colors flex flex-col"
+                      >
+                        <span className="text-[var(--color-text-primary)]">Fácil</span>
+                        <span className="text-[10px] text-[var(--color-text-muted)]">Joga rápido, sem estratégia</span>
+                      </button>
+                      <button
+                        onClick={() => handleAddBot('medium')}
+                        className="w-full text-left px-3 py-2 text-sm hover:bg-[var(--color-panel)] transition-colors flex flex-col"
+                      >
+                        <span className="text-[var(--color-text-primary)]">Médio</span>
+                        <span className="text-[10px] text-[var(--color-text-muted)]">Prefere combos maiores</span>
+                      </button>
+                      <button
+                        onClick={() => handleAddBot('hard')}
+                        className="w-full text-left px-3 py-2 text-sm hover:bg-[var(--color-panel)] transition-colors flex flex-col"
+                      >
+                        <span className="text-[var(--color-text-primary)]">Difícil</span>
+                        <span className="text-[10px] text-[var(--color-text-muted)]">Segura cartas pra Sabor</span>
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
               <Button
                 className="flex-1"
                 onClick={handleStart}

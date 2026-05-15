@@ -243,26 +243,26 @@ export function ShopModal({ open, onClose }: ShopModalProps) {
                         onClick={() => setConfirmItem({ type: 'avatar', key: item.index, name: item.name, price: item.price, currency: 'diamonds' })}
                         disabled={isPurchasing || (user?.diamonds ?? 0) < item.price}
                         className={cn(
-                          'flex items-center text-[9px] px-1.5 py-0.5 rounded-full transition-all',
+                          'flex items-center text-[9px] px-1.5 py-1 rounded-lg transition-all',
                           (user?.diamonds ?? 0) >= item.price
                             ? 'bg-[oklch(80%_0.16_220)]/15 text-[oklch(80%_0.16_220)] hover:bg-[oklch(80%_0.16_220)]/25'
                             : 'opacity-40 cursor-not-allowed text-[var(--color-text-muted)]',
                         )}
                       >
-                        <PriceTag price={item.price} defaultPrice={item.defaultPrice} currency="diamonds" compact />
+                        <PriceTag price={item.price} defaultPrice={item.defaultPrice} currency="diamonds" compact stacked />
                       </button>
                     ) : (
                       <button
                         onClick={() => setConfirmItem({ type: 'avatar', key: item.index, name: item.name, price: item.price, currency: 'coins' })}
                         disabled={isPurchasing || (user?.coins ?? 0) < item.price}
                         className={cn(
-                          'flex items-center text-[9px] px-1.5 py-0.5 rounded-full transition-all',
+                          'flex items-center text-[9px] px-1.5 py-1 rounded-lg transition-all',
                           (user?.coins ?? 0) >= item.price
                             ? 'bg-[oklch(78%_0.2_75)]/20 text-[oklch(78%_0.2_75)] hover:bg-[oklch(78%_0.2_75)]/30'
                             : 'opacity-40 cursor-not-allowed text-[var(--color-text-muted)]',
                         )}
                       >
-                        <PriceTag price={item.price} defaultPrice={item.defaultPrice} currency="coins" compact />
+                        <PriceTag price={item.price} defaultPrice={item.defaultPrice} currency="coins" compact stacked />
                       </button>
                     )}
                   </div>
