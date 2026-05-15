@@ -815,7 +815,7 @@ function DeleteUserModal({ open, user, onClose, onSuccess }: { open: boolean; us
 }
 
 const ALL_MODES = ['TRADITIONAL', 'MERCADO', 'RODIZIO', 'DEGUSTACAO'];
-const ALL_THEMES = ['bambu', 'oceano', 'sakura', 'oni'];
+const ALL_THEMES = ['bambu', 'oceano', 'sakura', 'oni', 'corinthians'];
 
 function EditProgressionModal({ open, user, onClose, onSuccess }: { open: boolean; user: AdminUser | null; onClose: () => void; onSuccess: () => void }) {
   const [xp, setXp] = useState('');

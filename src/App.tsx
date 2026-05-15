@@ -67,26 +67,32 @@ function PageLoader() {
   );
 }
 
-function AuthGuard() {
-  const user = useAuthStore(s => s.user);
-
+// Aplica o tema ativo do usuario no <body> enquanto a area autenticada
+// (incluindo /admin) esta montada. Usado por AuthGuard e AdminGuard pra
+// que toda tela logada siga o tema escolhido (oceano, oni, etc).
+function useActiveTheme(activeTheme: string | null | undefined) {
   useEffect(() => {
-    if (user?.activeTheme) {
-      document.body.setAttribute('data-theme', user.activeTheme);
+    if (activeTheme) {
+      document.body.setAttribute('data-theme', activeTheme);
     } else {
       document.body.removeAttribute('data-theme');
     }
     return () => {
       document.body.removeAttribute('data-theme');
     };
-  }, [user?.activeTheme]);
+  }, [activeTheme]);
+}
 
+function AuthGuard() {
+  const user = useAuthStore(s => s.user);
+  useActiveTheme(user?.activeTheme);
   if (!user) return <Navigate to="/" replace />;
   return <Outlet />;
 }
 
 function AdminGuard() {
   const user = useAuthStore(s => s.user);
+  useActiveTheme(user?.activeTheme);
   if (!user) return <Navigate to="/" replace />;
   if (!user.isAdmin) return <Navigate to="/lobby" replace />;
   return <Outlet />;

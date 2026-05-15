@@ -100,3 +100,44 @@
     radial-gradient(circle at 50% 0%, oklch(78% 0.2 75 / 0.12), transparent 35%),
     linear-gradient(to bottom, oklch(22% 0.08 25), oklch(12% 0.05 20));
 }
+
+/* ============================================================
+ * CORINTHIANS — preto e branco (hue neutro, chroma 0)
+ *
+ * Paleta monocromatica preto/branco. O brasao de fundo NAO e embutido
+ * aqui (marca registrada). Se existir /corinthians.png em public/, ele
+ * aparece centralizado e bem sutil; se nao existir, o tema funciona
+ * apenas com as cores + listras (degrada sem quebrar).
+ * ============================================================ */
+[data-theme="corinthians"] {
+  --color-base:          oklch(16% 0 0);
+  --color-surface:       oklch(22% 0 0);
+  --color-panel:         oklch(30% 0 0);
+  --color-accent-strong: oklch(85% 0 0);
+  --color-accent-strong-translucent: oklch(85% 0 0 / 0.35);
+  --color-accent-strong-glow: oklch(95% 0 0 / 0.5);
+  --color-accent-mid:    oklch(92% 0 0);
+  --color-accent-soft:   oklch(96% 0 0);
+  --color-accent-glow:   oklch(98% 0 0);
+  --color-border:        oklch(40% 0 0);
+  --color-text-primary:  oklch(97% 0 0);
+  --color-text-muted:    oklch(68% 0 0);
+}
+[data-theme="corinthians"] body,
+[data-theme="corinthians"] .min-h-dvh,
+[data-theme="corinthians"] .h-dvh {
+  background-color: oklch(13% 0 0);
+  background-image:
+    image-set(url("/corinthians.png") 1x),
+    repeating-linear-gradient(
+      135deg,
+      oklch(22% 0 0) 0,
+      oklch(22% 0 0) 28px,
+      oklch(17% 0 0) 28px,
+      oklch(17% 0 0) 56px
+    );
+  background-repeat: no-repeat, repeat;
+  background-position: center center, center center;
+  background-size: min(40vw, 360px) auto, auto;
+  background-blend-mode: soft-light, normal;
+}

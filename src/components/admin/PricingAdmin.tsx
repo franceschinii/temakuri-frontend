@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { RefreshCw, RotateCcw, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import api from '@/lib/api';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -90,20 +89,20 @@ function PriceRowEditor({ row, onChanged }: { row: PriceRow; onChanged: () => vo
   });
 
   return (
-    <div className="flex items-center gap-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2">
+    <div className="flex items-center gap-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2.5">
       <div className="flex flex-col min-w-0 flex-1">
         <span className="text-sm text-[var(--color-text-primary)] truncate">{row.label}</span>
-        <span className="text-[10px] text-[var(--color-text-muted)] font-mono">
+        <span className="text-[10px] text-[var(--color-text-muted)] font-mono truncate">
           padrão: {row.def} {row.unit}{hasOverride && <span className="text-[var(--color-accent-mid)]"> · override ativo</span>}
         </span>
       </div>
-      <Input
+      <input
         type="number"
         step={row.unit === 'R$' ? '0.01' : '1'}
         min={0}
         value={value}
         onChange={e => setValue(e.target.value)}
-        className="w-24 h-9 text-sm"
+        className="w-20 sm:w-24 h-9 shrink-0 rounded-lg border border-[var(--color-border)] bg-[var(--color-base)] px-2.5 text-sm text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-strong)] transition-all"
       />
       <button
         onClick={() => save.mutate()}
