@@ -8,7 +8,7 @@ const CONTACT = 'contato@andrefranceschini.com.br';
 
 function Mail() {
   return (
-    <a href={`mailto:${CONTACT}`} className="text-[var(--color-accent-mid)] hover:underline break-all">
+    <a href={`mailto:${CONTACT}`} className="text-[var(--color-accent-mid)] hover:underline whitespace-nowrap">
       {CONTACT}
     </a>
   );
@@ -230,12 +230,6 @@ export default function LegalPage() {
             <Mail />.
           </p>
         </Section>
-
-        <p className="text-[11px] text-[var(--color-text-muted)] opacity-60 leading-relaxed">
-          Este documento foi redigido de boa-fé para informar usuários e atender, no que couber, à LGPD, ao
-          Marco Civil da Internet e ao Código de Defesa do Consumidor. Não substitui análise por profissional
-          do direito; recomenda-se revisão jurídica antes de operação comercial em escala.
-        </p>
       </div>
 
       <DevFooter />
