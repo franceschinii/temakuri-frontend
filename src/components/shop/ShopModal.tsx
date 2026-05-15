@@ -33,16 +33,8 @@ interface ConfirmState {
 
 const PAYMENTS_ENABLED = import.meta.env.VITE_PAYMENTS_ENABLED === 'true';
 
-// Pacotes de diamantes — exibidos na tab "Diamantes". Quando
-// PAYMENTS_ENABLED=true, dispara Checkout Pro do Mercado Pago.
-const DIAMOND_PACKS: { sku: string; diamonds: number; priceBrl: number; bonus: number }[] = [
-  { sku: 'DIAMONDS_100',  diamonds: 100,  priceBrl: 4.90,  bonus: 0  },
-  { sku: 'DIAMONDS_500',  diamonds: 500,  priceBrl: 19.90, bonus: 2  },
-  { sku: 'DIAMONDS_1200', diamonds: 1200, priceBrl: 39.90, bonus: 22 },
-  { sku: 'DIAMONDS_3000', diamonds: 3000, priceBrl: 89.90, bonus: 50 },
-];
-
-const PREMIUM_PRICE_BRL = 7.90;
+// Formata BRL no padrao pt-BR (R$ 19,90).
+const fmtBrl = (v: number) => `R$ ${v.toFixed(2).replace('.', ',')}`;
 
 export function ShopModal({ open, onClose }: ShopModalProps) {
   const [tab, setTab] = useState<ShopTab>('avatars');
@@ -420,15 +412,32 @@ export function ShopModal({ open, onClose }: ShopModalProps) {
                 )}
 
                 <div className="grid grid-cols-2 gap-3 items-stretch">
-                  {DIAMOND_PACKS.map(pack => {
-                    const discounted = appliedCoupon
-                      ? Math.max(0.5, Math.round((pack.priceBrl * (100 - appliedCoupon.discountPercent)) / 100 * 100) / 100)
-                      : null;
+                  {(catalog?.diamondPacks ?? []).map(pack => {
+                    // Preco efetivo (com override admin aplicado pelo backend).
+                    const effective = pack.priceBrl;
+                    const base = pack.defaultPriceBrl;
+                    const hasOverride = effective < base;
+                    // Cupom incide sobre o preco efetivo (compoe com o override).
+                    const finalPrice = appliedCoupon
+                      ? Math.max(0.5, Math.round((effective * (100 - appliedCoupon.discountPercent)) / 100 * 100) / 100)
+                      : effective;
+                    const showStrike = hasOverride || appliedCoupon !== null;
+                    const overrideOffPct = hasOverride
+                      ? Math.round(((base - effective) / base) * 100)
+                      : 0;
                     return (
                     <div
                       key={pack.sku}
-                      className="flex flex-col items-center gap-1.5 p-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] text-center h-full"
+                      className="flex flex-col items-center gap-1.5 p-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] text-center h-full relative"
                     >
+                      {hasOverride && (
+                        <span
+                          className="absolute top-1.5 right-1.5 rounded-full px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wider bg-[var(--color-danger)]/15 text-[var(--color-danger-soft)] border border-[var(--color-danger)]/30"
+                          title="Promoção da loja"
+                        >
+                          -{overrideOffPct}%
+                        </span>
+                      )}
                       <DiamondIcon size={28} />
                       <span
                         className="text-lg font-bold drop-shadow-[0_1px_1px_rgba(0,0,0,0.6)]"
@@ -441,18 +450,18 @@ export function ShopModal({ open, onClose }: ShopModalProps) {
                       ) : (
                         <span className="text-[10px] opacity-0 select-none">—</span>
                       )}
-                      {discounted !== null ? (
+                      {showStrike ? (
                         <div className="flex flex-col items-center leading-tight">
                           <span className="text-[10px] text-[var(--color-text-muted)] line-through tabular-nums">
-                            R$ {pack.priceBrl.toFixed(2).replace('.', ',')}
+                            {fmtBrl(base)}
                           </span>
                           <span className="text-xs text-[var(--color-accent-mid)] font-semibold tabular-nums">
-                            R$ {discounted.toFixed(2).replace('.', ',')}
+                            {fmtBrl(finalPrice)}
                           </span>
                         </div>
                       ) : (
                         <span className="text-xs text-[var(--color-text-muted)] tabular-nums">
-                          R$ {pack.priceBrl.toFixed(2).replace('.', ',')}
+                          {fmtBrl(effective)}
                         </span>
                       )}
                       <Button
@@ -536,9 +545,23 @@ export function ShopModal({ open, onClose }: ShopModalProps) {
                 <div className="rounded-xl border-2 border-[oklch(75%_0.2_310)]/40 bg-[oklch(75%_0.2_310)]/8 p-4 flex flex-col gap-3">
                   <div className="flex items-baseline justify-between gap-2">
                     <h3 className="text-lg font-bold" style={{ color: 'oklch(80% 0.18 310)' }}>Premium</h3>
-                    <span className="text-xs text-[var(--color-text-muted)]">
-                      R$ {PREMIUM_PRICE_BRL.toFixed(2).replace('.', ',')}/mês
-                    </span>
+                    {(() => {
+                      const eff = catalog?.premium?.priceBrl ?? 7.9;
+                      const base = catalog?.premium?.defaultPriceBrl ?? eff;
+                      const hasOverride = eff < base;
+                      const off = hasOverride ? Math.round(((base - eff) / base) * 100) : 0;
+                      return hasOverride ? (
+                        <span className="flex items-center gap-1.5 text-xs">
+                          <span className="text-[var(--color-text-muted)] line-through tabular-nums">{fmtBrl(base)}</span>
+                          <span className="text-[var(--color-accent-mid)] font-semibold tabular-nums">{fmtBrl(eff)}/mês</span>
+                          <span className="rounded-full px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider bg-[var(--color-danger)]/15 text-[var(--color-danger-soft)] border border-[var(--color-danger)]/30">
+                            -{off}%
+                          </span>
+                        </span>
+                      ) : (
+                        <span className="text-xs text-[var(--color-text-muted)]">{fmtBrl(eff)}/mês</span>
+                      );
+                    })()}
                   </div>
                   <ul className="text-sm text-[var(--color-text-muted)] flex flex-col gap-1.5">
                     <li className="flex items-center gap-2">

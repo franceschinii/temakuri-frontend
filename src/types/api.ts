@@ -143,12 +143,31 @@ export interface ShopCatalogUtility {
   currency: 'diamonds';
 }
 
+export interface ShopCatalogDiamondPack {
+  type: 'diamond_pack_brl';
+  sku: 'DIAMONDS_100' | 'DIAMONDS_500' | 'DIAMONDS_1200' | 'DIAMONDS_3000';
+  diamonds: number;
+  bonus: number;
+  priceBrl: number;
+  defaultPriceBrl: number;
+}
+
+export interface ShopCatalogPremium {
+  type: 'premium_brl';
+  sku: 'PREMIUM_MONTHLY';
+  priceBrl: number;
+  defaultPriceBrl: number;
+  diamondsPerMonth: number;
+}
+
 export interface ShopCatalog {
   avatars: ShopCatalogAvatar[];
   modes: ShopCatalogMode[];
   themes: ShopCatalogTheme[];
   coinPacks: ShopCatalogCoinPack[];
   utilities: ShopCatalogUtility[];
+  diamondPacks: ShopCatalogDiamondPack[];
+  premium: ShopCatalogPremium;
   coins: number;
   diamonds: number;
   isPremium: boolean;
