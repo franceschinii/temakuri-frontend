@@ -18,7 +18,7 @@ interface ShopState {
 
   // Mercado Pago checkout (Fase A: retorna 503 se PAYMENTS_ENABLED=false).
   // O endpoint retorna o init_point do MP, que e a URL para redirect.
-  startDiamondCheckout: (sku: string) => Promise<string>;
+  startDiamondCheckout: (sku: string, couponCode?: string) => Promise<string>;
   startPremiumCheckout: () => Promise<string>;
   cancelPremium: () => Promise<void>;
 }
@@ -99,8 +99,8 @@ export const useShopStore = create<ShopState>((set) => ({
     }
   },
 
-  startDiamondCheckout: async (sku) => {
-    const { data } = await api.post('/payments/diamonds/checkout', { sku });
+  startDiamondCheckout: async (sku, couponCode) => {
+    const { data } = await api.post('/payments/diamonds/checkout', { sku, couponCode });
     return data.url as string;
   },
 

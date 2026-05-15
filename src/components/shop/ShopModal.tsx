@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Check, HandHeart } from 'lucide-react';
+import { Check, HandHeart, Ticket, X } from 'lucide-react';
 import { Modal } from '@/components/ui/modal';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { AvatarImage } from '@/components/ui/Avatar';
 import { CoinDisplay } from '@/components/ui/CoinDisplay';
 import { DiamondDisplay } from '@/components/ui/DiamondDisplay';
@@ -12,6 +13,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { GAME_MODES } from '@/constants/game';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import api from '@/lib/api';
 
 type ShopTab = 'avatars' | 'modes' | 'themes' | 'diamonds' | 'premium';
 
@@ -44,6 +46,8 @@ const PREMIUM_PRICE_BRL = 7.90;
 export function ShopModal({ open, onClose }: ShopModalProps) {
   const [tab, setTab] = useState<ShopTab>('avatars');
   const [confirmItem, setConfirmItem] = useState<ConfirmState | null>(null);
+  const [couponInput, setCouponInput] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discountPercent: number } | null>(null);
   const {
     catalog, isLoading, isPurchasing,
     fetchCatalog, purchaseAvatar, purchaseMode, purchaseTheme,
@@ -81,8 +85,9 @@ export function ShopModal({ open, onClose }: ShopModalProps) {
    */
   const handleCheckout = async (kind: 'diamonds' | 'premium', sku?: string) => {
     try {
+      const code = appliedCoupon?.code;
       const url = kind === 'diamonds'
-        ? await startDiamondCheckout(sku!)
+        ? await startDiamondCheckout(sku!, code)
         : await startPremiumCheckout();
       if (!url) throw new Error('URL vazia');
       window.location.href = url;
@@ -93,6 +98,23 @@ export function ShopModal({ open, onClose }: ShopModalProps) {
       } else {
         toast.error(e?.response?.data?.message ?? 'Erro ao iniciar pagamento');
       }
+    }
+  };
+
+  const handleApplyCoupon = async () => {
+    const code = couponInput.trim();
+    if (!code) return;
+    try {
+      const { data } = await api.post('/coupons/validate', { code, scope: 'diamonds' });
+      if (data?.valid) {
+        setAppliedCoupon({ code: data.code, discountPercent: data.discountPercent });
+        toast.success(`Cupom aplicado: ${data.discountPercent}% OFF`);
+      } else {
+        setAppliedCoupon(null);
+        toast.error(data?.reason ?? 'Cupom inválido');
+      }
+    } catch (e: any) {
+      toast.error(e?.response?.data?.message ?? 'Erro ao validar cupom');
     }
   };
 
@@ -360,8 +382,50 @@ export function ShopModal({ open, onClose }: ShopModalProps) {
                 <p className="text-xs text-[var(--color-text-muted)]">
                   Compre diamantes para destravar avatares premium, temas e mais.
                 </p>
+
+                {/* Cupom */}
+                {PAYMENTS_ENABLED && (
+                  <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-3 flex flex-col gap-2">
+                    {appliedCoupon ? (
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <Ticket size={14} className="text-[var(--color-accent-mid)] shrink-0" />
+                          <span className="text-sm font-mono font-bold text-[var(--color-text-primary)] truncate">{appliedCoupon.code}</span>
+                          <span className="text-xs text-[var(--color-accent-mid)] font-semibold shrink-0">−{appliedCoupon.discountPercent}%</span>
+                        </div>
+                        <button
+                          onClick={() => { setAppliedCoupon(null); setCouponInput(''); }}
+                          className="p-1 rounded hover:bg-[var(--color-panel)] text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors"
+                          title="Remover cupom"
+                        >
+                          <X size={14} />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <Ticket size={14} className="text-[var(--color-text-muted)] shrink-0" />
+                        <Input
+                          value={couponInput}
+                          onChange={e => setCouponInput(e.target.value.toUpperCase())}
+                          placeholder="Tem cupom? Cole aqui"
+                          maxLength={32}
+                          className="flex-1 h-8 text-sm"
+                          onKeyDown={e => { if (e.key === 'Enter') handleApplyCoupon(); }}
+                        />
+                        <Button size="sm" variant="secondary" onClick={handleApplyCoupon} disabled={!couponInput.trim()}>
+                          Aplicar
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 <div className="grid grid-cols-2 gap-3 items-stretch">
-                  {DIAMOND_PACKS.map(pack => (
+                  {DIAMOND_PACKS.map(pack => {
+                    const discounted = appliedCoupon
+                      ? Math.max(0.5, Math.round((pack.priceBrl * (100 - appliedCoupon.discountPercent)) / 100 * 100) / 100)
+                      : null;
+                    return (
                     <div
                       key={pack.sku}
                       className="flex flex-col items-center gap-1.5 p-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] text-center h-full"
@@ -378,9 +442,20 @@ export function ShopModal({ open, onClose }: ShopModalProps) {
                       ) : (
                         <span className="text-[10px] opacity-0 select-none">—</span>
                       )}
-                      <span className="text-xs text-[var(--color-text-muted)] tabular-nums">
-                        R$ {pack.priceBrl.toFixed(2).replace('.', ',')}
-                      </span>
+                      {discounted !== null ? (
+                        <div className="flex flex-col items-center leading-tight">
+                          <span className="text-[10px] text-[var(--color-text-muted)] line-through tabular-nums">
+                            R$ {pack.priceBrl.toFixed(2).replace('.', ',')}
+                          </span>
+                          <span className="text-xs text-[var(--color-accent-mid)] font-semibold tabular-nums">
+                            R$ {discounted.toFixed(2).replace('.', ',')}
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="text-xs text-[var(--color-text-muted)] tabular-nums">
+                          R$ {pack.priceBrl.toFixed(2).replace('.', ',')}
+                        </span>
+                      )}
                       <Button
                         size="sm"
                         className="w-full mt-auto"
@@ -390,7 +465,8 @@ export function ShopModal({ open, onClose }: ShopModalProps) {
                         {PAYMENTS_ENABLED ? 'Comprar' : 'Em breve'}
                       </Button>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
 
                 <div className="h-px bg-[var(--color-border)] my-1" />

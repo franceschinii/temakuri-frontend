@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Pencil, KeyRound, Trash2, BarChart2, Search, X, Ban, Clock, ShieldCheck, Users, DoorOpen, UserX, RefreshCw, TrendingUp, Wine } from 'lucide-react';
+import { Pencil, KeyRound, Trash2, BarChart2, Search, X, Ban, Clock, ShieldCheck, Users, DoorOpen, UserX, RefreshCw, TrendingUp, Wine, Ticket } from 'lucide-react';
+import { CouponsAdmin } from '@/components/admin/CouponsAdmin';
 import { AppNavbar } from '@/components/ui/AppNavbar';
 import { RulesModal } from '@/components/ui/RulesModal';
 import { Button } from '@/components/ui/button';
@@ -51,7 +52,7 @@ interface AdminUser {
 
 type ModalType = 'edit' | 'password' | 'stats' | 'delete' | 'moderation' | 'progression' | null;
 type FilterType = 'all' | 'registered' | 'guest' | 'admin' | 'banned' | 'suspended';
-type AdminTab = 'users' | 'rooms';
+type AdminTab = 'users' | 'rooms' | 'coupons';
 
 interface AdminRoomPlayer {
   userId: string;
@@ -361,7 +362,7 @@ export default function AdminPage() {
 
         {/* Tabs */}
         <div className="flex w-full sm:w-auto sm:self-start items-center gap-1 rounded-lg bg-[var(--color-panel)] border border-[var(--color-border)] p-1">
-          {(['users', 'rooms'] as AdminTab[]).map(t => (
+          {(['users', 'rooms', 'coupons'] as AdminTab[]).map(t => (
             <button
               key={t}
               onClick={() => setTab(t)}
@@ -373,8 +374,8 @@ export default function AdminPage() {
               )}
               style={tab !== t ? { color: 'var(--color-text-muted)' } : {}}
             >
-              {t === 'users' ? <Users size={14} /> : <DoorOpen size={14} />}
-              <span>{t === 'users' ? 'Usuários' : 'Salas'}</span>
+              {t === 'users' ? <Users size={14} /> : t === 'rooms' ? <DoorOpen size={14} /> : <Ticket size={14} />}
+              <span>{t === 'users' ? 'Usuários' : t === 'rooms' ? 'Salas' : 'Cupons'}</span>
             </button>
           ))}
         </div>
@@ -430,6 +431,8 @@ export default function AdminPage() {
             })()}
           </>
         )}
+
+        {tab === 'coupons' && <CouponsAdmin />}
 
         {tab === 'users' && <>
           {/* Search + filters */}
