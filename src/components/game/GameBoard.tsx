@@ -693,7 +693,7 @@ export function GameBoard() {
                 <div
                   className={`px-4 py-1.5 rounded-full text-sm font-semibold shadow-lg border ${
                     turnBanner.isMe
-                      ? 'bg-[var(--color-accent-strong)] border-[var(--color-accent-glow)] text-white'
+                      ? 'bg-[var(--color-accent-strong)] border-[var(--color-accent-glow)] text-[var(--color-on-accent)]'
                       : 'bg-[var(--color-panel)] border-[var(--color-border)]'
                   }`}
                   style={!turnBanner.isMe ? { color: 'var(--color-text-primary)' } : {}}
@@ -858,7 +858,7 @@ export function GameBoard() {
               <MedalBadge count={me?.sessionWins ?? 0} />
             </button>
             {isMyTurn && phase === 'PLAYER_TURN' && (
-              <span className="text-xs px-2 py-0.5 rounded-full bg-[var(--color-accent-strong)] text-white font-bold uppercase tracking-wider shadow-[0_0_8px_var(--color-accent-strong-glow)]">
+              <span className="text-xs px-2 py-0.5 rounded-full bg-[var(--color-accent-strong)] text-[var(--color-on-accent)] font-bold uppercase tracking-wider shadow-[0_0_8px_var(--color-accent-strong-glow)]">
                 Sua vez
               </span>
             )}

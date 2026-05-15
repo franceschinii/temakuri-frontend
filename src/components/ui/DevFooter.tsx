@@ -4,7 +4,7 @@ import { APP_VERSION } from '@/version';
 
 export function DevFooter() {
   return (
-    <div className="px-6 py-2 border-t border-[var(--color-border)]/40 shrink-0">
+    <div className="px-6 py-2 border-t border-[var(--color-border)]/40 shrink-0 bg-[var(--color-surface)]/40 backdrop-blur-md">
       {/* Mobile: duas linhas */}
       <div className="flex flex-col gap-0.5 sm:hidden">
         <div className="flex items-center justify-between">

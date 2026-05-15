@@ -130,7 +130,7 @@ export function ChatPanel({ onSendMessage, myUserId, hideTriggers, externalToggl
         data-testid="chat-toggle-btn"
       >
         {unread > 0 && (
-          <span className="text-[9px] bg-[var(--color-accent-strong)] text-white rounded-full px-1 py-0.5 font-mono leading-none mb-0.5">
+          <span className="text-[9px] bg-[var(--color-accent-strong)] text-[var(--color-on-accent)] rounded-full px-1 py-0.5 font-mono leading-none mb-0.5">
             {unread > 9 ? '9+' : unread}
           </span>
         )}
@@ -245,7 +245,7 @@ export function ChatPanel({ onSendMessage, myUserId, hideTriggers, externalToggl
               <button
                 onClick={handleSend}
                 disabled={!input.trim() || chatCooldown}
-                className="p-2 rounded-lg bg-[var(--color-accent-strong)] text-white disabled:opacity-40 hover:opacity-90 transition-all shrink-0"
+                className="p-2 rounded-lg bg-[var(--color-accent-strong)] text-[var(--color-on-accent)] disabled:opacity-40 hover:opacity-90 transition-all shrink-0"
                 data-testid="chat-send-btn"
               >
                 <Send size={12} />

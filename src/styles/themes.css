@@ -142,7 +142,16 @@
       oklch(17% 0 0) 56px
     );
   background-repeat: no-repeat, repeat;
-  background-position: right -40px bottom -40px, center center;
-  background-size: min(45vw, 380px) auto, auto;
+  background-position: left 8% top 22%, center center;
+  background-size: min(34vw, 300px) auto, auto;
   background-attachment: fixed, scroll;
+}
+/* Celular: brasao menor pra nao competir com o conteudo em tela estreita. */
+@media (max-width: 640px) {
+  [data-theme="corinthians"] body,
+  [data-theme="corinthians"] .min-h-dvh,
+  [data-theme="corinthians"] .h-dvh {
+    background-size: 52vw auto, auto;
+    background-position: left 6% top 18%, center center;
+  }
 }

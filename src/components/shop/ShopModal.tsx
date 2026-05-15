@@ -191,7 +191,7 @@ export function ShopModal({ open, onClose }: ShopModalProps) {
                 className={cn(
                   'px-3 py-1.5 rounded-lg text-xs font-medium transition-all',
                   tab === t
-                    ? 'bg-[var(--color-accent-strong)] text-white'
+                    ? 'bg-[var(--color-accent-strong)] text-[var(--color-on-accent)]'
                     : 'text-[var(--color-text-muted)] hover:bg-[var(--color-panel)]',
                 )}
               >

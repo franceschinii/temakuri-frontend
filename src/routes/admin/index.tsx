@@ -357,7 +357,7 @@ export default function AdminPage() {
 
   return (
     <div className="h-dvh bg-[var(--color-base)] flex flex-col overflow-hidden">
-      <AppNavbar back="/lobby" hideUsername onHowToPlay={() => setRulesOpen(true)} howToPlayDesktopOnly />
+      <AppNavbar back="/lobby" onHowToPlay={() => setRulesOpen(true)} howToPlayDesktopOnly />
 
       <main className="flex-1 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <div className="max-w-5xl mx-auto w-full p-4 sm:p-6 flex flex-col gap-4">
@@ -373,7 +373,7 @@ export default function AdminPage() {
                 className={cn(
                   'shrink-0 flex items-center justify-center gap-1.5 px-4 py-1.5 rounded-md text-sm font-medium transition-all whitespace-nowrap',
                   tab === t
-                    ? 'bg-[var(--color-accent-strong)] text-white shadow-sm'
+                    ? 'bg-[var(--color-accent-strong)] text-[var(--color-on-accent)] shadow-sm'
                     : 'hover:bg-[var(--color-surface)]'
                 )}
                 style={tab !== t ? { color: 'var(--color-text-muted)' } : {}}
@@ -470,7 +470,7 @@ export default function AdminPage() {
                   className={cn(
                     'shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all whitespace-nowrap',
                     filter === f
-                      ? 'bg-[var(--color-accent-strong)] border-[var(--color-accent-strong)] text-white'
+                      ? 'bg-[var(--color-accent-strong)] border-[var(--color-accent-strong)] text-[var(--color-on-accent)]'
                       : 'bg-[var(--color-panel)] border-[var(--color-border)] text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]'
                   )}
                 >
