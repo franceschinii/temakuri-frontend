@@ -820,7 +820,35 @@ const AVATARS = [
   ),
 ];
 
-export const AVATAR_NAMES = ['Temaki', 'Ramen', 'Onigiri', 'Gyoza', 'Sashimi', 'Takoyaki', 'Miso', 'Udon', 'Udon Gold', 'Yokai', 'Kitsune', 'Tanuki', 'Geisha', 'Samurai', 'Dragão Dourado'];
+// Avatar 15 — usa o asset versionado pelo dono do app (mesmo brasao do
+// tema corinthians) dentro da moldura/fundo padrao dos demais avatares.
+// O SVG nao reproduz a marca: apenas referencia o arquivo via <image>.
+AVATARS.push((size: number, u: string) => (
+  <svg width={size} height={size} viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <radialGradient id={`bg15-${u}`} cx="0.3" cy="0.25" r="0.9">
+        <stop offset="0%" stopColor="oklch(32% 0 0)" />
+        <stop offset="100%" stopColor="oklch(16% 0 0)" />
+      </radialGradient>
+      <clipPath id={`clip15-${u}`}>
+        <circle cx="40" cy="40" r="40" />
+      </clipPath>
+    </defs>
+    <circle cx="40" cy="40" r="40" fill={`url(#bg15-${u})`} />
+    <g clipPath={`url(#clip15-${u})`}>
+      <image
+        href="/assets/png/brasao-corinthians.png"
+        x="16"
+        y="16"
+        width="48"
+        height="48"
+        preserveAspectRatio="xMidYMid meet"
+      />
+    </g>
+  </svg>
+));
+
+export const AVATAR_NAMES = ['Temaki', 'Ramen', 'Onigiri', 'Gyoza', 'Sashimi', 'Takoyaki', 'Miso', 'Udon', 'Udon Gold', 'Yokai', 'Kitsune', 'Tanuki', 'Geisha', 'Samurai', 'Dragão Dourado', 'Corinthians'];
 
 export function AvatarImage({ index, size = 80, className }: AvatarProps) {
   // useId garante sufixo unico por instancia. Sem isso, varios avatares com

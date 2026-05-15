@@ -4,6 +4,15 @@ import { Logo } from '@/components/ui/Logo';
 import { DevFooter } from '@/components/ui/DevFooter';
 
 const UPDATED_AT = '15 de maio de 2026';
+const CONTACT = 'contato@andrefranceschini.com.br';
+
+function Mail() {
+  return (
+    <a href={`mailto:${CONTACT}`} className="text-[var(--color-accent-mid)] hover:underline break-all">
+      {CONTACT}
+    </a>
+  );
+}
 
 function Section({ id, title, children }: { id: string; title: string; children: React.ReactNode }) {
   return (
@@ -18,6 +27,10 @@ function Section({ id, title, children }: { id: string; title: string; children:
   );
 }
 
+const B = ({ children }: { children: React.ReactNode }) => (
+  <strong className="text-[var(--color-text-primary)]">{children}</strong>
+);
+
 export default function LegalPage() {
   return (
     <div className="min-h-dvh bg-[var(--color-base)] flex flex-col">
@@ -29,7 +42,7 @@ export default function LegalPage() {
           >
             <ArrowLeft size={15} /> Voltar
           </Link>
-          <Logo className="h-7 w-auto opacity-80" />
+          <Logo className="h-12 sm:h-14 w-auto" />
         </div>
 
         <header className="flex flex-col gap-1">
@@ -39,116 +52,189 @@ export default function LegalPage() {
           <p className="text-xs text-[var(--color-text-muted)]">Última atualização: {UPDATED_AT}</p>
         </header>
 
-        <Section id="responsavel" title="1. Quem opera o Temakuri">
+        <Section id="responsavel" title="1. Identificação do operador">
           <p>
-            O Temakuri é um jogo de cartas on-line operado por <strong className="text-[var(--color-text-primary)]">André Franceschini</strong>,
-            pessoa física, de forma independente. Não se trata de empresa ou pessoa jurídica.
-          </p>
-          <p>
-            Contato geral e para assuntos de privacidade/proteção de dados (LGPD):{' '}
-            <a href="mailto:contato@andrefranceschini.com.br" className="text-[var(--color-accent-mid)] hover:underline">
-              contato@andrefranceschini.com.br
-            </a>.
+            O Temakuri é um jogo de cartas on-line operado por <B>André Franceschini</B>, pessoa física,
+            de forma independente. Não se trata de empresa ou pessoa jurídica. Para qualquer assunto —
+            suporte, privacidade, proteção de dados, propriedade intelectual ou jurídico — o canal oficial
+            de contato é <Mail />.
           </p>
         </Section>
 
-        <Section id="termos" title="2. Termos de Uso">
+        <Section id="aceitacao" title="2. Aceitação dos termos">
           <p>
-            Ao criar uma conta (incluindo conta de convidado) ou utilizar o Temakuri, você concorda com estes Termos.
-            Se não concordar, não utilize o serviço.
-          </p>
-          <p>
-            O serviço é fornecido "no estado em que se encontra", sem garantias de disponibilidade ininterrupta,
-            ausência de erros ou adequação a um propósito específico. O operador pode alterar, suspender ou
-            descontinuar funcionalidades a qualquer momento, buscando avisar quando possível.
-          </p>
-          <p>
-            Você é responsável pela atividade na sua conta. É proibido usar o serviço para fraude, abuso de outros
-            jogadores, exploração de falhas, automação não autorizada ou qualquer conduta ilegal. Contas que violem
-            estas regras podem ser suspensas ou removidas.
-          </p>
-          <p>
-            Compras de itens virtuais (diamantes, assinatura Premium, temas e demais conteúdos) são processadas por
-            provedor de pagamento terceiro (Mercado Pago). Itens virtuais não têm valor monetário fora do jogo, não
-            são transferíveis e não são resgatáveis em dinheiro. Reembolsos seguem a legislação aplicável e as regras
-            do provedor de pagamento; em caso de dúvida, entre em contato pelo e-mail acima.
+            Ao acessar o serviço, criar uma conta (registrada ou de convidado) ou realizar qualquer compra,
+            você declara que leu, entendeu e concorda integralmente com estes Termos e com a Política de
+            Privacidade. Se não concordar, não utilize o serviço. O uso continuado após eventuais
+            atualizações implica concordância com a versão vigente.
           </p>
         </Section>
 
-        <Section id="privacidade" title="3. Política de Privacidade (LGPD)">
+        <Section id="idade" title="3. Idade mínima e menores de idade">
           <p>
-            Este serviço busca cumprir a Lei nº 13.709/2018 (Lei Geral de Proteção de Dados — LGPD). O
-            <strong className="text-[var(--color-text-primary)]"> controlador</strong> dos dados é André Franceschini
-            (pessoa física), contactável em{' '}
-            <a href="mailto:contato@andrefranceschini.com.br" className="text-[var(--color-accent-mid)] hover:underline">
-              contato@andrefranceschini.com.br
-            </a>.
+            O serviço destina-se a pessoas com <B>13 anos ou mais</B>. Usuários entre 13 e 18 anos só devem
+            utilizar o serviço com ciência e supervisão dos pais ou responsáveis legais.
           </p>
           <p>
-            <strong className="text-[var(--color-text-primary)]">Dados coletados:</strong> nome de usuário, e-mail
-            (quando informado no cadastro), senha (armazenada de forma criptografada/hash), e dados gerados pelo uso
-            do jogo (estatísticas de partidas, progressão, histórico, saldo de moedas/diamantes). Pagamentos são
-            tratados pelo Mercado Pago — não armazenamos dados de cartão.
-          </p>
-          <p>
-            <strong className="text-[var(--color-text-primary)]">Finalidade e base legal:</strong> os dados são
-            usados para operar a conta, possibilitar as partidas, processar compras e prevenir abuso, com base na
-            execução do contrato de uso e no legítimo interesse de manter o serviço seguro.
-          </p>
-          <p>
-            <strong className="text-[var(--color-text-primary)]">Compartilhamento:</strong> dados são compartilhados
-            apenas com provedores estritamente necessários à operação (infraestrutura de hospedagem e Mercado Pago
-            para pagamentos). Não vendemos dados pessoais.
-          </p>
-          <p>
-            <strong className="text-[var(--color-text-primary)]">Seus direitos:</strong> você pode solicitar acesso,
-            correção, portabilidade, anonimização ou exclusão dos seus dados, bem como informação sobre o tratamento,
-            escrevendo para{' '}
-            <a href="mailto:contato@andrefranceschini.com.br" className="text-[var(--color-accent-mid)] hover:underline">
-              contato@andrefranceschini.com.br
-            </a>. Atendemos as solicitações dentro de prazo razoável, observada a LGPD.
-          </p>
-          <p>
-            <strong className="text-[var(--color-text-primary)]">Retenção:</strong> os dados são mantidos enquanto a
-            conta existir. Contas de convidado e dados efêmeros podem ser removidos automaticamente após inatividade.
-            Você pode pedir a exclusão da conta a qualquer momento pelo e-mail de contato.
+            <B>Compras por menores de 18 anos</B> só podem ser feitas com autorização e supervisão do
+            responsável legal, que assume a responsabilidade pela transação. O operador pode cancelar
+            compras e contas quando identificar uso por menor sem autorização.
           </p>
         </Section>
 
-        <Section id="anuncios" title="4. Anúncios e cookies">
+        <Section id="conta" title="4. Conta e conduta do usuário">
           <p>
-            O serviço pode exibir anúncios fornecidos por terceiros (Google AdSense). Esses provedores podem usar
-            cookies e identificadores para personalizar e medir anúncios, conforme as próprias políticas deles.
-            Você pode gerenciar preferências de anúncios nas configurações da sua conta Google.
+            Você é responsável pela segurança da sua conta e por toda atividade realizada nela. É proibido:
+            usar o serviço para fraude; abusar, ofender ou assediar outros jogadores; explorar falhas;
+            utilizar automação, bots ou ferramentas não autorizadas; tentar obter acesso indevido a contas
+            ou sistemas; ou qualquer conduta ilícita.
+          </p>
+          <p>
+            O operador pode, a seu critério e quando razoável, advertir, suspender ou remover contas que
+            violem estas regras ou a legislação, podendo reter dados mínimos necessários para cumprir
+            obrigações legais e prevenir reincidência.
           </p>
         </Section>
 
-        <Section id="marcas" title="5. Marcas de terceiros">
+        <Section id="itens" title="5. Itens virtuais, pagamentos e reembolso">
           <p>
-            O Temakuri pode disponibilizar temas, cores ou elementos visuais que façam referência a times, clubes
-            ou outras entidades. Tais nomes, escudos, brasões e logotipos são marcas registradas de seus respectivos
-            titulares e não há vínculo, patrocínio ou afiliação entre o Temakuri e essas entidades.
+            O serviço oferece itens virtuais (diamantes, assinatura Premium, temas, avatares e demais
+            conteúdos). Itens virtuais <B>não têm valor monetário fora do jogo</B>, não são transferíveis
+            entre contas e não são conversíveis em dinheiro. Eles consistem em licença de uso, limitada e
+            revogável, dentro do próprio serviço.
           </p>
           <p>
-            Especificamente, qualquer uso do nome ou do escudo do <strong className="text-[var(--color-text-primary)]">Sport
-            Club Corinthians Paulista</strong> é feito sem fins de associação oficial. O clube, como legítimo titular
-            da marca, pode reivindicar a qualquer momento a remoção desse conteúdo, e tal solicitação será atendida.
-            Se você é representante do clube e deseja a retirada, escreva para{' '}
-            <a href="mailto:contato@andrefranceschini.com.br" className="text-[var(--color-accent-mid)] hover:underline">
-              contato@andrefranceschini.com.br
-            </a>.
+            Os pagamentos são processados pelo provedor terceiro <B>Mercado Pago</B>. Não coletamos nem
+            armazenamos dados de cartão; esses dados são tratados diretamente pelo provedor, conforme as
+            políticas dele.
+          </p>
+          <p>
+            <B>Direito de arrependimento (art. 49 do Código de Defesa do Consumidor):</B> você pode
+            solicitar o cancelamento de uma compra em até <B>7 (sete) dias corridos</B> a partir da
+            contratação, <B>desde que o item virtual ainda não tenha sido utilizado/consumido</B> no jogo.
+            Itens já utilizados (ex.: diamantes gastos, benefícios Premium usufruídos) não são reembolsáveis.
+            Solicitações devem ser feitas por <Mail />, informando dados da compra. Reembolsos seguem os
+            prazos e meios do provedor de pagamento.
+          </p>
+          <p>
+            A assinatura Premium é recorrente. Você pode cancelar a renovação a qualquer momento pela loja;
+            o cancelamento encerra cobranças futuras e os benefícios permanecem até o fim do período já pago.
           </p>
         </Section>
 
-        <Section id="alteracoes" title="6. Alterações">
+        <Section id="privacidade" title="6. Política de Privacidade (LGPD)">
           <p>
-            Estes termos podem ser atualizados. Mudanças relevantes serão indicadas pela data de "Última atualização"
-            no topo desta página. O uso continuado do serviço após alterações implica concordância com a versão vigente.
+            Este serviço busca cumprir a Lei nº 13.709/2018 (LGPD) e o Marco Civil da Internet (Lei nº
+            12.965/2014). O <B>controlador</B> dos dados é André Franceschini (pessoa física), contactável
+            em <Mail />.
+          </p>
+          <p>
+            <B>Dados tratados:</B> nome de usuário; e-mail (quando informado); senha (armazenada apenas como
+            hash criptográfico, nunca em texto puro); dados de uso e progressão (estatísticas de partidas,
+            histórico, saldo de moedas/diamantes, inventário); dados técnicos mínimos de conexão (ex.:
+            registros de acesso, exigidos pelo Marco Civil). Pagamentos são tratados pelo Mercado Pago.
+          </p>
+          <p>
+            <B>Finalidades e bases legais:</B> operar a conta e possibilitar as partidas (execução de
+            contrato); processar compras (execução de contrato); prevenir fraude e abuso e manter o serviço
+            seguro (legítimo interesse); cumprir obrigações legais, como guarda de registros de acesso
+            (obrigação legal).
+          </p>
+          <p>
+            <B>Compartilhamento:</B> os dados são compartilhados apenas com operadores estritamente
+            necessários ao funcionamento (infraestrutura de hospedagem e Mercado Pago para pagamentos), e
+            com autoridades quando exigido por lei ou ordem judicial. <B>Não vendemos dados pessoais</B> e
+            não os usamos para perfilamento publicitário próprio.
+          </p>
+          <p>
+            <B>Direitos do titular (art. 18 da LGPD):</B> você pode solicitar confirmação de tratamento,
+            acesso, correção, anonimização, portabilidade, eliminação dos dados, informação sobre
+            compartilhamentos e revogação de consentimento, escrevendo para <Mail />. As solicitações são
+            atendidas dentro de prazo razoável, observada a legislação. Você também pode peticionar à
+            Autoridade Nacional de Proteção de Dados (ANPD).
+          </p>
+          <p>
+            <B>Retenção e eliminação:</B> os dados são mantidos enquanto a conta existir. Contas de
+            convidado e dados efêmeros podem ser removidos automaticamente após inatividade. Registros de
+            acesso são guardados pelo prazo legal mínimo. Você pode solicitar a exclusão da conta a qualquer
+            momento por <Mail />; alguns dados podem ser retidos pelo tempo necessário ao cumprimento de
+            obrigações legais.
+          </p>
+          <p>
+            <B>Segurança:</B> adotamos medidas técnicas razoáveis para proteger os dados (senha em hash,
+            transporte criptografado). Nenhum sistema é totalmente imune; em caso de incidente de segurança
+            relevante, os titulares e a ANPD serão comunicados conforme a LGPD.
+          </p>
+          <p>
+            <B>Transferência internacional:</B> provedores de infraestrutura podem processar dados em
+            servidores fora do Brasil. Nesses casos, buscamos provedores que adotem padrões adequados de
+            proteção, conforme a LGPD.
           </p>
         </Section>
 
-        <p className="text-xs text-[var(--color-text-muted)] opacity-70">
-          Este documento tem caráter informativo e de boa-fé; não constitui aconselhamento jurídico.
+        <Section id="cookies" title="7. Cookies e anúncios">
+          <p>
+            Utilizamos armazenamento local/cookies estritamente necessários para autenticação e
+            funcionamento do jogo. O serviço pode exibir anúncios de terceiros (Google AdSense), que podem
+            usar cookies e identificadores para personalizar e medir anúncios conforme as políticas
+            próprias do Google. Você pode gerenciar preferências de anúncios na sua conta Google e
+            controlar cookies nas configurações do navegador.
+          </p>
+        </Section>
+
+        <Section id="propriedade" title="8. Propriedade intelectual">
+          <p>
+            O nome "Temakuri", a identidade visual, o código e o conteúdo original do jogo pertencem ao
+            operador. É vedada a reprodução, distribuição ou engenharia reversa sem autorização, salvo o uso
+            normal previsto nestes Termos.
+          </p>
+        </Section>
+
+        <Section id="marcas" title="9. Marcas de terceiros">
+          <p>
+            O Temakuri pode disponibilizar temas, cores, avatares ou elementos visuais que façam referência
+            a times, clubes ou outras entidades. Tais nomes, escudos, brasões e logotipos são marcas
+            registradas de seus respectivos titulares. <B>Não há vínculo, patrocínio, afiliação ou
+            endosso</B> entre o Temakuri e essas entidades.
+          </p>
+          <p>
+            Especificamente, qualquer referência ao nome ou ao escudo do <B>Sport Club Corinthians
+            Paulista</B> é feita sem fins de associação oficial e sem intenção de violar direitos. O clube,
+            como legítimo titular da marca, pode <B>reivindicar a qualquer momento</B> a remoção desse
+            conteúdo, e tal solicitação será <B>prontamente atendida</B>. Representantes do clube podem
+            solicitar a retirada por <Mail />.
+          </p>
+        </Section>
+
+        <Section id="responsabilidade" title="10. Limitação de responsabilidade">
+          <p>
+            O serviço é fornecido "no estado em que se encontra", sem garantia de disponibilidade
+            ininterrupta ou ausência de erros. Na máxima extensão permitida pela lei, o operador não se
+            responsabiliza por danos indiretos, perda de progresso, indisponibilidade temporária ou falhas
+            de provedores terceiros. Nada nestes Termos exclui direitos que a legislação consumerista
+            assegure de forma inafastável.
+          </p>
+        </Section>
+
+        <Section id="alteracoes" title="11. Alterações e legislação aplicável">
+          <p>
+            Estes Termos podem ser atualizados; mudanças relevantes são indicadas pela data de "Última
+            atualização" no topo desta página. Aplica-se a legislação brasileira. Fica eleito o foro do
+            domicílio do consumidor para dirimir controvérsias, quando aplicável a relação de consumo.
+          </p>
+        </Section>
+
+        <Section id="contato" title="12. Contato">
+          <p>
+            Dúvidas, solicitações de privacidade (LGPD), pedidos de reembolso ou retirada de conteúdo:{' '}
+            <Mail />.
+          </p>
+        </Section>
+
+        <p className="text-[11px] text-[var(--color-text-muted)] opacity-60 leading-relaxed">
+          Este documento foi redigido de boa-fé para informar usuários e atender, no que couber, à LGPD, ao
+          Marco Civil da Internet e ao Código de Defesa do Consumidor. Não substitui análise por profissional
+          do direito; recomenda-se revisão jurídica antes de operação comercial em escala.
         </p>
       </div>
 
