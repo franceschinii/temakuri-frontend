@@ -361,24 +361,27 @@ export default function AdminPage() {
       <main className="flex-1 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <div className="max-w-5xl mx-auto w-full p-4 sm:p-6 flex flex-col gap-4">
 
-        {/* Tabs */}
-        <div className="flex w-full sm:w-auto sm:self-start items-center gap-1 rounded-lg bg-[var(--color-panel)] border border-[var(--color-border)] p-1">
-          {(['users', 'rooms', 'coupons', 'changelog'] as AdminTab[]).map(t => (
-            <button
-              key={t}
-              onClick={() => setTab(t)}
-              className={cn(
-                'flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-1.5 rounded-md text-sm font-medium transition-all',
-                tab === t
-                  ? 'bg-[var(--color-accent-strong)] text-white shadow-sm'
-                  : 'hover:bg-[var(--color-surface)]'
-              )}
-              style={tab !== t ? { color: 'var(--color-text-muted)' } : {}}
-            >
-              {t === 'users' ? <Users size={14} /> : t === 'rooms' ? <DoorOpen size={14} /> : t === 'coupons' ? <Ticket size={14} /> : <ScrollText size={14} />}
-              <span>{t === 'users' ? 'Usuários' : t === 'rooms' ? 'Salas' : t === 'coupons' ? 'Cupons' : 'Changelog'}</span>
-            </button>
-          ))}
+        {/* Tabs — mobile: scroll horizontal (4 tabs nao cabem espremidas em
+            tela estreita). Desktop: largura automatica lado a lado. */}
+        <div className="w-full sm:w-auto sm:self-start overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden [touch-action:pan-x]">
+          <div className="flex items-center gap-1 rounded-lg bg-[var(--color-panel)] border border-[var(--color-border)] p-1 w-max sm:w-auto">
+            {(['users', 'rooms', 'coupons', 'changelog'] as AdminTab[]).map(t => (
+              <button
+                key={t}
+                onClick={() => setTab(t)}
+                className={cn(
+                  'shrink-0 flex items-center justify-center gap-1.5 px-4 py-1.5 rounded-md text-sm font-medium transition-all whitespace-nowrap',
+                  tab === t
+                    ? 'bg-[var(--color-accent-strong)] text-white shadow-sm'
+                    : 'hover:bg-[var(--color-surface)]'
+                )}
+                style={tab !== t ? { color: 'var(--color-text-muted)' } : {}}
+              >
+                {t === 'users' ? <Users size={14} /> : t === 'rooms' ? <DoorOpen size={14} /> : t === 'coupons' ? <Ticket size={14} /> : <ScrollText size={14} />}
+                <span>{t === 'users' ? 'Usuários' : t === 'rooms' ? 'Salas' : t === 'coupons' ? 'Cupons' : 'Changelog'}</span>
+              </button>
+            ))}
+          </div>
         </div>
 
 
@@ -454,13 +457,15 @@ export default function AdminPage() {
                 </button>
               )}
             </div>
-            <div className="flex gap-1 flex-wrap">
+            {/* Filtros — mobile: scroll horizontal numa linha so. Desktop:
+                wrap normal (cabe sem scroll). */}
+            <div className="flex gap-1 overflow-x-auto sm:flex-wrap sm:overflow-visible [scrollbar-width:none] [&::-webkit-scrollbar]:hidden [touch-action:pan-x] -mx-1 px-1 sm:mx-0 sm:px-0">
               {(Object.keys(FILTER_LABELS) as FilterType[]).map(f => (
                 <button
                   key={f}
                   onClick={() => setFilter(f)}
                   className={cn(
-                    'px-3 py-1.5 rounded-lg text-xs font-medium border transition-all',
+                    'shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all whitespace-nowrap',
                     filter === f
                       ? 'bg-[var(--color-accent-strong)] border-[var(--color-accent-strong)] text-white'
                       : 'bg-[var(--color-panel)] border-[var(--color-border)] text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]'
