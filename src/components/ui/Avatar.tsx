@@ -821,7 +821,7 @@ const AVATARS = [
 ];
 
 // Avatar 15 — usa o brasao "Gavioes" (arte original do autor do app),
-// versionado em /assets/png/brasao-gavioes.png, dentro da moldura/fundo
+// versionado em /assets/png/bando-de-loucos.png, dentro da moldura/fundo
 // padrao dos demais avatares.
 AVATARS.push((size: number, u: string) => (
   <svg width={size} height={size} viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -837,7 +837,7 @@ AVATARS.push((size: number, u: string) => (
     <circle cx="40" cy="40" r="40" fill={`url(#bg15-${u})`} />
     <g clipPath={`url(#clip15-${u})`}>
       <image
-        href="/assets/png/brasao-gavioes.png"
+        href="/assets/png/bando-de-loucos.png"
         x="16"
         y="16"
         width="48"

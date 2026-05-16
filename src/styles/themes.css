@@ -106,7 +106,7 @@
  *
  * A imagem de fundo NAO e embutida aqui; o CSS apenas referencia o
  * asset (arte original do autor do app) em
- * /assets/png/brasao-gavioes.png. Se o arquivo nao existir, o tema
+ * /assets/png/bando-de-loucos.png. Se o arquivo nao existir, o tema
  * funciona apenas com as cores + listras (degrada sem quebrar).
  * ============================================================ */
 [data-theme="gavioes"] {
@@ -129,10 +129,10 @@
 [data-theme="gavioes"] .h-dvh {
   background-color: oklch(13% 0 0);
   /* Listras diagonais cobrindo a tela toda. A imagem (arte original do
-     autor em /assets/png/brasao-gavioes.png) fica fixa no canto
+     autor em /assets/png/bando-de-loucos.png) fica fixa no canto
      inferior direito, discreta. */
   background-image:
-    url("/assets/png/brasao-gavioes.png"),
+    url("/assets/png/bando-de-loucos.png"),
     repeating-linear-gradient(
       135deg,
       oklch(26% 0.06 25) 0,
