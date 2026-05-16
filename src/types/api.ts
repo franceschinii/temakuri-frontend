@@ -183,3 +183,28 @@ export interface ApiError {
   message: string;
   statusCode: number;
 }
+
+export interface Review {
+  id: string;
+  username: string;
+  avatarIndex: number;
+  rating: number;
+  title: string;
+  comment: string;
+  helpful: number;
+  notHelpful: number;
+  adminReply?: string | null;
+  adminReplyAt?: string | null;
+  createdAt: string;
+  isMine?: boolean;
+  myReaction?: 'helpful' | 'not_helpful' | null;
+  published?: boolean;
+}
+
+export interface ReviewMyState {
+  mine: Review | null;
+  reactions: Record<string, 'helpful' | 'not_helpful'>;
+  canReview: boolean;
+  gamesPlayed: number;
+  minGames: number;
+}

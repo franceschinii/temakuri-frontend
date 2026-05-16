@@ -14,6 +14,7 @@ import { RoomCard } from '@/components/lobby/RoomCard';
 import { CreateRoomModal } from '@/components/lobby/CreateRoomModal';
 import { NewsCard } from '@/components/lobby/NewsCard';
 import { ChangelogCard } from '@/components/lobby/ChangelogCard';
+import { ReviewsCard } from '@/components/lobby/ReviewsCard';
 import { MatchmakingDialog } from '@/components/matchmaking/MatchmakingDialog';
 import { useAuthStore } from '@/stores/authStore';
 import { useSocketEvent } from '@/hooks/useSocket';
@@ -95,6 +96,7 @@ export default function LobbyPage() {
         <aside className="flex flex-col gap-3 order-2 lg:order-1">
           <NewsCard />
           <ChangelogCard />
+          <ReviewsCard />
         </aside>
 
         {/* Coluna principal: acoes + salas abertas */}
