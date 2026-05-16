@@ -820,15 +820,14 @@ const AVATARS = [
   ),
 ];
 
-// Avatar 15 — usa o brasao "Gavioes" (arte original do autor do app),
-// versionado em /assets/png/bando-de-loucos.png, dentro da moldura/fundo
-// padrao dos demais avatares.
+// Avatar 15 — Ninja. SVG vetorial autoral (preto e branco): capuz,
+// mascara, olhos e faixa. Sem asset externo.
 AVATARS.push((size: number, u: string) => (
   <svg width={size} height={size} viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
     <defs>
       <radialGradient id={`bg15-${u}`} cx="0.3" cy="0.25" r="0.9">
-        <stop offset="0%" stopColor="oklch(32% 0 0)" />
-        <stop offset="100%" stopColor="oklch(16% 0 0)" />
+        <stop offset="0%" stopColor="oklch(34% 0 0)" />
+        <stop offset="100%" stopColor="oklch(14% 0 0)" />
       </radialGradient>
       <clipPath id={`clip15-${u}`}>
         <circle cx="40" cy="40" r="40" />
@@ -836,19 +835,27 @@ AVATARS.push((size: number, u: string) => (
     </defs>
     <circle cx="40" cy="40" r="40" fill={`url(#bg15-${u})`} />
     <g clipPath={`url(#clip15-${u})`}>
-      <image
-        href="/assets/png/bando-de-loucos.png"
-        x="16"
-        y="16"
-        width="48"
-        height="48"
-        preserveAspectRatio="xMidYMid meet"
-      />
+      {/* Ombros / busto do ninja */}
+      <path d="M16 80 V70 C16 56 27 48 40 48 C53 48 64 56 64 70 V80 Z" fill="oklch(20% 0 0)" />
+      {/* Cabeca encapuzada */}
+      <path d="M40 14 C53 14 60 25 60 38 C60 50 51 58 40 58 C29 58 20 50 20 38 C20 25 27 14 40 14 Z" fill="oklch(17% 0 0)" />
+      {/* Faixa da mascara (tira horizontal clara) */}
+      <path d="M21 33 C28 30 52 30 59 33 L59 43 C52 46 28 46 21 43 Z" fill="oklch(94% 0 0)" />
+      {/* Recorte dos olhos (escuro dentro da faixa) */}
+      <path d="M23 35 C30 33 50 33 57 35 L57 41 C50 43 30 43 23 41 Z" fill="oklch(12% 0 0)" />
+      {/* Olhos */}
+      <path d="M28 36 L37 38 L34 41 L28 40 Z" fill="oklch(96% 0 0)" />
+      <path d="M52 36 L43 38 L46 41 L52 40 Z" fill="oklch(96% 0 0)" />
+      {/* Pontas da faixa esvoacando atras */}
+      <path d="M58 36 C66 35 70 40 72 48 C66 46 61 44 58 42 Z" fill="oklch(88% 0 0)" />
+      <path d="M58 42 C64 44 67 50 67 57 C62 53 59 48 57 44 Z" fill="oklch(80% 0 0)" />
+      {/* Brilho sutil no topo do capuz */}
+      <path d="M34 17 C38 15 45 15 50 19 C46 18 39 18 34 21 Z" fill="oklch(30% 0 0)" />
     </g>
   </svg>
 ));
 
-export const AVATAR_NAMES = ['Temaki', 'Ramen', 'Onigiri', 'Gyoza', 'Sashimi', 'Takoyaki', 'Miso', 'Udon', 'Udon Gold', 'Yokai', 'Kitsune', 'Tanuki', 'Geisha', 'Samurai', 'Dragão Dourado', 'Gaviões'];
+export const AVATAR_NAMES = ['Temaki', 'Ramen', 'Onigiri', 'Gyoza', 'Sashimi', 'Takoyaki', 'Miso', 'Udon', 'Udon Gold', 'Yokai', 'Kitsune', 'Tanuki', 'Geisha', 'Samurai', 'Dragão Dourado', 'Ninja'];
 
 export function AvatarImage({ index, size = 80, className }: AvatarProps) {
   // useId garante sufixo unico por instancia. Sem isso, varios avatares com

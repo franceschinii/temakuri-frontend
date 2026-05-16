@@ -102,55 +102,26 @@
 }
 
 /* ============================================================
- * GAVIOES — vermelho, preto e branco
- *
- * A imagem de fundo NAO e embutida aqui; o CSS apenas referencia o
- * asset (arte original do autor do app) em
- * /assets/png/bando-de-loucos.png. Se o arquivo nao existir, o tema
- * funciona apenas com as cores + listras (degrada sem quebrar).
+ * NINJA — preto e branco, minimalista, sem imagem nem listras.
  * ============================================================ */
-[data-theme="gavioes"] {
-  --color-base:          oklch(16% 0 0);
-  --color-surface:       oklch(22% 0 0);
-  --color-panel:         oklch(30% 0 0);
-  --color-accent-strong: oklch(55% 0.22 25);
-  --color-accent-strong-translucent: oklch(55% 0.22 25 / 0.35);
-  --color-accent-strong-glow: oklch(62% 0.24 25 / 0.5);
-  --color-accent-mid:    oklch(62% 0.2 25);
-  --color-accent-soft:   oklch(72% 0.18 25);
-  --color-accent-glow:   oklch(70% 0.22 25);
-  --color-border:        oklch(40% 0.04 25);
+[data-theme="ninja"] {
+  --color-base:          oklch(15% 0 0);
+  --color-surface:       oklch(21% 0 0);
+  --color-panel:         oklch(28% 0 0);
+  --color-accent-strong: oklch(92% 0 0);
+  --color-accent-strong-translucent: oklch(92% 0 0 / 0.35);
+  --color-accent-strong-glow: oklch(96% 0 0 / 0.45);
+  --color-accent-mid:    oklch(80% 0 0);
+  --color-accent-soft:   oklch(88% 0 0);
+  --color-accent-glow:   oklch(98% 0 0);
+  --color-border:        oklch(38% 0 0);
   --color-text-primary:  oklch(97% 0 0);
-  --color-text-muted:    oklch(68% 0 0);
-  --color-on-accent:     oklch(97% 0 0);
+  --color-text-muted:    oklch(66% 0 0);
+  /* Acento e quase branco — texto sobre botao primary precisa ser escuro. */
+  --color-on-accent:     oklch(14% 0 0);
 }
-[data-theme="gavioes"] body,
-[data-theme="gavioes"] .min-h-dvh,
-[data-theme="gavioes"] .h-dvh {
-  background-color: oklch(13% 0 0);
-  /* Listras diagonais cobrindo a tela toda. A imagem (arte original do
-     autor em /assets/png/bando-de-loucos.png) fica fixa no canto
-     inferior direito, discreta. */
-  background-image:
-    url("/assets/png/bando-de-loucos.png"),
-    repeating-linear-gradient(
-      135deg,
-      oklch(26% 0.06 25) 0,
-      oklch(26% 0.06 25) 28px,
-      oklch(17% 0 0) 28px,
-      oklch(17% 0 0) 56px
-    );
-  background-repeat: no-repeat, repeat;
-  background-position: right 6% bottom 10%, center center;
-  background-size: min(28vw, 320px) auto, auto;
-  background-attachment: fixed, scroll;
-}
-/* Celular: brasao menor e mais discreto pra nao competir com o conteudo. */
-@media (max-width: 640px) {
-  [data-theme="gavioes"] body,
-  [data-theme="gavioes"] .min-h-dvh,
-  [data-theme="gavioes"] .h-dvh {
-    background-size: 44vw auto, auto;
-    background-position: right -10% bottom 4%, center center;
-  }
+[data-theme="ninja"] body,
+[data-theme="ninja"] .min-h-dvh,
+[data-theme="ninja"] .h-dvh {
+  background-color: oklch(12% 0 0);
 }
