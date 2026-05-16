@@ -102,42 +102,41 @@
 }
 
 /* ============================================================
- * CORINTHIANS — preto e branco (hue neutro, chroma 0)
+ * GAVIOES — vermelho, preto e branco
  *
- * Paleta monocromatica preto/branco. A imagem de fundo NAO e embutida
- * aqui; o CSS apenas referencia o asset fornecido pelo dono do app em
- * /assets/png/brasao-corinthians.png. Se o arquivo nao existir, o tema
+ * A imagem de fundo NAO e embutida aqui; o CSS apenas referencia o
+ * asset (arte original do autor do app) em
+ * /assets/png/brasao-gavioes.png. Se o arquivo nao existir, o tema
  * funciona apenas com as cores + listras (degrada sem quebrar).
  * ============================================================ */
-[data-theme="corinthians"] {
+[data-theme="gavioes"] {
   --color-base:          oklch(16% 0 0);
   --color-surface:       oklch(22% 0 0);
   --color-panel:         oklch(30% 0 0);
-  --color-accent-strong: oklch(90% 0 0);
-  --color-accent-strong-translucent: oklch(90% 0 0 / 0.35);
-  --color-accent-strong-glow: oklch(95% 0 0 / 0.5);
-  --color-accent-mid:    oklch(80% 0 0);
-  --color-accent-soft:   oklch(96% 0 0);
-  --color-accent-glow:   oklch(98% 0 0);
-  --color-border:        oklch(40% 0 0);
+  --color-accent-strong: oklch(55% 0.22 25);
+  --color-accent-strong-translucent: oklch(55% 0.22 25 / 0.35);
+  --color-accent-strong-glow: oklch(62% 0.24 25 / 0.5);
+  --color-accent-mid:    oklch(62% 0.2 25);
+  --color-accent-soft:   oklch(72% 0.18 25);
+  --color-accent-glow:   oklch(70% 0.22 25);
+  --color-border:        oklch(40% 0.04 25);
   --color-text-primary:  oklch(97% 0 0);
   --color-text-muted:    oklch(68% 0 0);
-  /* Acento e quase branco — texto sobre botao primary precisa ser preto. */
-  --color-on-accent:     oklch(15% 0 0);
+  --color-on-accent:     oklch(97% 0 0);
 }
-[data-theme="corinthians"] body,
-[data-theme="corinthians"] .min-h-dvh,
-[data-theme="corinthians"] .h-dvh {
+[data-theme="gavioes"] body,
+[data-theme="gavioes"] .min-h-dvh,
+[data-theme="gavioes"] .h-dvh {
   background-color: oklch(13% 0 0);
-  /* Listras diagonais cobrindo a tela toda. A imagem (asset fornecido
-     pelo dono em /assets/png/brasao-corinthians.png) fica fixa no canto
+  /* Listras diagonais cobrindo a tela toda. A imagem (arte original do
+     autor em /assets/png/brasao-gavioes.png) fica fixa no canto
      inferior direito, discreta. */
   background-image:
-    url("/assets/png/brasao-corinthians.png"),
+    url("/assets/png/brasao-gavioes.png"),
     repeating-linear-gradient(
       135deg,
-      oklch(22% 0 0) 0,
-      oklch(22% 0 0) 28px,
+      oklch(26% 0.06 25) 0,
+      oklch(26% 0.06 25) 28px,
       oklch(17% 0 0) 28px,
       oklch(17% 0 0) 56px
     );
@@ -148,9 +147,9 @@
 }
 /* Celular: brasao menor e mais discreto pra nao competir com o conteudo. */
 @media (max-width: 640px) {
-  [data-theme="corinthians"] body,
-  [data-theme="corinthians"] .min-h-dvh,
-  [data-theme="corinthians"] .h-dvh {
+  [data-theme="gavioes"] body,
+  [data-theme="gavioes"] .min-h-dvh,
+  [data-theme="gavioes"] .h-dvh {
     background-size: 44vw auto, auto;
     background-position: right -10% bottom 4%, center center;
   }

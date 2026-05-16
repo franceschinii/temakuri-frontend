@@ -192,17 +192,11 @@ export default function LegalPage() {
 
         <Section id="marcas" title="9. Marcas de terceiros">
           <p>
-            O Temakuri pode disponibilizar temas, cores, avatares ou elementos visuais que façam referência
-            a times, clubes ou outras entidades. Tais nomes, escudos, brasões e logotipos são marcas
-            registradas de seus respectivos titulares. <B>Não há vínculo, patrocínio, afiliação ou
-            endosso</B> entre o Temakuri e essas entidades.
-          </p>
-          <p>
-            Especificamente, qualquer referência ao nome ou ao escudo do <B>Sport Club Corinthians
-            Paulista</B> é feita sem fins de associação oficial e sem intenção de violar direitos. O clube,
-            como legítimo titular da marca, pode <B>reivindicar a qualquer momento</B> a remoção desse
-            conteúdo, e tal solicitação será <B>prontamente atendida</B>. Representantes do clube podem
-            solicitar a retirada por <Mail />.
+            Os temas, cores, avatares, brasões e demais elementos visuais do Temakuri são criações
+            próprias do operador. Caso, eventualmente, algum conteúdo faça referência a marcas de
+            terceiros, tais nomes e logotipos pertencem aos seus respectivos titulares, sem que haja
+            <B> vínculo, patrocínio, afiliação ou endosso</B>. Qualquer titular legítimo pode solicitar
+            a remoção de conteúdo por <Mail />, e tal solicitação será <B>prontamente atendida</B>.
           </p>
         </Section>
 
