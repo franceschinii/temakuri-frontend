@@ -1,105 +1,65 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useMemo } from 'react';
 import { useTutorialStore } from '@/stores/tutorialStore';
+import type { TutorialPhase } from '@/stores/tutorialStore';
 
 export interface TutorialStep {
   id: string;
   title: string;
   text: string;
-  highlightSelector?: string;
-  placement?: 'top' | 'bottom' | 'left' | 'right' | 'center';
 }
+
+// Mapa estático de fase → instrução do overlay.
+// Cada entrada é imutável — nenhum estado derivado é necessário aqui.
+const PHASE_STEPS: Partial<Record<TutorialPhase, TutorialStep>> = {
+  STEP_1: {
+    id: 'open',
+    title: 'Abra a rodada',
+    text: 'A mesa está vazia — você pode jogar qualquer carta. Selecione um par de cartas iguais e clique em Jogar.',
+  },
+  STEP_2: {
+    id: 'bot-thinking',
+    title: 'Vez do bot',
+    text: 'O bot está pensando...',
+  },
+  STEP_3: {
+    id: 'beat-it',
+    title: 'Supere a jogada',
+    text: 'O bot jogou. Para continuar, você precisa jogar o mesmo número de cartas com valor maior — ou mais cartas. Selecione e jogue!',
+  },
+  STEP_4: {
+    id: 'bot-pass',
+    title: 'Bot passou',
+    text: 'O bot não conseguiu superar sua jogada e passou a vez. Quando todos passam, a mesa zera.',
+  },
+  STEP_5: {
+    id: 'you-pass',
+    title: 'Sua vez de passar',
+    text: 'Agora você também não consegue superar. Clique em Passar para zerar a mesa.',
+  },
+  STEP_6: {
+    id: 'finish',
+    title: 'Mesa zerou!',
+    text: 'Quando todos passam, a mesa fica vazia de novo. Agora jogue suas cartas restantes para esvaziar a mão e vencer a rodada!',
+  },
+  GAME_OVER: {
+    id: 'done',
+    title: 'Você aprendeu!',
+    text: 'É isso! Esvazie a mão antes de todos para vencer. No lobby você vai jogar de verdade contra outros jogadores.',
+  },
+};
 
 export function useTutorialFlow() {
   const phase = useTutorialStore(s => s.phase);
-  const selectedIndices = useTutorialStore(s => s.selectedIndices);
-  const roundResult = useTutorialStore(s => s.roundResult);
-  const winner = useTutorialStore(s => s.winner);
-
-  const [hasPassedOnce, setHasPassedOnce] = useState(false);
-  const [dismissed, setDismissed] = useState(false);
-
-  useEffect(() => {
-    if (phase === 'PASS_PICK' && !hasPassedOnce) {
-      setHasPassedOnce(true);
-    }
-  }, [phase, hasPassedOnce]);
-
-  useEffect(() => {
-    setDismissed(false);
-  }, [phase]);
 
   const currentStep = useMemo((): TutorialStep | null => {
-    if (dismissed) return null;
+    return PHASE_STEPS[phase] ?? null;
+  }, [phase]);
 
-    if (phase === 'IDLE') {
-      return {
-        id: 'intro',
-        title: 'Tutorial',
-        text: 'Você vai jogar uma rodada contra um bot para aprender o básico. Siga as instruções na tela.',
-        placement: 'center',
-      };
-    }
+  // dismiss é exposto como noop para manter compatibilidade com TutorialOverlay,
+  // que renderiza um botão de fechar. No tutorial roteirizado o overlay é
+  // obrigatório, portanto o dismiss não tem efeito — o botão de fechar pode
+  // ser removido do componente em uma iteração futura.
+  const dismiss = () => {};
 
-    if (phase === 'ROUND_END') {
-      return {
-        id: 'round-end',
-        title: roundResult?.iLost ? 'Você perdeu a rodada' : 'Rodada encerrada',
-        text: roundResult?.iLost
-          ? 'Você ficou com cartas e perdeu 1 prato. Quem zerar a mão primeiro sai salvo.'
-          : 'O bot ficou com cartas e perdeu 1 prato. Continue assim!',
-        placement: 'center',
-      };
-    }
-
-    if (phase === 'GAME_OVER') {
-      return {
-        id: 'game-over',
-        title: winner === 'me' ? 'Você venceu!' : 'Bot venceu',
-        text: 'Você já sabe o básico do Temakuri. Agora vai jogar de verdade no Lobby contra outros jogadores!',
-        placement: 'center',
-      };
-    }
-
-    if (phase === 'BOT_TURN') {
-      return {
-        id: 'bot-turn',
-        title: 'Vez do bot',
-        text: 'Agora é a vez do adversário. Observe o que ele joga — você precisará superar na sua próxima jogada.',
-        placement: 'center',
-      };
-    }
-
-    if (phase === 'PASS_PICK' && hasPassedOnce) {
-      return {
-        id: 'pass-info',
-        title: 'Passando a vez',
-        text: 'Você comprou uma carta do monte. Escolha onde inserir na sua mão, ou descarte.',
-        placement: 'center',
-      };
-    }
-
-    if (phase === 'MY_TURN' && selectedIndices.length > 0) {
-      return {
-        id: 'play-cards',
-        title: 'Jogue!',
-        text: 'Clique em Jogar para lançar as cartas na mesa. Você precisa jogar mais cartas que o adversário, ou o mesmo número com valor maior.',
-        highlightSelector: '[data-testid="game-action-play-btn"]',
-        placement: 'top',
-      };
-    }
-
-    if (phase === 'MY_TURN' && selectedIndices.length === 0) {
-      return {
-        id: 'select-cards',
-        title: 'Selecione suas cartas',
-        text: 'Toque em cartas adjacentes com o mesmo valor para selecioná-las. Experimente agora!',
-        highlightSelector: '[data-testid="player-hand"]',
-        placement: 'top',
-      };
-    }
-
-    return null;
-  }, [phase, selectedIndices.length, roundResult, winner, hasPassedOnce, dismissed]);
-
-  return { currentStep, dismiss: () => setDismissed(true) };
+  return { currentStep, dismiss };
 }

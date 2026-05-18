@@ -1,9 +1,9 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { GraduationCap, X } from 'lucide-react';
+import { GraduationCap } from 'lucide-react';
 import { useTutorialFlow } from '@/hooks/useTutorialFlow';
 
 export function TutorialOverlay() {
-  const { currentStep, dismiss } = useTutorialFlow();
+  const { currentStep } = useTutorialFlow();
 
   return (
     <AnimatePresence>
@@ -63,20 +63,6 @@ export function TutorialOverlay() {
                 {currentStep.text}
               </div>
             </div>
-            <button
-              onClick={dismiss}
-              style={{
-                color: 'var(--color-text-muted)',
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                padding: 2,
-                flexShrink: 0,
-              }}
-              aria-label="Fechar dica"
-            >
-              <X size={16} />
-            </button>
           </div>
         </motion.div>
       )}

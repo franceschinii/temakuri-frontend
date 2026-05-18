@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { ChevronDown, Mail, ArrowLeft } from 'lucide-react';
-import { Logo } from '@/components/ui/Logo';
+import { ChevronDown, Mail } from 'lucide-react';
+import { AppNavbar } from '@/components/ui/AppNavbar';
+import { DevFooter } from '@/components/ui/DevFooter';
 import { useAuthStore } from '@/stores/authStore';
 
 interface FaqItem {
@@ -144,26 +144,10 @@ export default function SupportPage() {
       className="min-h-dvh flex flex-col"
       style={{ background: 'var(--color-base)', color: 'var(--color-text-primary)' }}
     >
-      {/* Header simples */}
-      <header className="border-b border-[var(--color-border)] bg-[var(--color-surface)]/95 backdrop-blur-sm px-4 sm:px-6 py-3 flex items-center gap-3 shrink-0">
-        <Link
-          to="/lobby"
-          className="p-1.5 rounded-lg transition-colors hover:bg-[var(--color-panel)]"
-          style={{ color: 'var(--color-text-muted)' }}
-          title="Voltar"
-        >
-          <ArrowLeft size={18} />
-        </Link>
-        <Link to="/lobby" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-          <Logo variant="mark" size={22} />
-          <span
-            className="text-lg font-semibold tracking-wide hidden sm:inline"
-            style={{ color: 'var(--color-accent-soft)', fontFamily: 'var(--font-display)' }}
-          >
-            Temakuri
-          </span>
-        </Link>
-      </header>
+      <AppNavbar
+        back="/lobby"
+        center={<span style={{ color: 'var(--color-text-primary)', fontWeight: 600, fontSize: 15 }}>Suporte</span>}
+      />
 
       <main className="flex-1 w-full max-w-2xl mx-auto px-4 py-6 flex flex-col gap-6">
 
@@ -214,12 +198,7 @@ export default function SupportPage() {
 
       </main>
 
-      {/* Footer */}
-      <footer className="px-6 py-3 border-t border-[var(--color-border)]/40 bg-[var(--color-surface)]/40 text-center">
-        <p className="text-[10px]" style={{ color: 'var(--color-text-muted)', opacity: 0.4 }}>
-          Temakuri · Desenvolvido por André Franceschini
-        </p>
-      </footer>
+      <DevFooter />
     </div>
   );
 }
