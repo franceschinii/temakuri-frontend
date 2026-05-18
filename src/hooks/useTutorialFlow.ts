@@ -14,7 +14,7 @@ const PHASE_STEPS: Partial<Record<TutorialPhase, TutorialStep>> = {
   STEP_1: {
     id: 'open',
     title: 'Abra a rodada',
-    text: 'A mesa está vazia — você pode jogar qualquer carta. Selecione um par de cartas iguais e clique em Jogar.',
+    text: 'A mesa está vazia — você joga primeiro! Selecione o par de Temakis e clique em Jogar.',
   },
   STEP_2: {
     id: 'bot-thinking',
@@ -24,22 +24,22 @@ const PHASE_STEPS: Partial<Record<TutorialPhase, TutorialStep>> = {
   STEP_3: {
     id: 'beat-it',
     title: 'Supere a jogada',
-    text: 'O bot jogou. Para continuar, você precisa jogar o mesmo número de cartas com valor maior — ou mais cartas. Selecione e jogue!',
+    text: 'O bot jogou um par de valor maior. Para superar, jogue o mesmo número de cartas com valor ainda maior. Selecione o par de Ramens e jogue!',
   },
   STEP_4: {
     id: 'bot-pass',
     title: 'Bot passou',
-    text: 'O bot não conseguiu superar sua jogada e passou a vez. Quando todos passam, a mesa zera.',
+    text: 'Você superou! O bot não conseguiu responder e passou a vez.',
   },
   STEP_5: {
     id: 'you-pass',
-    title: 'Sua vez de passar',
-    text: 'Agora você também não consegue superar. Clique em Passar para zerar a mesa.',
+    title: 'Passe a vez',
+    text: 'Suas cartas restantes não superam a pilha. Clique em Passar — quando todos passam, a mesa zera.',
   },
   STEP_6: {
     id: 'finish',
     title: 'Mesa zerou!',
-    text: 'Quando todos passam, a mesa fica vazia de novo. Agora jogue suas cartas restantes para esvaziar a mão e vencer a rodada!',
+    text: 'Perfeito! A mesa ficou vazia. Agora jogue seu último par para esvaziar a mão e vencer!',
   },
   GAME_OVER: {
     id: 'done',
