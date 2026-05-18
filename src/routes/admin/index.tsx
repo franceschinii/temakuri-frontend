@@ -854,7 +854,6 @@ function EditProgressionModal({ open, user, onClose, onSuccess }: { open: boolea
   const [rankedWarnings, setRankedWarnings] = useState('');
   const [clearSuspension, setClearSuspension] = useState(false);
   const [isPremium, setIsPremium] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
   const [grantAvatars, setGrantAvatars] = useState('');
   const [revokeAvatars, setRevokeAvatars] = useState('');
   const [grantModes, setGrantModes] = useState<string[]>([]);
@@ -873,7 +872,6 @@ function EditProgressionModal({ open, user, onClose, onSuccess }: { open: boolea
       setRankedWarnings(String(user.rankedWarnings ?? 0));
       setClearSuspension(false);
       setIsPremium(user.isPremium ?? false);
-      setIsAdmin(user.isAdmin ?? false);
       setGrantAvatars('');
       setRevokeAvatars('');
       setGrantModes([]);
@@ -913,7 +911,6 @@ function EditProgressionModal({ open, user, onClose, onSuccess }: { open: boolea
         rankedWarnings: Number(rankedWarnings),
         clearRankedSuspension: clearSuspension,
         isPremium,
-        isAdmin,
       };
       if (grantAvatars.trim()) {
         payload.grantAvatars = grantAvatars.split(',').map(s => Number(s.trim())).filter(n => !isNaN(n));
@@ -969,18 +966,6 @@ function EditProgressionModal({ open, user, onClose, onSuccess }: { open: boolea
             )}
           >
             <Wine size={14} /> Premium {isPremium ? 'ON' : 'OFF'}
-          </button>
-          <button
-            type="button"
-            onClick={() => setIsAdmin(v => !v)}
-            className={cn(
-              'flex items-center gap-2 px-3 py-2 rounded-lg border text-sm font-medium transition-all',
-              isAdmin
-                ? 'border-[var(--color-warning)] bg-[var(--color-warning)]/15 text-[var(--color-warning)]'
-                : 'border-[var(--color-border)] text-[var(--color-text-muted)] hover:border-[var(--color-warning)]',
-            )}
-          >
-            <ShieldCheck size={14} /> Admin {isAdmin ? 'ON' : 'OFF'}
           </button>
         </div>
 
