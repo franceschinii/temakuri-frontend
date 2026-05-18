@@ -15,14 +15,25 @@ interface PlayerHandProps {
   // swap mode: mercado
   swapSelectIndex?: number | null;
   onSwapSelect?: (index: number) => void;
+  // Override do seletor padrao (gameStore). Quando os dois sao passados,
+  // o componente fica desacoplado do gameStore — usado pelo tutorial.
+  selectedIndicesOverride?: number[];
+  onToggleOverride?: (index: number) => void;
+  // Bloqueia clique em cartas que nao estao nesta lista (whitelist por id).
+  // Quando nao passado, sem bloqueio adicional. Usado pelo tutorial.
+  allowedCardIds?: string[];
 }
 
 export function PlayerHand({
   hand, isMyTurn,
   onPickInsert, pickMode, drawnCard,
   swapSelectIndex, onSwapSelect,
+  selectedIndicesOverride, onToggleOverride, allowedCardIds,
 }: PlayerHandProps) {
-  const { selectedIndices, toggleCardSelection } = useGameStore();
+  const storeSelected = useGameStore(s => s.selectedIndices);
+  const storeToggle = useGameStore(s => s.toggleCardSelection);
+  const selectedIndices = selectedIndicesOverride ?? storeSelected;
+  const toggleCardSelection = onToggleOverride ?? storeToggle;
   const [hoveredInsert, setHoveredInsert] = useState<number | null>(null);
 
   const isSelected = (i: number) => selectedIndices.includes(i);
@@ -30,6 +41,7 @@ export function PlayerHand({
   const isCardDisabled = (i: number): boolean => {
     if (pickMode || swapSelectIndex !== undefined) return true;
     if (!isMyTurn) return true;
+    if (allowedCardIds && hand[i] && !allowedCardIds.includes(hand[i].id)) return true;
     if (selectedIndices.includes(i)) return false; // already selected — clicking deselects
     if (selectedIndices.length === 0) return false;
     const allSorted = [...selectedIndices, i].sort((a, b) => a - b);

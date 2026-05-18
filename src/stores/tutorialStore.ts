@@ -1,27 +1,17 @@
 import { create } from 'zustand';
-import type { Card } from '@/types/game';
+import type { Card, PublicPlayerState } from '@/types/game';
 
-export type TutorialPhase =
-  | 'IDLE'
-  | 'STEP_1'
-  | 'STEP_2'
-  | 'STEP_3'
-  | 'STEP_4'
-  | 'STEP_5'
-  | 'STEP_6'
-  | 'GAME_OVER'
-  | 'MY_TURN'
-  | 'BOT_TURN'
-  | 'PASS_PICK'
-  | 'ROUND_END';
+export type TutorialStep =
+  | 'INTRO'
+  | 'OPEN'
+  | 'BOT_BEATS'
+  | 'BEAT_BACK'
+  | 'BOT_PASSES'
+  | 'YOU_PASS'
+  | 'WIPE'
+  | 'FINISH'
+  | 'DONE';
 
-// Roteiro fixo:
-// STEP_1: jogador joga s1+s2 (par SUSHI valor 3) — mesa vazia, qualquer jogada vale
-// STEP_2: bot joga r_bot1+r_bot2 (par RAMEN valor 4) — supera o par do jogador
-// STEP_3: jogador joga r1+r2 (par RAMEN valor 5) — supera o bot (mesmo count, valor maior)
-// STEP_4: bot passa — não consegue superar
-// STEP_5: jogador passa — mesa zera com 2 passes consecutivos
-// STEP_6: jogador joga t1+t2 (par TACO valor 2) — esvazia a mão, vence
 const INITIAL_HAND: Card[] = [
   { id: 's1', value: 3, category: 'SUSHI', variantIndex: 0 },
   { id: 's2', value: 3, category: 'SUSHI', variantIndex: 1 },
@@ -31,100 +21,93 @@ const INITIAL_HAND: Card[] = [
   { id: 't2', value: 2, category: 'TACO',  variantIndex: 1 },
 ];
 
-// Cartas fixas que o bot joga em STEP_2: par de valor 4, supera o par de valor 3 do jogador.
-const BOT_STEP2_CARDS: Card[] = [
-  { id: 'bot1', value: 4, category: 'RAMEN', variantIndex: 0 },
-  { id: 'bot2', value: 4, category: 'RAMEN', variantIndex: 1 },
+const BOT_BEAT_CARDS: Card[] = [
+  { id: 'bot_r4a', value: 4, category: 'RAMEN', variantIndex: 0 },
+  { id: 'bot_r4b', value: 4, category: 'RAMEN', variantIndex: 1 },
 ];
 
+const DRAWN_CARD_AFTER_PASS: Card = { id: 't3', value: 2, category: 'TACO', variantIndex: 0 };
+
+function makePlayer(overrides: Partial<PublicPlayerState> & Pick<PublicPlayerState, 'userId' | 'username'>): PublicPlayerState {
+  return {
+    avatarIndex: 0,
+    seat: 0,
+    cardCount: 6,
+    tokensLeft: 2,
+    isConnected: true,
+    isEliminated: false,
+    isOutOfRound: false,
+    isReady: true,
+    level: 1,
+    pds: 0,
+    sessionWins: 0,
+    ...overrides,
+  };
+}
+
 interface TutorialState {
-  phase: TutorialPhase;
+  step: TutorialStep;
   myHand: Card[];
-  botCardCount: number;
   pile: Card[];
   drawPileCount: number;
-  myTokens: number;
-  botTokens: number;
+  discardPile: Card[];
   consecutivePasses: number;
   selectedIndices: number[];
-  drawnCard: Card | null;
-  roundResult: { iLost: boolean } | null;
-  winner: 'me' | 'bot' | null;
-  _botTimeoutId: ReturnType<typeof setTimeout> | null;
+  me: PublicPlayerState;
+  bot: PublicPlayerState;
+  currentTurnUserId: 'me' | 'bot';
+  _timeoutId: ReturnType<typeof setTimeout> | null;
 
-  startGame: () => void;
-  toggleCard: (index: number) => void;
-  playSelected: () => void;
-  pass: () => void;
-  reset: () => void;
-  advanceFromOverlay: () => void;
-
-  insertDrawnCard: (_index: number) => void;
-  discardDrawnCard: () => void;
-  nextRound: () => void;
-}
-
-function isValidSelection(hand: Card[], indices: number[]): boolean {
-  if (indices.length === 0) return false;
-  const sorted = [...indices].sort((a, b) => a - b);
-  const targetValue = hand[sorted[0]]?.value;
-  if (targetValue === undefined) return false;
-  for (let i = 0; i < sorted.length; i++) {
-    if (i > 0 && sorted[i] !== sorted[i - 1] + 1) return false;
-    if (hand[sorted[i]]?.value !== targetValue) return false;
-  }
-  return true;
-}
-
-function canBeatPile(cards: Card[], pile: Card[]): boolean {
-  if (pile.length === 0) return true;
-  const pileValue = pile[0].value;
-  const pileCount = pile.length;
-  const playValue = Math.max(...cards.map(c => c.value)) as Card['value'];
-  const playCount = cards.length;
-  if (playCount > pileCount) return true;
-  if (playCount === pileCount && playValue > pileValue) return true;
-  return false;
+  start(meUsername: string, meAvatarIndex: number, meLevel: number): void;
+  toggleCard(index: number, allowedCardIds: string[] | null): void;
+  play(allowedCardIds: string[]): void;
+  pass(): void;
+  advanceFromOverlay(): void;
+  reset(): void;
 }
 
 export const useTutorialStore = create<TutorialState>((set, get) => ({
-  phase: 'IDLE',
+  step: 'INTRO',
   myHand: [],
-  botCardCount: 4,
   pile: [],
   drawPileCount: 10,
-  myTokens: 2,
-  botTokens: 2,
+  discardPile: [],
   consecutivePasses: 0,
   selectedIndices: [],
-  drawnCard: null,
-  roundResult: null,
-  winner: null,
-  _botTimeoutId: null,
+  me: makePlayer({ userId: 'me', username: 'Você' }),
+  bot: makePlayer({ userId: 'bot', username: 'Sushi-Bot', avatarIndex: 1, isBot: true, cardCount: 4 }),
+  currentTurnUserId: 'me',
+  _timeoutId: null,
 
-  startGame: () => {
-    const prev = get()._botTimeoutId;
+  start: (meUsername, meAvatarIndex, meLevel) => {
+    const prev = get()._timeoutId;
     if (prev !== null) clearTimeout(prev);
     set({
-      phase: 'STEP_1',
+      step: 'INTRO',
       myHand: [...INITIAL_HAND],
-      botCardCount: 4,
       pile: [],
       drawPileCount: 10,
-      myTokens: 2,
-      botTokens: 2,
+      discardPile: [],
       consecutivePasses: 0,
       selectedIndices: [],
-      drawnCard: null,
-      roundResult: null,
-      winner: null,
-      _botTimeoutId: null,
+      me: makePlayer({
+        userId: 'me',
+        username: meUsername,
+        avatarIndex: meAvatarIndex,
+        level: meLevel,
+        cardCount: INITIAL_HAND.length,
+      }),
+      bot: makePlayer({ userId: 'bot', username: 'Sushi-Bot', avatarIndex: 1, level: 5, isBot: true, cardCount: 4 }),
+      currentTurnUserId: 'me',
+      _timeoutId: null,
     });
   },
 
-  toggleCard: (index: number) => {
-    const { phase, myHand, selectedIndices } = get();
-    if (phase !== 'STEP_1' && phase !== 'STEP_3' && phase !== 'STEP_6') return;
+  toggleCard: (index, allowedCardIds) => {
+    const { myHand, selectedIndices } = get();
+    const card = myHand[index];
+    if (!card) return;
+    if (allowedCardIds && !allowedCardIds.includes(card.id)) return;
 
     const already = selectedIndices.includes(index);
     if (already) {
@@ -132,142 +115,162 @@ export const useTutorialStore = create<TutorialState>((set, get) => ({
       return;
     }
 
-    const targetValue = myHand[index]?.value;
-    if (targetValue === undefined) return;
+    if (selectedIndices.length === 0) {
+      set({ selectedIndices: [index] });
+      return;
+    }
 
     const candidate = [...selectedIndices, index].sort((a, b) => a - b);
-    if (candidate.length === 1) {
-      set({ selectedIndices: candidate });
-      return;
+    const targetValue = myHand[candidate[0]].value;
+    for (let i = 1; i < candidate.length; i++) {
+      if (candidate[i] !== candidate[i - 1] + 1) return;
+      if (myHand[candidate[i]].value !== targetValue) return;
     }
-    if (isValidSelection(myHand, candidate)) {
-      set({ selectedIndices: candidate });
-    }
+    set({ selectedIndices: candidate });
   },
 
-  playSelected: () => {
-    const { phase, myHand, selectedIndices, pile } = get();
+  play: (requiredCardIds) => {
+    const state = get();
+    const selected = [...state.selectedIndices].sort((a, b) => a - b);
+    const selectedIds = selected.map(i => state.myHand[i].id).sort();
+    const requiredSorted = [...requiredCardIds].sort();
+    if (selectedIds.length !== requiredSorted.length) return;
+    for (let i = 0; i < selectedIds.length; i++) {
+      if (selectedIds[i] !== requiredSorted[i]) return;
+    }
 
-    const isPlayerTurnPhase = phase === 'STEP_1' || phase === 'STEP_3' || phase === 'STEP_6';
-    if (!isPlayerTurnPhase) return;
-    if (selectedIndices.length === 0) return;
+    const playedCards = selected.map(i => state.myHand[i]);
+    const remaining = state.myHand.filter((_, i) => !selected.includes(i));
 
-    const sorted = [...selectedIndices].sort((a, b) => a - b);
-    const playedCards = sorted.map(i => myHand[i]);
+    if (state._timeoutId !== null) clearTimeout(state._timeoutId);
 
-    if (!canBeatPile(playedCards, pile)) return;
-
-    const remaining = myHand.filter((_, i) => !selectedIndices.includes(i));
-    const newPile = [...playedCards];
-
-    const prev = get()._botTimeoutId;
-    if (prev !== null) clearTimeout(prev);
-
-    if (phase === 'STEP_1') {
-      // Bot vai jogar o par fixo após 1.5s
+    if (state.step === 'OPEN') {
+      // STEP_1 -> player joga par de Sushi, mesa zera, vira do bot
       const timeoutId = setTimeout(() => {
-        if (get().phase !== 'STEP_2') return;
-        const botPile = [...BOT_STEP2_CARDS];
+        const s = get();
+        if (s.step !== 'BOT_BEATS') return;
+        // Bot joga BOT_BEAT_CARDS por cima
         set({
-          phase: 'STEP_3',
-          pile: botPile,
-          botCardCount: get().botCardCount - 2,
+          step: 'BEAT_BACK',
+          pile: [...BOT_BEAT_CARDS],
+          bot: { ...s.bot, cardCount: s.bot.cardCount - BOT_BEAT_CARDS.length },
+          currentTurnUserId: 'me',
           consecutivePasses: 0,
-          _botTimeoutId: null,
+          discardPile: [...s.discardPile, ...playedCards],
+          _timeoutId: null,
         });
-      }, 1500);
+      }, 1400);
 
       set({
-        phase: 'STEP_2',
+        step: 'BOT_BEATS',
+        pile: [...playedCards],
         myHand: remaining,
-        pile: newPile,
+        me: { ...state.me, cardCount: remaining.length },
         selectedIndices: [],
+        currentTurnUserId: 'bot',
         consecutivePasses: 0,
-        _botTimeoutId: timeoutId,
+        _timeoutId: timeoutId,
       });
       return;
     }
 
-    if (phase === 'STEP_3') {
-      // Bot vai passar após 1.5s
+    if (state.step === 'BEAT_BACK') {
+      // Player supera com par de Ramen
+      const newPile = [...playedCards];
+      // Pilha anterior (bot) vai pro descarte (regra: ao superar, pilha anterior fica na mesa
+      // como nova pilha. Mas para visualizar mais claramente, vamos manter so a nova jogada na pilha)
+      const discardedPrev = [...state.pile];
       const timeoutId = setTimeout(() => {
-        if (get().phase !== 'STEP_4') return;
+        const s = get();
+        if (s.step !== 'BOT_PASSES') return;
+        // Bot passa, compra 1 do monte (visivel apenas como cardCount + drawPile - 1)
         set({
-          phase: 'STEP_5',
+          step: 'YOU_PASS',
           consecutivePasses: 1,
-          _botTimeoutId: null,
+          bot: { ...s.bot, cardCount: s.bot.cardCount + 1 },
+          drawPileCount: s.drawPileCount - 1,
+          currentTurnUserId: 'me',
+          _timeoutId: null,
         });
-      }, 1500);
+      }, 1400);
 
       set({
-        phase: 'STEP_4',
-        myHand: remaining,
+        step: 'BOT_PASSES',
         pile: newPile,
+        myHand: remaining,
+        me: { ...state.me, cardCount: remaining.length },
         selectedIndices: [],
+        currentTurnUserId: 'bot',
         consecutivePasses: 0,
-        _botTimeoutId: timeoutId,
+        discardPile: [...state.discardPile, ...discardedPrev],
+        _timeoutId: timeoutId,
       });
       return;
     }
 
-    if (phase === 'STEP_6') {
-      if (remaining.length === 0) {
-        set({
-          phase: 'GAME_OVER',
-          myHand: [],
-          pile: newPile,
-          selectedIndices: [],
-          winner: 'me',
-          _botTimeoutId: null,
-        });
-      }
+    if (state.step === 'FINISH') {
+      // Player joga trio de Taco -> mao zera -> DONE
+      set({
+        step: 'DONE',
+        myHand: remaining,
+        me: { ...state.me, cardCount: 0, isOutOfRound: true },
+        pile: [...playedCards],
+        selectedIndices: [],
+        _timeoutId: null,
+      });
       return;
     }
   },
 
   pass: () => {
-    const { phase, consecutivePasses } = get();
-    if (phase !== 'STEP_5') return;
+    const state = get();
+    if (state.step !== 'YOU_PASS') return;
+    if (state._timeoutId !== null) clearTimeout(state._timeoutId);
 
-    const prev = get()._botTimeoutId;
-    if (prev !== null) clearTimeout(prev);
+    // Player passa, compra carta do monte (DRAWN_CARD_AFTER_PASS), consecutivePasses=2 -> wipe
+    const newHand = [...state.myHand, DRAWN_CARD_AFTER_PASS];
+    const wipedPile = [...state.pile];
 
-    const newConsec = consecutivePasses + 1;
-    if (newConsec >= 2) {
-      const { myHand } = get();
-      set({
-        phase: 'STEP_6',
-        pile: [],
-        consecutivePasses: 0,
-        myHand,
-        selectedIndices: [],
-        _botTimeoutId: null,
-      });
+    set({
+      step: 'WIPE',
+      myHand: newHand,
+      me: { ...state.me, cardCount: newHand.length },
+      pile: [],
+      drawPileCount: state.drawPileCount - 1,
+      discardPile: [...state.discardPile, ...wipedPile],
+      consecutivePasses: 0,
+      currentTurnUserId: 'me',
+      _timeoutId: null,
+    });
+  },
+
+  advanceFromOverlay: () => {
+    const state = get();
+    if (state.step === 'INTRO') {
+      set({ step: 'OPEN' });
+      return;
+    }
+    if (state.step === 'WIPE') {
+      set({ step: 'FINISH' });
+      return;
     }
   },
 
   reset: () => {
-    const prev = get()._botTimeoutId;
+    const prev = get()._timeoutId;
     if (prev !== null) clearTimeout(prev);
     set({
-      phase: 'IDLE',
+      step: 'INTRO',
       myHand: [],
-      botCardCount: 4,
       pile: [],
       drawPileCount: 10,
-      myTokens: 2,
-      botTokens: 2,
+      discardPile: [],
       consecutivePasses: 0,
       selectedIndices: [],
-      drawnCard: null,
-      roundResult: null,
-      winner: null,
-      _botTimeoutId: null,
+      me: makePlayer({ userId: 'me', username: 'Você' }),
+      bot: makePlayer({ userId: 'bot', username: 'Sushi-Bot', avatarIndex: 1, isBot: true, cardCount: 4 }),
+      currentTurnUserId: 'me',
+      _timeoutId: null,
     });
   },
-
-  advanceFromOverlay: () => {},
-  insertDrawnCard: (_index: number) => {},
-  discardDrawnCard: () => {},
-  nextRound: () => {},
 }));

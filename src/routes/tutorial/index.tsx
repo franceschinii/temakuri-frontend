@@ -1,69 +1,76 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bot, Layers, Utensils, Zap } from 'lucide-react';
 import { AppNavbar } from '@/components/ui/AppNavbar';
 import { Button } from '@/components/ui/button';
-import { CardComponent } from '@/components/game/CardComponent';
+import { AvatarWithBorder } from '@/components/ui/Avatar';
+import { LevelBadge } from '@/components/ui/LevelBadge';
+import { TokenDisplay } from '@/components/game/TokenDisplay';
+import { OpponentRow } from '@/components/game/OpponentRow';
+import { PlayArea } from '@/components/game/PlayArea';
+import { PlayerHand } from '@/components/game/PlayerHand';
 import { TutorialOverlay } from '@/components/tutorial/TutorialOverlay';
 import { useTutorialStore } from '@/stores/tutorialStore';
+import { useTutorialFlow } from '@/hooks/useTutorialFlow';
 import { useAuthStore } from '@/stores/authStore';
-
-function TokenDots({ count, max = 2 }: { count: number; max?: number }) {
-  return (
-    <div className="flex items-center gap-1">
-      {Array.from({ length: max }).map((_, i) => (
-        <div
-          key={i}
-          className="w-3 h-3 rounded-full border"
-          style={{
-            background: i < count ? 'var(--color-token-gold, oklch(78% 0.2 75))' : 'transparent',
-            borderColor: i < count ? 'var(--color-token-gold, oklch(78% 0.2 75))' : 'var(--color-border)',
-          }}
-        />
-      ))}
-    </div>
-  );
-}
+import { cn } from '@/lib/utils';
 
 export default function TutorialPage() {
   const navigate = useNavigate();
   const user = useAuthStore(s => s.user);
 
-  const phase = useTutorialStore(s => s.phase);
+  const step = useTutorialStore(s => s.step);
   const myHand = useTutorialStore(s => s.myHand);
-  const botCardCount = useTutorialStore(s => s.botCardCount);
   const pile = useTutorialStore(s => s.pile);
   const drawPileCount = useTutorialStore(s => s.drawPileCount);
-  const myTokens = useTutorialStore(s => s.myTokens);
-  const botTokens = useTutorialStore(s => s.botTokens);
+  const discardPile = useTutorialStore(s => s.discardPile);
+  const consecutivePasses = useTutorialStore(s => s.consecutivePasses);
   const selectedIndices = useTutorialStore(s => s.selectedIndices);
+  const me = useTutorialStore(s => s.me);
+  const bot = useTutorialStore(s => s.bot);
+  const currentTurnUserId = useTutorialStore(s => s.currentTurnUserId);
 
-  const startGame = useTutorialStore(s => s.startGame);
+  const startTutorial = useTutorialStore(s => s.start);
   const toggleCard = useTutorialStore(s => s.toggleCard);
-  const playSelected = useTutorialStore(s => s.playSelected);
-  const pass = useTutorialStore(s => s.pass);
+  const playCards = useTutorialStore(s => s.play);
+  const passTurn = useTutorialStore(s => s.pass);
   const reset = useTutorialStore(s => s.reset);
 
+  const { allowedAction, currentStep } = useTutorialFlow();
+
   useEffect(() => {
-    startGame();
+    startTutorial(user?.username ?? 'Você', user?.avatarIndex ?? 0, user?.level ?? 1);
     return () => { reset(); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const isMyTurn = phase === 'STEP_1' || phase === 'STEP_3' || phase === 'STEP_6';
-  const isBotTurn = phase === 'STEP_2' || phase === 'STEP_4';
-  const canPass = phase === 'STEP_5';
+  const isMyTurn = currentTurnUserId === 'me';
+  const isPlayPhase = allowedAction.type === 'play';
+  const canPass = allowedAction.type === 'pass';
+  const requiredCardIds = allowedAction.type === 'play' ? allowedAction.requiredCardIds : null;
 
-  const canPlay = useMemo(() => {
-    if (!isMyTurn || selectedIndices.length === 0) return false;
-    const selectedCards = selectedIndices.map(i => myHand[i]).filter(Boolean);
-    if (selectedCards.length === 0) return false;
-    if (pile.length === 0) return true;
-    const selVal = Math.max(...selectedCards.map(c => c.value));
-    const topVal = Math.max(...pile.map(c => c.value));
-    if (selectedCards.length > pile.length) return true;
-    if (selectedCards.length === pile.length && selVal > topVal) return true;
-    return false;
-  }, [isMyTurn, selectedIndices, myHand, pile]);
+  const selectedIds = [...selectedIndices].sort((a, b) => a - b).map(i => myHand[i]?.id).filter(Boolean);
+  const requiredSorted = requiredCardIds ? [...requiredCardIds].sort() : null;
+  const selectedSorted = [...selectedIds].sort();
+  const canPlay =
+    isPlayPhase &&
+    requiredSorted !== null &&
+    selectedSorted.length === requiredSorted.length &&
+    selectedSorted.every((id, i) => id === requiredSorted[i]);
+
+  const handleToggle = (i: number) => {
+    if (!isPlayPhase) return;
+    toggleCard(i, requiredCardIds);
+  };
+
+  const handlePlay = () => {
+    if (!isPlayPhase) return;
+    playCards(allowedAction.requiredCardIds);
+  };
+
+  const handlePass = () => {
+    if (!canPass) return;
+    passTurn();
+  };
 
   const navbar = (
     <AppNavbar
@@ -73,32 +80,22 @@ export default function TutorialPage() {
     />
   );
 
-  if (phase === 'IDLE') {
-    return (
-      <div className="h-dvh flex flex-col" style={{ background: 'var(--color-base)' }}>
-        {navbar}
-        <div className="flex-1 flex items-center justify-center">
-          <p style={{ color: 'var(--color-text-muted)', fontSize: 14 }}>Carregando...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (phase === 'GAME_OVER') {
+  if (step === 'DONE') {
     return (
       <div className="h-dvh flex flex-col" style={{ background: 'var(--color-base)' }}>
         {navbar}
         <TutorialOverlay />
         <div className="flex-1 flex flex-col items-center justify-center gap-6 p-8 text-center">
+          <div className="text-5xl">🍣</div>
           <p style={{ color: 'var(--color-text-primary)', fontWeight: 700, fontSize: 22, fontFamily: 'var(--font-display)' }}>
             Você aprendeu!
           </p>
-          <p style={{ color: 'var(--color-text-muted)', fontSize: 14 }}>
-            Você já sabe o básico do Temakuri. Hora de jogar de verdade!
+          <p style={{ color: 'var(--color-text-muted)', fontSize: 14, maxWidth: 420 }}>
+            {currentStep.text}
           </p>
           <div className="flex gap-3 flex-wrap justify-center">
             <Button variant="primary" onClick={() => navigate('/lobby')}>Ir para o Lobby</Button>
-            <Button variant="secondary" onClick={() => startGame()}>Repetir tutorial</Button>
+            <Button variant="secondary" onClick={() => startTutorial(user?.username ?? 'Você', user?.avatarIndex ?? 0, user?.level ?? 1)}>Repetir tutorial</Button>
           </div>
         </div>
       </div>
@@ -108,171 +105,91 @@ export default function TutorialPage() {
   return (
     <div className="h-dvh flex flex-col overflow-hidden" style={{ background: 'var(--color-base)' }}>
       {navbar}
-
       <TutorialOverlay />
 
       <main className="flex-1 flex flex-col overflow-hidden">
-
-        {/* Area do bot */}
+        {/* Opponents — usa o mesmo componente da mesa real */}
         <div
-          className="flex items-center gap-3 px-3 sm:px-4 py-2.5 border-b border-[var(--color-border)] shrink-0"
-          style={{
-            background: isBotTurn ? 'var(--color-panel)' : 'var(--color-surface)',
-            transition: 'background 0.3s',
-          }}
+          className="px-3 sm:px-4 py-2 border-b border-[var(--color-border)] shrink-0 overflow-x-auto"
+          style={{ background: 'var(--color-base)' }}
         >
-          <div className="relative shrink-0">
-            <div
-              className="w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 flex items-center justify-center"
-              style={{
-                background: 'var(--color-panel)',
-                borderColor: isBotTurn ? 'var(--color-accent-mid)' : 'var(--color-border)',
-              }}
-            >
-              <Bot size={18} style={{ color: 'var(--color-text-muted)' }} />
-            </div>
-            {isBotTurn && (
-              <div
-                className="absolute -top-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center"
-                style={{ background: 'var(--color-accent-mid)' }}
-              >
-                <Zap size={9} style={{ color: 'white' }} />
-              </div>
-            )}
+          <div className="flex justify-center">
+            <OpponentRow player={bot} isCurrentTurn={currentTurnUserId === 'bot'} compact />
           </div>
+        </div>
 
-          <div className="flex-1 min-w-0">
+        {/* Center — PlayArea idêntica ao jogo */}
+        <div className="flex-1 flex flex-col items-center justify-center gap-3 px-2 sm:px-4 min-h-0">
+          <div className="h-7" />
+          <PlayArea
+            pile={pile}
+            drawPileCount={drawPileCount}
+            discardPile={discardPile}
+            saborActive={false}
+            saborMinRequired={0}
+            consecutivePasses={consecutivePasses}
+          />
+        </div>
+
+        {/* My area */}
+        <div
+          className={cn(
+            'relative shrink-0 border-t-2 bg-[var(--color-surface)] px-2 pt-1 pb-1.5 sm:px-4 flex flex-col transition-all',
+            isMyTurn && isPlayPhase
+              ? 'border-t-[var(--color-accent-strong)] shadow-[0_-8px_24px_-4px_var(--color-accent-strong-translucent)]'
+              : 'border-t-[var(--color-border)]',
+          )}
+        >
+          <div className="flex items-center justify-between mb-1">
             <div className="flex items-center gap-2">
-              <span style={{ color: 'var(--color-text-primary)', fontWeight: 500, fontSize: 14 }}>Bot</span>
-              {isBotTurn && (
-                <span style={{ color: 'var(--color-accent-mid)', fontSize: 11, fontWeight: 600 }}>
-                  pensando...
+              <AvatarWithBorder index={me.avatarIndex} level={me.level ?? 1} size={36} />
+              <span className="text-base font-semibold" style={{ color: 'var(--color-text-primary)' }}>
+                {me.username}
+              </span>
+              <LevelBadge level={me.level ?? 1} size="xs" />
+              {isMyTurn && isPlayPhase && (
+                <span className="text-xs px-2 py-0.5 rounded-full bg-[var(--color-accent-strong)] text-[var(--color-on-accent)] font-bold uppercase tracking-wider">
+                  Sua vez
                 </span>
               )}
             </div>
-            <div className="flex items-center gap-1.5 mt-0.5">
-              <Utensils size={11} style={{ color: 'var(--color-text-muted)' }} />
-              <TokenDots count={botTokens} />
-              <span style={{ color: 'var(--color-text-muted)', fontSize: 11 }}>
-                · {botCardCount} cartas
-              </span>
+            <div className="flex items-center gap-3">
+              <TokenDisplay tokens={me.tokensLeft} size="sm" playerId={me.userId} />
+              <span className="text-xs text-[var(--color-text-muted)] tabular-nums">{myHand.length} cartas</span>
             </div>
           </div>
-        </div>
 
-        {/* Mesa */}
-        <div className="flex-1 flex flex-col items-center justify-center gap-4 px-4 min-h-0">
-          <div className="flex items-end gap-8 sm:gap-14">
-            {/* Monte */}
-            <div className="flex flex-col items-center gap-2">
-              <div
-                className="w-16 h-24 sm:w-20 sm:h-28 rounded-xl border border-[var(--color-border)] flex items-center justify-center"
-                style={{ background: 'var(--color-panel)' }}
+          <div className="relative pb-1.5 pt-1 overflow-visible">
+            <PlayerHand
+              hand={myHand}
+              isMyTurn={isMyTurn && isPlayPhase}
+              selectedIndicesOverride={selectedIndices}
+              onToggleOverride={handleToggle}
+              allowedCardIds={requiredCardIds ?? undefined}
+            />
+          </div>
+
+          {/* Botões de ação */}
+          <div className="flex gap-2 justify-center pt-1">
+            {isPlayPhase && (
+              <Button
+                variant="primary"
+                onClick={handlePlay}
+                disabled={!canPlay}
+                data-testid="game-action-play-btn"
               >
-                <Layers size={22} style={{ color: 'var(--color-text-muted)' }} />
-              </div>
-              <span style={{ color: 'var(--color-text-muted)', fontSize: 12 }}>
-                {drawPileCount}
-              </span>
-            </div>
-
-            {/* Pilha central */}
-            <div className="flex flex-col items-center gap-2">
-              {pile.length > 0 ? (
-                <>
-                  <div className="relative flex items-center justify-center" style={{ width: 80, height: 112 }}>
-                    {pile.length >= 2 && (
-                      <div className="absolute" style={{ transform: 'translate(-10px, 6px)', zIndex: 0, opacity: 0.55 }}>
-                        <CardComponent card={pile[pile.length - 2]} />
-                      </div>
-                    )}
-                    <div style={{ position: 'relative', zIndex: 1 }}>
-                      <CardComponent card={pile[pile.length - 1]} />
-                    </div>
-                  </div>
-                  <span style={{ color: 'var(--color-text-muted)', fontSize: 12 }}>
-                    {pile.length} carta{pile.length !== 1 ? 's' : ''}
-                  </span>
-                </>
-              ) : (
-                <div
-                  className="w-16 h-24 sm:w-20 sm:h-28 rounded-xl border-2 border-dashed flex items-center justify-center"
-                  style={{ borderColor: 'var(--color-border)' }}
-                >
-                  <span style={{ color: 'var(--color-text-muted)', fontSize: 11 }}>Mesa</span>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Minha area */}
-        <div className="border-t border-[var(--color-border)] shrink-0 pb-3" style={{ background: 'var(--color-surface)' }}>
-          {/* Info bar */}
-          <div className="flex items-center gap-2 px-3 sm:px-4 pt-2.5 pb-1.5">
-            <div
-              className="w-7 h-7 rounded-full border-2 flex items-center justify-center shrink-0"
-              style={{
-                background: 'var(--color-panel)',
-                borderColor: isMyTurn ? 'var(--color-accent-mid)' : 'var(--color-border)',
-              }}
-            >
-              {isMyTurn && <Zap size={12} style={{ color: 'var(--color-accent-mid)' }} />}
-            </div>
-            <span style={{ color: 'var(--color-text-primary)', fontWeight: 500, fontSize: 14 }}>
-              {user?.username ?? 'Você'}
-            </span>
-            {isMyTurn && (
-              <span style={{ color: 'var(--color-accent-mid)', fontSize: 11, fontWeight: 600 }}>
-                sua vez
-              </span>
+                {selectedIndices.length > 0 ? `Jogar (${selectedIndices.length})` : 'Jogar'}
+              </Button>
             )}
-            <div className="ml-auto flex items-center gap-1.5">
-              <Utensils size={11} style={{ color: 'var(--color-text-muted)' }} />
-              <TokenDots count={myTokens} />
-              <span style={{ color: 'var(--color-text-muted)', fontSize: 11 }}>
-                · {myHand.length} cartas
-              </span>
-            </div>
+            {canPass && (
+              <Button variant="secondary" onClick={handlePass} data-testid="game-action-pass-btn">
+                Passar
+              </Button>
+            )}
+            {allowedAction.type === 'wait' && (
+              <span className="text-xs text-[var(--color-text-muted)] py-2">Bot jogando...</span>
+            )}
           </div>
-
-          {/* Mão */}
-          <div
-            className="flex gap-1 sm:gap-1.5 justify-center flex-nowrap overflow-x-auto overflow-y-visible px-2 pt-3 pb-1 [scrollbar-width:none] [touch-action:pan-x]"
-            data-testid="player-hand"
-          >
-            {myHand.map((card, i) => (
-              <CardComponent
-                key={card.id}
-                card={card}
-                selected={selectedIndices.includes(i)}
-                onClick={(isMyTurn || canPass) ? () => toggleCard(i) : undefined}
-                disabled={!isMyTurn}
-                responsiveSmall
-              />
-            ))}
-          </div>
-
-          {/* Botoes de acao */}
-          {(isMyTurn || canPass) && (
-            <div className="flex gap-2 justify-center px-3 pt-1" data-testid="game-action-bar">
-              {isMyTurn && (
-                <Button
-                  variant="primary"
-                  onClick={playSelected}
-                  disabled={selectedIndices.length === 0 || !canPlay}
-                  data-testid="game-action-play-btn"
-                >
-                  {selectedIndices.length > 0 ? `Jogar (${selectedIndices.length})` : 'Jogar'}
-                </Button>
-              )}
-              {canPass && (
-                <Button variant="secondary" onClick={pass} data-testid="game-action-pass-btn">
-                  Passar
-                </Button>
-              )}
-            </div>
-          )}
         </div>
       </main>
     </div>
