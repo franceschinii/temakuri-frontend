@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   X, Coins, Trophy, ShieldCheck, Sparkles,
-  Wine, Utensils, Flame, Zap, Eye, Gamepad2, type LucideIcon,
+  Wine, Utensils, Flame, Zap, Eye, Gamepad2, MapPin, type LucideIcon,
 } from 'lucide-react';
 import { RankIcon } from '@/components/ui/RankIcon';
 import type { GameRank } from '@/types/api';
@@ -13,6 +13,7 @@ type Tab = 'moedas' | 'ranks' | 'bordas' | 'icones';
 interface HelpModalProps {
   open: boolean;
   onClose: () => void;
+  onStartTour?: () => void;
 }
 
 const TABS: { key: Tab; label: string; icon: LucideIcon }[] = [
@@ -92,7 +93,7 @@ const ICON_INFO: { Icon: ComponentType<{ size?: number; className?: string }>; i
   },
 ];
 
-export function HelpModal({ open, onClose }: HelpModalProps) {
+export function HelpModal({ open, onClose, onStartTour }: HelpModalProps) {
   const [tab, setTab] = useState<Tab>('moedas');
 
   return createPortal(
@@ -149,7 +150,7 @@ export function HelpModal({ open, onClose }: HelpModalProps) {
             </div>
 
             {/* Content */}
-            <div className="flex-1 overflow-y-auto px-5 py-4 [scrollbar-width:thin]" style={{ color: 'var(--color-text-primary)' }}>
+            <div className="flex-1 overflow-y-auto px-5 py-4 [scrollbar-width:thin] min-h-0" style={{ color: 'var(--color-text-primary)' }}>
               {tab === 'moedas' && (
                 <div className="space-y-4 text-sm">
                   <section>
@@ -307,6 +308,19 @@ export function HelpModal({ open, onClose }: HelpModalProps) {
                 </div>
               )}
             </div>
+
+            {onStartTour && (
+              <div className="px-5 py-3 border-t border-[var(--color-border)] shrink-0">
+                <button
+                  onClick={() => { onStartTour(); onClose(); }}
+                  className="flex items-center gap-2 text-sm w-full justify-center py-2 rounded-lg hover:bg-[var(--color-panel)] transition-colors"
+                  style={{ color: 'var(--color-text-muted)' }}
+                >
+                  <MapPin size={14} />
+                  Refazer tour guiado
+                </button>
+              </div>
+            )}
           </motion.div>
         </motion.div>
       )}

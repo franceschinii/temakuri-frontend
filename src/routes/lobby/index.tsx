@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Search, Swords, Trophy } from 'lucide-react';
+import { GraduationCap, Plus, Search, Swords, Trophy } from 'lucide-react';
 import { DevFooter } from '@/components/ui/DevFooter';
 import { AdBanner } from '@/components/ui/AdBanner';
 import { motion } from 'framer-motion';
@@ -16,6 +16,8 @@ import { NewsCard } from '@/components/lobby/NewsCard';
 import { ChangelogCard } from '@/components/lobby/ChangelogCard';
 import { ReviewsCard } from '@/components/lobby/ReviewsCard';
 import { MatchmakingDialog } from '@/components/matchmaking/MatchmakingDialog';
+import { ProjectTour } from '@/components/tour/ProjectTour';
+import { useTourFlag } from '@/hooks/useTourFlag';
 import { useAuthStore } from '@/stores/authStore';
 import { useSocketEvent } from '@/hooks/useSocket';
 import { useOnlineCount } from '@/hooks/useOnlineCount';
@@ -45,6 +47,8 @@ export default function LobbyPage() {
   const [joinCode, setJoinCode] = useState('');
   const [joinPassword, setJoinPassword] = useState('');
   const [joinNeedsPassword, setJoinNeedsPassword] = useState(false);
+  const { hasSeen, markSeen } = useTourFlag(user?.id);
+  const [tourOpen, setTourOpen] = useState(false);
 
   const { data: rooms = [], isLoading } = useQuery<RoomPublicState[]>({
     queryKey: ['rooms'],
@@ -60,6 +64,13 @@ export default function LobbyPage() {
   useSocketEvent('lobby:public_rooms_changed', useCallback(() => {
     queryClient.invalidateQueries({ queryKey: ['rooms'] });
   }, [queryClient]));
+
+  useEffect(() => {
+    if (!hasSeen && user?.id) {
+      setTourOpen(true);
+      markSeen();
+    }
+  }, [user?.id]);
 
   const [joining, setJoining] = useState(false);
 
@@ -86,8 +97,12 @@ export default function LobbyPage() {
 
   return (
     <div className="h-dvh bg-[var(--color-base)] flex flex-col overflow-hidden">
-      {/* Header — AppNavbar comum a todas as telas, com "Como jogar" ao lado do logo */}
-      <AppNavbar onHowToPlay={() => setRulesOpen(true)} />
+      <div data-tour="tour-logo">
+        <AppNavbar
+          onHowToPlay={() => setRulesOpen(true)}
+          onRestartTour={() => setTourOpen(true)}
+        />
+      </div>
 
       <main className="flex-1 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden flex flex-col min-h-0">
         <div className="max-w-7xl mx-auto w-full p-4 sm:p-6 grid grid-cols-1 lg:grid-cols-[340px_1fr] gap-5 sm:gap-6">
@@ -113,7 +128,7 @@ export default function LobbyPage() {
               sm+: linha unica como antes. */}
           <div className="flex flex-col sm:flex-row gap-2">
             {/* Linha 1: codigo + entrar */}
-            <div className="flex gap-2 sm:contents">
+            <div className="flex gap-2 sm:contents" data-tour="tour-join-code">
               <Input
                 placeholder="Código"
                 value={joinCode}
@@ -127,18 +142,21 @@ export default function LobbyPage() {
                 {joining ? '...' : (<><Search size={15} /> Entrar</>)}
               </Button>
             </div>
-            {/* Linha 2: criar / buscar / ranking */}
-            <div className="grid grid-cols-3 gap-2 sm:contents">
-              <Button onClick={() => setCreateOpen(true)} className="shrink-0 w-full sm:w-auto" data-testid="lobby-create-room-btn">
+            {/* Linha 2: criar / buscar / ranking / tutorial */}
+            <div className="grid grid-cols-4 gap-2 sm:contents">
+              <Button onClick={() => setCreateOpen(true)} className="shrink-0 w-full sm:w-auto" data-testid="lobby-create-room-btn" data-tour="tour-create-room">
                 <Plus size={15} /> Criar
               </Button>
               {!user?.isGuest && (
-                <Button variant="secondary" onClick={() => setMatchOpen(true)} className="shrink-0 w-full sm:w-auto" data-testid="lobby-matchmaking-btn">
+                <Button variant="secondary" onClick={() => setMatchOpen(true)} className="shrink-0 w-full sm:w-auto" data-testid="lobby-matchmaking-btn" data-tour="tour-matchmaking">
                   <Swords size={15} /> Buscar
                 </Button>
               )}
               <Button variant="outline" onClick={() => navigate('/ranked')} className="shrink-0 w-full sm:w-auto" data-testid="access-bar-leaderboard-link">
                 <Trophy size={15} /> Ranking
+              </Button>
+              <Button variant="secondary" onClick={() => navigate('/tutorial')} className="shrink-0 w-full sm:w-auto">
+                <GraduationCap size={15} /> Tutorial
               </Button>
             </div>
           </div>
@@ -161,7 +179,7 @@ export default function LobbyPage() {
         </motion.div>
 
         {/* Room list */}
-        <div>
+        <div data-tour="tour-rooms-list">
           <div className="flex items-center gap-2 sm:gap-3 mb-4 flex-wrap">
             <span className="text-xs uppercase tracking-[0.15em] font-medium text-[var(--color-text-muted)]">
               Salas abertas
@@ -235,6 +253,7 @@ export default function LobbyPage() {
       <MatchmakingDialog open={matchOpen} onClose={() => setMatchOpen(false)} />
 
       <RulesModal open={rulesOpen} onClose={() => setRulesOpen(false)} />
+      <ProjectTour open={tourOpen} onClose={() => setTourOpen(false)} />
     </div>
   );
 }

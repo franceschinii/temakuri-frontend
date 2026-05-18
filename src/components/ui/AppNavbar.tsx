@@ -45,6 +45,12 @@ interface AppNavbarProps {
   onHowToPlay?: () => void;
 
   /**
+   * Callback para reiniciar o tour guiado. Quando passado, e repassado ao
+   * HelpModal para exibir o botao de refazer tour no rodape.
+   */
+  onRestartTour?: () => void;
+
+  /**
    * Quando true, o botao "Como jogar" so aparece no desktop (sm+). Usado
    * pela tela de admin, onde no mobile o espaco da navbar e escasso e o
    * botao nao e essencial.
@@ -73,7 +79,7 @@ interface AppNavbarProps {
  * Navbar unica do app. Usada em: lobby, lobby da sala, in-game, perfil,
  * ranked, admin. Auth telas tem layout proprio.
  */
-export function AppNavbar({ center, back, hideUsername, onHowToPlay, howToPlayDesktopOnly, mobileMinimal, mobileExtraActions }: AppNavbarProps) {
+export function AppNavbar({ center, back, hideUsername, onHowToPlay, howToPlayDesktopOnly, mobileMinimal, mobileExtraActions, onRestartTour }: AppNavbarProps) {
   const navigate = useNavigate();
   const user = useAuthStore(s => s.user);
   const logout = useAuthStore(s => s.logout);
@@ -138,6 +144,7 @@ export function AppNavbar({ center, back, hideUsername, onHowToPlay, howToPlayDe
               style={{ color: 'var(--color-text-muted)' }}
               title="Como jogar"
               aria-label="Como jogar"
+              data-tour="tour-how-to-play"
             >
               <HelpCircle size={16} />
               <span className="hidden sm:inline">Como jogar</span>
@@ -203,6 +210,7 @@ export function AppNavbar({ center, back, hideUsername, onHowToPlay, howToPlayDe
               className="p-1.5 rounded-lg transition-colors hover:bg-[var(--color-panel)]"
               style={{ color: 'var(--color-text-muted)' }}
               title="Como funciona"
+              data-tour="tour-help-icon"
             >
               <Info size={17} />
             </button>
@@ -255,7 +263,7 @@ export function AppNavbar({ center, back, hideUsername, onHowToPlay, howToPlayDe
       </header>
 
       <ShopModal open={shopOpen} onClose={() => setShopOpen(false)} />
-      <HelpModal open={helpOpen} onClose={() => setHelpOpen(false)} />
+      <HelpModal open={helpOpen} onClose={() => setHelpOpen(false)} onStartTour={onRestartTour} />
       <LogoutConfirmDialog
         open={logoutOpen}
         onClose={() => setLogoutOpen(false)}
