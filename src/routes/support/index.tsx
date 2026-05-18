@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronDown, Mail, ArrowLeft } from 'lucide-react';
 import { Logo } from '@/components/ui/Logo';
+import { useAuthStore } from '@/stores/authStore';
 
 interface FaqItem {
   question: string;
@@ -89,15 +90,52 @@ function FaqEntry({ item }: { item: FaqItem }) {
   );
 }
 
+declare global {
+  interface Window {
+    fcWidget?: {
+      setExternalId: (id: string) => void;
+      user: {
+        setFirstName: (name: string) => void;
+        setEmail: (email: string) => void;
+        setProperties: (props: Record<string, string>) => void;
+      };
+    };
+  }
+}
+
 export default function SupportPage() {
+  const user = useAuthStore(s => s.user);
+
   useEffect(() => {
+    // Evita carregar duas vezes se navegar para a pagina mais de uma vez
+    if (document.getElementById('freshworks-widget')) return;
+
     const script = document.createElement('script');
+    script.id = 'freshworks-widget';
     script.src = '//fw-cdn.com/16336684/7183433.js';
     script.setAttribute('chat', 'true');
     script.async = true;
+
+    script.onload = () => {
+      if (!window.fcWidget) return;
+      if (user?.id) {
+        window.fcWidget.setExternalId(String(user.id));
+      }
+      if (user?.username) {
+        window.fcWidget.user.setFirstName(user.username);
+      }
+      if (user?.email) {
+        window.fcWidget.user.setEmail(user.email);
+      }
+    };
+
     document.body.appendChild(script);
+
     return () => {
-      document.body.removeChild(script);
+      const el = document.getElementById('freshworks-widget');
+      if (el) document.body.removeChild(el);
+      // Remove o launcher que o Freshworks injeta no DOM
+      document.getElementById('fc_frame')?.remove();
     };
   }, []);
 
@@ -127,11 +165,11 @@ export default function SupportPage() {
         </Link>
       </header>
 
-      <main className="flex-1 w-full max-w-2xl mx-auto px-4 py-10 flex flex-col gap-10">
+      <main className="flex-1 w-full max-w-2xl mx-auto px-4 py-6 flex flex-col gap-6">
 
         {/* Hero */}
         <div>
-          <h1 className="text-2xl font-semibold mb-2" style={{ fontFamily: 'var(--font-display)' }}>
+          <h1 className="text-3xl font-bold mb-1" style={{ fontFamily: 'var(--font-display)' }}>
             Suporte
           </h1>
           <p className="text-sm leading-relaxed" style={{ color: 'var(--color-text-muted)' }}>
