@@ -316,7 +316,7 @@ export default function TutorialPage() {
           {/* Mão */}
           {phase !== 'PASS_PICK' && phase !== 'ROUND_END' && (
             <div
-              className="flex gap-1 sm:gap-1.5 justify-center flex-nowrap overflow-x-auto px-2 pb-1 [scrollbar-width:none] [touch-action:pan-x]"
+              className="flex gap-1 sm:gap-1.5 justify-center flex-nowrap overflow-x-auto overflow-y-visible px-2 pt-3 pb-1 [scrollbar-width:none] [touch-action:pan-x]"
               data-testid="player-hand"
             >
               {myHand.map((card, i) => (
