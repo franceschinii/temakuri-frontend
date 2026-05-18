@@ -127,6 +127,29 @@ export default function SupportPage() {
       if (user?.email) {
         window.fcWidget.user.setEmail(user.email);
       }
+
+      // Remove o fundo branco que o Freshchat injeta no container do launcher.
+      // O iframe em si nao e acessivel (cross-origin), mas o wrapper externo e.
+      const patchFrame = () => {
+        const frame = document.getElementById('fc_frame') as HTMLElement | null;
+        if (frame) {
+          frame.style.background = 'transparent';
+          frame.style.boxShadow = 'none';
+          const parent = frame.parentElement;
+          if (parent) {
+            parent.style.background = 'transparent';
+            parent.style.boxShadow = 'none';
+          }
+        }
+      };
+      // Tenta imediatamente e repete ate o frame ser injetado
+      patchFrame();
+      const interval = setInterval(() => {
+        if (document.getElementById('fc_frame')) {
+          patchFrame();
+          clearInterval(interval);
+        }
+      }, 200);
     };
 
     document.body.appendChild(script);
@@ -134,7 +157,6 @@ export default function SupportPage() {
     return () => {
       const el = document.getElementById('freshworks-widget');
       if (el) document.body.removeChild(el);
-      // Remove o launcher que o Freshworks injeta no DOM
       document.getElementById('fc_frame')?.remove();
     };
   }, []);
