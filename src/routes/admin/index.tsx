@@ -1,13 +1,14 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Pencil, KeyRound, Trash2, BarChart2, Search, X, Ban, Clock, ShieldCheck, Users, DoorOpen, UserX, RefreshCw, TrendingUp, Wine, Ticket, ScrollText, Newspaper, MessageSquareText, DollarSign, FileText } from 'lucide-react';
+import { Pencil, KeyRound, Trash2, BarChart2, Search, X, Ban, Clock, ShieldCheck, Users, DoorOpen, UserX, RefreshCw, TrendingUp, Wine, Ticket, ScrollText, Newspaper, MessageSquareText, DollarSign, FileText, LayoutDashboard } from 'lucide-react';
 import { CouponsAdmin } from '@/components/admin/CouponsAdmin';
 import { ChangelogAdmin } from '@/components/admin/ChangelogAdmin';
 import { NewsAdmin } from '@/components/admin/NewsAdmin';
 import { ReviewsAdmin } from '@/components/admin/ReviewsAdmin';
 import { PricingAdmin } from '@/components/admin/PricingAdmin';
 import { LogsAdmin } from '@/components/admin/LogsAdmin';
+import { DashboardAdmin } from '@/components/admin/DashboardAdmin';
 import { AppNavbar } from '@/components/ui/AppNavbar';
 import { RulesModal } from '@/components/ui/RulesModal';
 import { Button } from '@/components/ui/button';
@@ -58,7 +59,7 @@ interface AdminUser {
 
 type ModalType = 'edit' | 'password' | 'stats' | 'delete' | 'moderation' | 'progression' | null;
 type FilterType = 'all' | 'registered' | 'guest' | 'admin' | 'banned' | 'suspended';
-type AdminTab = 'users' | 'rooms' | 'coupons' | 'changelog' | 'news' | 'reviews' | 'pricing' | 'logs';
+type AdminTab = 'dashboard' | 'users' | 'rooms' | 'coupons' | 'changelog' | 'news' | 'reviews' | 'pricing' | 'logs';
 
 interface AdminRoomPlayer {
   userId: string;
@@ -122,8 +123,9 @@ export default function AdminPage() {
   const qc = useQueryClient();
   // Filtros persistidos em localStorage para sobreviverem a F5.
   const [tab, setTab] = useState<AdminTab>(() => {
+    const valid: AdminTab[] = ['dashboard', 'users', 'rooms', 'coupons', 'changelog', 'news', 'reviews', 'pricing', 'logs'];
     const v = typeof window !== 'undefined' ? window.localStorage.getItem('admin:tab') : null;
-    return v === 'rooms' || v === 'users' ? v : 'users';
+    return (valid as string[]).includes(v ?? '') ? (v as AdminTab) : 'dashboard';
   });
   const [modal, setModal] = useState<ModalState>({ type: null, user: null });
   const [search, setSearch] = useState<string>(() => {
@@ -370,7 +372,7 @@ export default function AdminPage() {
             tela estreita). Desktop: largura automatica lado a lado. */}
         <div className="w-full sm:w-auto sm:self-start overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden [touch-action:pan-x]">
           <div className="flex items-center gap-1 rounded-lg bg-[var(--color-panel)] border border-[var(--color-border)] p-1 w-max sm:w-auto">
-            {(['users', 'rooms', 'coupons', 'changelog', 'news', 'reviews', 'pricing', 'logs'] as AdminTab[]).map(t => (
+            {(['dashboard', 'users', 'rooms', 'coupons', 'changelog', 'news', 'reviews', 'pricing', 'logs'] as AdminTab[]).map(t => (
               <button
                 key={t}
                 onClick={() => setTab(t)}
@@ -382,8 +384,8 @@ export default function AdminPage() {
                 )}
                 style={tab !== t ? { color: 'var(--color-text-muted)' } : {}}
               >
-                {t === 'users' ? <Users size={14} /> : t === 'rooms' ? <DoorOpen size={14} /> : t === 'coupons' ? <Ticket size={14} /> : t === 'changelog' ? <ScrollText size={14} /> : t === 'news' ? <Newspaper size={14} /> : t === 'reviews' ? <MessageSquareText size={14} /> : t === 'pricing' ? <DollarSign size={14} /> : <FileText size={14} />}
-                <span>{t === 'users' ? 'Usuários' : t === 'rooms' ? 'Salas' : t === 'coupons' ? 'Cupons' : t === 'changelog' ? 'Changelog' : t === 'news' ? 'Notícias' : t === 'reviews' ? 'Avaliações' : t === 'pricing' ? 'Preços' : 'Logs'}</span>
+                {t === 'dashboard' ? <LayoutDashboard size={14} /> : t === 'users' ? <Users size={14} /> : t === 'rooms' ? <DoorOpen size={14} /> : t === 'coupons' ? <Ticket size={14} /> : t === 'changelog' ? <ScrollText size={14} /> : t === 'news' ? <Newspaper size={14} /> : t === 'reviews' ? <MessageSquareText size={14} /> : t === 'pricing' ? <DollarSign size={14} /> : <FileText size={14} />}
+                <span>{t === 'dashboard' ? 'Dashboard' : t === 'users' ? 'Usuários' : t === 'rooms' ? 'Salas' : t === 'coupons' ? 'Cupons' : t === 'changelog' ? 'Changelog' : t === 'news' ? 'Notícias' : t === 'reviews' ? 'Avaliações' : t === 'pricing' ? 'Preços' : 'Logs'}</span>
               </button>
             ))}
           </div>
@@ -452,6 +454,8 @@ export default function AdminPage() {
         {tab === 'pricing' && <PricingAdmin />}
 
         {tab === 'logs' && <LogsAdmin />}
+
+        {tab === 'dashboard' && <DashboardAdmin />}
 
         {tab === 'users' && <>
           {/* Search + filters */}
