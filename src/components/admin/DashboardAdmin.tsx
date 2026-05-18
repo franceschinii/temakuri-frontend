@@ -175,7 +175,7 @@ export function DashboardAdmin() {
                   cx="50%"
                   cy="50%"
                   outerRadius={90}
-                  label={({ mode, count }) => `${mode}: ${count}`}
+                  label={(entry: any) => `${entry.mode}: ${entry.count}`}
                 >
                   {data.game.winnersByMode.map((_, i) => (
                     <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
