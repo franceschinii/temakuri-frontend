@@ -158,54 +158,48 @@ export default function TutorialPage() {
               </span>
             </div>
           </div>
-
-          <div className="flex gap-0.5 items-center shrink-0">
-            {Array.from({ length: Math.min(botCardCount, 5) }).map((_, i) => (
-              <div
-                key={i}
-                className="w-7 h-10 sm:w-8 sm:h-12 rounded border border-[var(--color-border)]"
-                style={{ background: 'var(--color-panel)' }}
-              />
-            ))}
-            {botCardCount > 5 && (
-              <span style={{ color: 'var(--color-text-muted)', fontSize: 10, marginLeft: 2 }}>
-                +{botCardCount - 5}
-              </span>
-            )}
-          </div>
         </div>
 
         {/* Mesa */}
-        <div className="flex-1 flex flex-col items-center justify-center gap-3 px-4 min-h-0">
-          <div className="flex items-center gap-5 sm:gap-8">
+        <div className="flex-1 flex flex-col items-center justify-center gap-4 px-4 min-h-0">
+          <div className="flex items-end gap-8 sm:gap-14">
             {/* Monte */}
-            <div className="flex flex-col items-center gap-1">
+            <div className="flex flex-col items-center gap-2">
               <div
-                className="w-11 h-16 sm:w-14 sm:h-20 rounded-lg border border-[var(--color-border)] flex items-center justify-center"
+                className="w-16 h-24 sm:w-20 sm:h-28 rounded-xl border border-[var(--color-border)] flex items-center justify-center"
                 style={{ background: 'var(--color-panel)' }}
               >
-                <Layers size={16} style={{ color: 'var(--color-text-muted)' }} />
+                <Layers size={22} style={{ color: 'var(--color-text-muted)' }} />
               </div>
-              <span style={{ color: 'var(--color-text-muted)', fontSize: 11 }}>
+              <span style={{ color: 'var(--color-text-muted)', fontSize: 12 }}>
                 {drawPileCount}
               </span>
             </div>
 
             {/* Pilha central */}
-            <div className="flex flex-col items-center gap-1">
+            <div className="flex flex-col items-center gap-2">
               {pile.length > 0 ? (
                 <>
-                  <CardComponent card={pile[pile.length - 1]} responsiveSmall />
-                  <span style={{ color: 'var(--color-text-muted)', fontSize: 11 }}>
+                  <div className="relative flex items-center justify-center" style={{ width: 80, height: 112 }}>
+                    {pile.length >= 2 && (
+                      <div className="absolute" style={{ transform: 'translate(-10px, 6px)', zIndex: 0, opacity: 0.55 }}>
+                        <CardComponent card={pile[pile.length - 2]} />
+                      </div>
+                    )}
+                    <div style={{ position: 'relative', zIndex: 1 }}>
+                      <CardComponent card={pile[pile.length - 1]} />
+                    </div>
+                  </div>
+                  <span style={{ color: 'var(--color-text-muted)', fontSize: 12 }}>
                     {pile.length} carta{pile.length !== 1 ? 's' : ''}
                   </span>
                 </>
               ) : (
                 <div
-                  className="w-11 h-16 sm:w-14 sm:h-20 rounded-lg border-2 border-dashed flex items-center justify-center"
+                  className="w-16 h-24 sm:w-20 sm:h-28 rounded-xl border-2 border-dashed flex items-center justify-center"
                   style={{ borderColor: 'var(--color-border)' }}
                 >
-                  <span style={{ color: 'var(--color-text-muted)', fontSize: 10 }}>Mesa</span>
+                  <span style={{ color: 'var(--color-text-muted)', fontSize: 11 }}>Mesa</span>
                 </div>
               )}
             </div>
