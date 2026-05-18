@@ -149,14 +149,14 @@ export default function LobbyPage() {
               </Button>
               {!user?.isGuest && (
                 <Button variant="secondary" onClick={() => setMatchOpen(true)} className="shrink-0 w-full sm:w-auto" data-testid="lobby-matchmaking-btn" data-tour="tour-matchmaking">
-                  <Swords size={15} /> Buscar
+                  <Swords size={15} className="hidden sm:inline" /> Buscar
                 </Button>
               )}
               <Button variant="outline" onClick={() => navigate('/ranked')} className="shrink-0 w-full sm:w-auto" data-testid="access-bar-leaderboard-link">
-                <Trophy size={15} /> Ranking
+                <Trophy size={15} className="hidden sm:inline" /> Ranking
               </Button>
               <Button variant="secondary" onClick={() => navigate('/tutorial')} className="shrink-0 w-full sm:w-auto">
-                <GraduationCap size={15} /> Tutorial
+                <GraduationCap size={15} className="hidden sm:inline" /> Tutorial
               </Button>
             </div>
           </div>
