@@ -1,12 +1,29 @@
 import { useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bot, Layers } from 'lucide-react';
+import { Bot, Layers, Utensils, Zap } from 'lucide-react';
 import { AppNavbar } from '@/components/ui/AppNavbar';
 import { Button } from '@/components/ui/button';
 import { CardComponent } from '@/components/game/CardComponent';
 import { TutorialOverlay } from '@/components/tutorial/TutorialOverlay';
 import { useTutorialStore } from '@/stores/tutorialStore';
 import { useAuthStore } from '@/stores/authStore';
+
+function TokenDots({ count, max = 2 }: { count: number; max?: number }) {
+  return (
+    <div className="flex items-center gap-1">
+      {Array.from({ length: max }).map((_, i) => (
+        <div
+          key={i}
+          className="w-3 h-3 rounded-full border"
+          style={{
+            background: i < count ? 'var(--color-token-gold, oklch(78% 0.2 75))' : 'transparent',
+            borderColor: i < count ? 'var(--color-token-gold, oklch(78% 0.2 75))' : 'var(--color-border)',
+          }}
+        />
+      ))}
+    </div>
+  );
+}
 
 export default function TutorialPage() {
   const navigate = useNavigate();
@@ -35,9 +52,7 @@ export default function TutorialPage() {
 
   useEffect(() => {
     startGame();
-    return () => {
-      reset();
-    };
+    return () => { reset(); };
   }, []);
 
   const canPlay = useMemo(() => {
@@ -52,14 +67,18 @@ export default function TutorialPage() {
     return false;
   }, [selectedIndices, myHand, pile]);
 
+  const isMyTurn = phase === 'MY_TURN';
+  const isBotTurn = phase === 'BOT_TURN';
+
   if (phase === 'IDLE') {
     return (
-      <div
-        className="h-dvh flex flex-col bg-[var(--color-base)]"
-        style={{ background: 'var(--color-base)' }}
-      >
-        <AppNavbar back="/lobby" center={<span style={{ color: 'var(--color-text-primary)', fontWeight: 600, fontSize: 15 }}>Tutorial</span>} />
-        <div className="flex-1 flex flex-col items-center justify-center gap-4">
+      <div className="h-dvh flex flex-col" style={{ background: 'var(--color-base)' }}>
+        <AppNavbar
+          back="/lobby"
+          mobileMinimal
+          center={<span style={{ color: 'var(--color-text-primary)', fontWeight: 600, fontSize: 15 }}>Tutorial</span>}
+        />
+        <div className="flex-1 flex items-center justify-center">
           <p style={{ color: 'var(--color-text-muted)', fontSize: 14 }}>Carregando...</p>
         </div>
       </div>
@@ -68,30 +87,23 @@ export default function TutorialPage() {
 
   if (phase === 'GAME_OVER') {
     return (
-      <div className="h-dvh flex flex-col bg-[var(--color-base)]">
-        <AppNavbar back="/lobby" center={<span style={{ color: 'var(--color-text-primary)', fontWeight: 600, fontSize: 15 }}>Tutorial</span>} />
+      <div className="h-dvh flex flex-col" style={{ background: 'var(--color-base)' }}>
+        <AppNavbar
+          back="/lobby"
+          mobileMinimal
+          center={<span style={{ color: 'var(--color-text-primary)', fontWeight: 600, fontSize: 15 }}>Tutorial</span>}
+        />
         <TutorialOverlay />
         <div className="flex-1 flex flex-col items-center justify-center gap-6 p-8 text-center">
-          <p
-            style={{
-              color: 'var(--color-text-primary)',
-              fontWeight: 700,
-              fontSize: 22,
-              fontFamily: 'var(--font-display)',
-            }}
-          >
+          <p style={{ color: 'var(--color-text-primary)', fontWeight: 700, fontSize: 22, fontFamily: 'var(--font-display)' }}>
             {winner === 'me' ? 'Você venceu!' : 'Bot venceu'}
           </p>
           <p style={{ color: 'var(--color-text-muted)', fontSize: 14 }}>
             Você já sabe o básico do Temakuri.
           </p>
           <div className="flex gap-3 flex-wrap justify-center">
-            <Button variant="primary" onClick={() => navigate('/lobby')}>
-              Ir para o Lobby
-            </Button>
-            <Button variant="secondary" onClick={() => startGame()}>
-              Jogar de novo
-            </Button>
+            <Button variant="primary" onClick={() => navigate('/lobby')}>Ir para o Lobby</Button>
+            <Button variant="secondary" onClick={() => startGame()}>Jogar de novo</Button>
           </div>
         </div>
       </div>
@@ -99,9 +111,10 @@ export default function TutorialPage() {
   }
 
   return (
-    <div className="h-dvh flex flex-col bg-[var(--color-base)] overflow-hidden">
+    <div className="h-dvh flex flex-col overflow-hidden" style={{ background: 'var(--color-base)' }}>
       <AppNavbar
         back="/lobby"
+        mobileMinimal
         center={
           <span style={{ color: 'var(--color-text-primary)', fontWeight: 600, fontSize: 15 }}>
             Tutorial
@@ -111,83 +124,111 @@ export default function TutorialPage() {
 
       <TutorialOverlay />
 
-      <main className="flex-1 flex flex-col overflow-hidden pt-14">
+      <main className="flex-1 flex flex-col overflow-hidden">
 
-        {/* Area do adversario */}
+        {/* Area do bot — replica OpponentRow */}
         <div
-          className="flex items-center gap-3 px-4 py-3 border-b border-[var(--color-border)]"
-          style={{ background: 'var(--color-surface)' }}
+          className="flex items-center gap-3 px-3 sm:px-4 py-2.5 border-b border-[var(--color-border)] shrink-0"
+          style={{
+            background: isBotTurn ? 'var(--color-panel)' : 'var(--color-surface)',
+            transition: 'background 0.3s',
+          }}
         >
-          <div
-            className="w-10 h-10 rounded-full border border-[var(--color-border)] flex items-center justify-center shrink-0"
-            style={{ background: 'var(--color-panel)' }}
-          >
-            <Bot size={20} style={{ color: 'var(--color-text-muted)' }} />
-          </div>
-          <div className="min-w-0">
-            <div style={{ color: 'var(--color-text-primary)', fontWeight: 500, fontSize: 14 }}>
-              Bot
+          <div className="relative shrink-0">
+            <div
+              className="w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 flex items-center justify-center"
+              style={{
+                background: 'var(--color-panel)',
+                borderColor: isBotTurn ? 'var(--color-accent-mid)' : 'var(--color-border)',
+              }}
+            >
+              <Bot size={18} style={{ color: 'var(--color-text-muted)' }} />
             </div>
-            <div style={{ color: 'var(--color-text-muted)', fontSize: 12 }}>
-              {botCardCount} cartas · {botTokens} pratos
+            {isBotTurn && (
+              <div
+                className="absolute -top-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center"
+                style={{ background: 'var(--color-accent-mid)' }}
+              >
+                <Zap size={9} style={{ color: 'white' }} />
+              </div>
+            )}
+          </div>
+
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <span style={{ color: 'var(--color-text-primary)', fontWeight: 500, fontSize: 14 }}>Bot</span>
+              {isBotTurn && (
+                <span style={{ color: 'var(--color-accent-mid)', fontSize: 11, fontWeight: 600 }}>
+                  pensando...
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-1.5 mt-0.5">
+              <Utensils size={11} style={{ color: 'var(--color-text-muted)' }} />
+              <TokenDots count={botTokens} />
+              <span style={{ color: 'var(--color-text-muted)', fontSize: 11 }}>
+                · {botCardCount} cartas
+              </span>
             </div>
           </div>
-          <div className="flex gap-1 ml-auto items-center">
-            {Array.from({ length: Math.min(botCardCount, 6) }).map((_, i) => (
+
+          {/* Cartas viradas do bot */}
+          <div className="flex gap-0.5 items-center shrink-0">
+            {Array.from({ length: Math.min(botCardCount, 5) }).map((_, i) => (
               <div
                 key={i}
-                className="w-8 h-12 rounded-md border border-[var(--color-border)]"
+                className="w-7 h-10 sm:w-8 sm:h-12 rounded border border-[var(--color-border)]"
                 style={{ background: 'var(--color-panel)' }}
               />
             ))}
-            {botCardCount > 6 && (
-              <span style={{ color: 'var(--color-text-muted)', fontSize: 11, alignSelf: 'center' }}>
-                +{botCardCount - 6}
+            {botCardCount > 5 && (
+              <span style={{ color: 'var(--color-text-muted)', fontSize: 10, marginLeft: 2 }}>
+                +{botCardCount - 5}
               </span>
             )}
           </div>
         </div>
 
-        {/* Area central */}
-        <div className="flex-1 flex flex-col items-center justify-center gap-4 px-4">
+        {/* Area central — mesa */}
+        <div className="flex-1 flex flex-col items-center justify-center gap-3 px-4 min-h-0">
+
           {phase === 'ROUND_END' && (
-            <div className="flex flex-col items-center gap-4 p-8 text-center">
+            <div className="flex flex-col items-center gap-4 p-6 text-center">
               <p style={{ color: 'var(--color-text-primary)', fontWeight: 600, fontSize: 16 }}>
                 {roundResult?.iLost ? 'Você perdeu 1 prato' : 'Bot perdeu 1 prato'}
               </p>
-              <p style={{ color: 'var(--color-text-muted)', fontSize: 13 }}>
-                Você: {myTokens} pratos · Bot: {botTokens} pratos
-              </p>
+              <div className="flex items-center gap-6">
+                <div className="flex flex-col items-center gap-1">
+                  <span style={{ color: 'var(--color-text-muted)', fontSize: 11 }}>Você</span>
+                  <TokenDots count={myTokens} />
+                </div>
+                <div className="flex flex-col items-center gap-1">
+                  <span style={{ color: 'var(--color-text-muted)', fontSize: 11 }}>Bot</span>
+                  <TokenDots count={botTokens} />
+                </div>
+              </div>
               <Button onClick={nextRound}>Próxima rodada</Button>
             </div>
           )}
 
           {phase === 'PASS_PICK' && drawnCard !== null && (
-            <div className="flex flex-col items-center gap-4 w-full max-w-sm">
+            <div className="flex flex-col items-center gap-3 w-full max-w-sm">
               <p style={{ color: 'var(--color-text-muted)', fontSize: 13 }}>
-                Onde inserir esta carta na sua mão?
+                Onde inserir na sua mão?
               </p>
               <CardComponent card={drawnCard} />
-              <div className="flex gap-1 items-center flex-wrap justify-center">
+              <div className="flex gap-0.5 items-center overflow-x-auto max-w-full pb-1 [scrollbar-width:none]">
                 {[...Array(myHand.length + 1)].map((_, idx) => (
-                  <div key={idx} className="flex items-center gap-1">
+                  <div key={idx} className="flex items-center gap-0.5 shrink-0">
                     <button
                       onClick={() => insertDrawnCard(idx)}
-                      className="w-3 h-12 rounded-full transition-colors"
-                      style={{
-                        background: 'var(--color-border)',
-                      }}
-                      onMouseEnter={e => {
-                        (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-warning)';
-                      }}
-                      onMouseLeave={e => {
-                        (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-border)';
-                      }}
+                      className="w-3 h-10 sm:h-12 rounded-full transition-colors"
+                      style={{ background: 'var(--color-border)' }}
+                      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'var(--color-warning)'; }}
+                      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'var(--color-border)'; }}
                       aria-label={`Inserir na posição ${idx + 1}`}
                     />
-                    {idx < myHand.length && (
-                      <CardComponent card={myHand[idx]} small disabled />
-                    )}
+                    {idx < myHand.length && <CardComponent card={myHand[idx]} small disabled />}
                   </div>
                 ))}
               </div>
@@ -201,30 +242,32 @@ export default function TutorialPage() {
           )}
 
           {phase !== 'ROUND_END' && phase !== 'PASS_PICK' && (
-            <div className="flex items-center gap-6">
+            <div className="flex items-center gap-5 sm:gap-8">
+              {/* Monte */}
               <div className="flex flex-col items-center gap-1">
                 <div
-                  className="w-12 h-16 rounded-lg border border-[var(--color-border)] flex items-center justify-center"
+                  className="w-11 h-16 sm:w-14 sm:h-20 rounded-lg border border-[var(--color-border)] flex items-center justify-center"
                   style={{ background: 'var(--color-panel)' }}
                 >
                   <Layers size={16} style={{ color: 'var(--color-text-muted)' }} />
                 </div>
                 <span style={{ color: 'var(--color-text-muted)', fontSize: 11 }}>
-                  {drawPileCount} cartas
+                  {drawPileCount}
                 </span>
               </div>
 
+              {/* Pilha central */}
               <div className="flex flex-col items-center gap-1">
                 {pile.length > 0 ? (
                   <>
-                    <CardComponent card={pile[pile.length - 1]} small />
+                    <CardComponent card={pile[pile.length - 1]} responsiveSmall />
                     <span style={{ color: 'var(--color-text-muted)', fontSize: 11 }}>
                       {pile.length} carta{pile.length !== 1 ? 's' : ''}
                     </span>
                   </>
                 ) : (
                   <div
-                    className="w-12 h-16 rounded-lg border-2 border-dashed flex items-center justify-center"
+                    className="w-11 h-16 sm:w-14 sm:h-20 rounded-lg border-2 border-dashed flex items-center justify-center"
                     style={{ borderColor: 'var(--color-border)' }}
                   >
                     <span style={{ color: 'var(--color-text-muted)', fontSize: 10 }}>Mesa</span>
@@ -233,31 +276,47 @@ export default function TutorialPage() {
               </div>
             </div>
           )}
-
-          {phase === 'BOT_TURN' && (
-            <p style={{ color: 'var(--color-text-muted)', fontSize: 12 }}>
-              Bot está pensando...
-            </p>
-          )}
         </div>
 
-        {/* Minha area */}
+        {/* Minha area — replica a area inferior do GameBoard */}
         <div
-          className="border-t border-[var(--color-border)] flex flex-col gap-2 pb-4"
-          style={{ background: 'var(--color-surface)' }}
+          className="border-t border-[var(--color-border)] shrink-0 pb-3"
+          style={{
+            background: isMyTurn ? 'var(--color-surface)' : 'var(--color-surface)',
+          }}
         >
-          <div className="flex items-center gap-2 px-4 pt-3">
+          {/* Info bar */}
+          <div className="flex items-center gap-2 px-3 sm:px-4 pt-2.5 pb-1.5">
+            <div
+              className="w-7 h-7 rounded-full border-2 flex items-center justify-center shrink-0"
+              style={{
+                background: 'var(--color-panel)',
+                borderColor: isMyTurn ? 'var(--color-accent-mid)' : 'var(--color-border)',
+              }}
+            >
+              {isMyTurn && <Zap size={12} style={{ color: 'var(--color-accent-mid)' }} />}
+            </div>
             <span style={{ color: 'var(--color-text-primary)', fontWeight: 500, fontSize: 14 }}>
               {user?.username ?? 'Você'}
             </span>
-            <span style={{ color: 'var(--color-text-muted)', fontSize: 12 }}>
-              {myHand.length} cartas · {myTokens} pratos
-            </span>
+            {isMyTurn && (
+              <span style={{ color: 'var(--color-accent-mid)', fontSize: 11, fontWeight: 600 }}>
+                sua vez
+              </span>
+            )}
+            <div className="ml-auto flex items-center gap-1.5">
+              <Utensils size={11} style={{ color: 'var(--color-text-muted)' }} />
+              <TokenDots count={myTokens} />
+              <span style={{ color: 'var(--color-text-muted)', fontSize: 11 }}>
+                · {myHand.length} cartas
+              </span>
+            </div>
           </div>
 
+          {/* Mão */}
           {phase !== 'PASS_PICK' && phase !== 'ROUND_END' && (
             <div
-              className="flex gap-1 sm:gap-1.5 justify-center flex-wrap px-2"
+              className="flex gap-1 sm:gap-1.5 justify-center flex-nowrap overflow-x-auto px-2 pb-1 [scrollbar-width:none] [touch-action:pan-x]"
               data-testid="player-hand"
             >
               {myHand.map((card, i) => (
@@ -265,34 +324,26 @@ export default function TutorialPage() {
                   key={card.id}
                   card={card}
                   selected={selectedIndices.includes(i)}
-                  onClick={phase === 'MY_TURN' ? () => toggleCard(i) : undefined}
-                  disabled={phase !== 'MY_TURN'}
+                  onClick={isMyTurn ? () => toggleCard(i) : undefined}
+                  disabled={!isMyTurn}
                   responsiveSmall
                 />
               ))}
             </div>
           )}
 
-          {phase === 'MY_TURN' && (
-            <div
-              className="flex gap-2 justify-center px-3"
-              data-testid="game-action-bar"
-            >
+          {/* Botoes de acao */}
+          {isMyTurn && (
+            <div className="flex gap-2 justify-center px-3 pt-1" data-testid="game-action-bar">
               <Button
                 variant="primary"
                 onClick={playSelected}
                 disabled={selectedIndices.length === 0 || !canPlay}
                 data-testid="game-action-play-btn"
               >
-                {selectedIndices.length > 0
-                  ? `Jogar (${selectedIndices.length})`
-                  : 'Jogar'}
+                {selectedIndices.length > 0 ? `Jogar (${selectedIndices.length})` : 'Jogar'}
               </Button>
-              <Button
-                variant="secondary"
-                onClick={pass}
-                data-testid="game-action-pass-btn"
-              >
+              <Button variant="secondary" onClick={pass} data-testid="game-action-pass-btn">
                 Passar{drawPileCount > 0 ? ' (+1)' : ''}
               </Button>
             </div>

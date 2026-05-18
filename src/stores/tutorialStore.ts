@@ -180,9 +180,43 @@ export const useTutorialStore = create<TutorialState>((set, get) => ({
 
   startGame: () => {
     const deck = shuffle(buildDeck());
-    const myHand = deck.slice(0, 8);
-    const botHand = deck.slice(8, 16);
-    const drawPile = deck.slice(16);
+
+    // Garante que a mao do jogador tenha grupos adjacentes obvios para o tutorial.
+    // Estrategia: pega cartas do baralho e reorganiza a mao para que pelo menos
+    // 2 pares de mesmo valor fiquem adjacentes — tornando a selecao ensinavel.
+    const rawHand = deck.slice(0, 8);
+    const rest = deck.slice(8);
+
+    // Agrupa por valor
+    const byValue = new Map<number, Card[]>();
+    for (const c of rawHand) {
+      const g = byValue.get(c.value) ?? [];
+      g.push(c);
+      byValue.set(c.value, g);
+    }
+    // Ordena grupos: pares primeiro (tamanho >= 2), depois singles
+    const groups = Array.from(byValue.values()).sort((a, b) => b.length - a.length);
+    // Se nao houver pelo menos 1 par natural, forca um par buscando no resto do baralho
+    if (groups[0].length < 2) {
+      const firstVal = rawHand[0].value;
+      const extraIdx = rest.findIndex(c => c.value === firstVal);
+      if (extraIdx !== -1) {
+        const extra = rest.splice(extraIdx, 1)[0];
+        rawHand.push(extra);
+        rawHand.splice(rawHand.length - 2, 1); // remove uma carta aleatoria para manter 8
+        byValue.set(firstVal, [...(byValue.get(firstVal) ?? []), extra]);
+        groups.splice(0, 1, byValue.get(firstVal)!);
+      }
+    }
+    // Reconstroi a mao colocando grupos adjacentes e preenchendo com singles
+    const orderedHand: Card[] = [];
+    for (const g of groups) {
+      for (const c of g) orderedHand.push(c);
+    }
+    const myHand = orderedHand.slice(0, 8);
+
+    const botHand = rest.slice(0, 8);
+    const drawPile = rest.slice(8);
 
     const prev = get()._botTimeoutId;
     if (prev !== null) clearTimeout(prev);
