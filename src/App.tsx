@@ -18,6 +18,7 @@ const PaymentsSuccess     = lazy(() => import('@/routes/payments/success'));
 const PaymentsCancel      = lazy(() => import('@/routes/payments/cancel'));
 const PaymentsPending     = lazy(() => import('@/routes/payments/pending'));
 const TutorialPage        = lazy(() => import('@/routes/tutorial/index'));
+const SupportPage         = lazy(() => import('@/routes/support/index'));
 
 function PageLoader() {
   return (
@@ -110,6 +111,7 @@ export default function App() {
         <Route path="/auth/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
         <Route path="/legal" element={<LegalPage />} />
+        <Route path="/support" element={<SupportPage />} />
 
         <Route element={<AuthGuard />}>
           <Route path="/lobby" element={<LobbyPage />} />
