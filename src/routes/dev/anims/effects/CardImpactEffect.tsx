@@ -1,9 +1,10 @@
 import { useEffect, useRef } from 'react';
-import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
+import { AnimatePresence, useReducedMotion } from 'framer-motion';
 import { IMPACT_TIMING } from '../animations';
 import type { SlamEffectProps } from './CardSlamEffect';
 import { CardDust } from './CardDust';
 import { CardSpark } from './CardSpark';
+import { ShockwaveRing } from './ShockwaveRing';
 
 // ----------------------------------------------------------------
 // F04 — "Bater combo" impact++: onda dupla + 10 dust + 6 sparks.
@@ -63,22 +64,11 @@ function ImpactEffectInner({
   const outerDuration = 900 / slowMo / 1000;
   const outerDelay = 60 / slowMo / 1000;
 
-  const shockwaveBase = {
-    position: 'absolute',
-    width: 80,
-    height: 80,
-    borderRadius: '50%',
-    border: '2px solid oklch(88% 0.12 140 / 0.8)',
-    pointerEvents: 'none',
-    translateX: '-50%',
-    translateY: '-50%',
-  } as const;
-
   return (
     <div style={containerStyle}>
       {/* Inner shockwave */}
-      <motion.div
-        style={shockwaveBase}
+      <ShockwaveRing
+        color="oklch(88% 0.12 140 / 0.8)"
         initial={{ scale: 0.4, opacity: 0 }}
         animate={{ scale: INNER_SHOCK.scale, opacity: INNER_SHOCK.opacity }}
         transition={{
@@ -89,8 +79,9 @@ function ImpactEffectInner({
       />
 
       {/* Outer shockwave — slightly delayed, reaches farther */}
-      <motion.div
-        style={{ ...shockwaveBase, border: '1.5px solid oklch(88% 0.12 140 / 0.55)' }}
+      <ShockwaveRing
+        color="oklch(88% 0.12 140 / 0.55)"
+        strokeWidth={1.5}
         initial={{ scale: 0.5, opacity: 0 }}
         animate={{ scale: OUTER_SHOCK.scale, opacity: OUTER_SHOCK.opacity }}
         transition={{
@@ -136,19 +127,12 @@ function ReducedFlash({ origin = { x: 0, y: 0 }, onComplete }: Omit<SlamEffectPr
   }, []);
   return (
     <div style={{ position: 'absolute', left: origin.x, top: origin.y, width: 0, height: 0, pointerEvents: 'none' }}>
-      <motion.div
+      <ShockwaveRing
+        color="oklch(88% 0.12 140 / 0.6)"
+        size={90}
         initial={{ scale: 0.7, opacity: 0 }}
         animate={{ scale: [0.7, 1.3], opacity: [0, 0.5, 0] }}
         transition={{ duration: 0.22, times: [0, 0.4, 1] }}
-        style={{
-          position: 'absolute',
-          width: 90,
-          height: 90,
-          borderRadius: '50%',
-          border: '2px solid oklch(88% 0.12 140 / 0.6)',
-          translateX: '-50%',
-          translateY: '-50%',
-        }}
       />
     </div>
   );

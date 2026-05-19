@@ -1,8 +1,9 @@
 import { useEffect, useRef } from 'react';
-import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
+import { AnimatePresence, useReducedMotion } from 'framer-motion';
 import { shockwaveVariants, IMPACT_TIMING } from '../animations';
 import { CardDust } from './CardDust';
 import { CardSpark } from './CardSpark';
+import { ShockwaveRing } from './ShockwaveRing';
 
 export interface SlamEffectProps {
   /**
@@ -62,20 +63,11 @@ function SlamEffectInner({
 
   return (
     <div style={containerStyle}>
-      <motion.div
+      <ShockwaveRing
+        color="oklch(88% 0.12 140 / 0.8)"
         variants={shockwaveVariants}
         initial="hidden"
         animate="pulse"
-        style={{
-          position: 'absolute',
-          width: 80,
-          height: 80,
-          borderRadius: '50%',
-          border: '2px solid oklch(88% 0.12 140 / 0.8)',
-          pointerEvents: 'none',
-          translateX: '-50%',
-          translateY: '-50%',
-        }}
         transition={{
           duration: shockwaveDuration,
           ease: [0.16, 1, 0.3, 1],
@@ -118,19 +110,11 @@ function ReducedFlash({ origin = { x: 0, y: 0 }, onComplete }: Omit<SlamEffectPr
   }, []);
   return (
     <div style={{ position: 'absolute', left: origin.x, top: origin.y, width: 0, height: 0, pointerEvents: 'none' }}>
-      <motion.div
+      <ShockwaveRing
+        color="oklch(88% 0.12 140 / 0.6)"
         initial={{ scale: 0.7, opacity: 0 }}
         animate={{ scale: [0.7, 1.1], opacity: [0, 0.45, 0] }}
         transition={{ duration: 0.18, times: [0, 0.4, 1] }}
-        style={{
-          position: 'absolute',
-          width: 80,
-          height: 80,
-          borderRadius: '50%',
-          border: '2px solid oklch(88% 0.12 140 / 0.6)',
-          translateX: '-50%',
-          translateY: '-50%',
-        }}
       />
     </div>
   );

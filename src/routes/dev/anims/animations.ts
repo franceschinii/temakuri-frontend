@@ -31,6 +31,23 @@ export const TIME_SCALE = 1;
 const d = (seconds: number) => seconds * TIME_SCALE;
 
 // ============================================================
+// TRANSFORM — keyframes consolidados
+// ============================================================
+// Motion roda na GPU quando x/y/rotate/scale viajam numa única string
+// `transform`; props separadas podem disparar paint/layout (ver doc
+// animation-performance-audit). tf() zipa os 4 arrays de keyframes em
+// um array de strings transform, mantendo keyframes e `times` iguais.
+const tf = (x: number[], y: number[], rot: number[], scale: number[]): string[] =>
+  x.map(
+    (_, i) =>
+      `translateX(${x[i]}px) translateY(${y[i]}px) rotate(${rot[i]}deg) scale(${scale[i]})`,
+  );
+
+/** Estado de transform único (não-keyframe). */
+const tfAt = (x: number, y: number, rot: number, scale: number): string =>
+  `translateX(${x}px) translateY(${y}px) rotate(${rot}deg) scale(${scale})`;
+
+// ============================================================
 // EASING — curvas bezier para as sequências coreografadas
 // ============================================================
 export const EASE_CONTEMPLATIVE = [0.16, 1, 0.3, 1] as const; // ease-out quint — assenta calmo
@@ -118,17 +135,24 @@ export const playVariants: Variants = {
 };
 
 // ============================================================
-// Descartar — produção (contra-fato de calibragem do F03)
+// Descartar — produção (~520ms)
 // ============================================================
+// Versão enxuta do F03: sem o arco/floreio, mas com peso. Anticipação
+// (recua + comprime) → desliza pra fora com squash. Antes era um tween
+// reto de 180ms — abrupto, sem peso.
 export const discardProductionVariants: Variants = {
   inHand: { x: 0, y: 0, rotate: 0, opacity: 1, scale: 1 },
   discarded: {
-    x: 280,
-    y: -20,
-    rotate: 12,
-    scale: 0.7,
-    opacity: 0,
-    transition: { duration: d(0.18), ease: EASE_CONTEMPLATIVE },
+    x: [0, -8, 300],
+    y: [0, 6, -16],
+    rotate: [0, -4, 14],
+    scale: [1, 0.92, 0.7],
+    opacity: [1, 1, 0],
+    transition: {
+      duration: d(0.52),
+      times: [0, 0.28, 1],
+      ease: EASE_CONTEMPLATIVE,
+    },
   },
 };
 
@@ -140,15 +164,18 @@ export const discardProductionVariants: Variants = {
 export const discardVariants: Variants = {
   inHand: { x: 0, y: 0, rotate: 0, opacity: 1, scale: 1 },
   discarded: {
-    x: [0, -14, 48, 224, 205, 200],
-    y: [0, 4, -30, -36, -27, -29],
-    rotate: [0, -8, 13, 26, 19, 17],
-    scale: [1, 0.96, 1.05, 1, 0.95, 0.94],
-    opacity: [1, 1, 1, 0.95, 0.88, 0.86],
+    x: [0, -16, 56, 224, 212],
+    y: [0, 5, -32, -34, -30],
+    rotate: [0, -9, 14, 22, 19],
+    scale: [1, 0.95, 1.06, 0.97, 0.95],
+    opacity: [1, 1, 1, 0.92, 0.86],
     transition: {
-      duration: d(0.44),
-      times: [0, 0.15, 0.45, 0.72, 0.87, 1],
-      ease: EASE_FLOURISH,
+      // EASE_CONTEMPLATIVE (não FLOURISH): o overshoot já está nos
+      // keyframes (224 → settle 212). Back-out por trecho empilhava um
+      // segundo overshoot = tremor. times dá ao arremesso o maior beat.
+      duration: d(0.46),
+      times: [0, 0.16, 0.52, 0.82, 1],
+      ease: EASE_CONTEMPLATIVE,
     },
   },
 };
@@ -162,9 +189,9 @@ export const discardForceTrailVariants: Variants = {
     rotate: [0, -4, 10, 22, 16],
     opacity: [0, 0.35, 0.4, 0.3, 0],
     transition: {
-      duration: d(0.44),
-      times: [0, 0.2, 0.5, 0.75, 1],
-      ease: EASE_FLOURISH,
+      duration: d(0.46),
+      times: [0, 0.2, 0.52, 0.78, 1],
+      ease: EASE_CONTEMPLATIVE,
     },
   },
 };
@@ -172,14 +199,22 @@ export const discardForceTrailVariants: Variants = {
 // ============================================================
 // Vitória / derrota
 // ============================================================
+// O glow saiu do boxShadow (repaint por frame) para uma camada
+// GlowLayer dedicada — ver winnerGlowVariants. O variant da carta anima
+// só transform/opacity (composited).
 export const winnerVariants: Variants = {
-  rest: { scale: 1, y: 0, boxShadow: '0 0 0 0 oklch(88% 0.12 140 / 0)' },
+  rest: { scale: 1, y: 0 },
   victory: {
     scale: 1.12,
     y: -5,
-    boxShadow: '0 0 30px 7px oklch(88% 0.12 140 / 0.7)',
     transition: SPRING.juicy,
   },
+};
+
+// Glow da carta vencedora — animado num <GlowLayer> (scale + opacity).
+export const winnerGlowVariants: Variants = {
+  rest: { scale: 0.7, opacity: 0 },
+  victory: { scale: 1, opacity: 0.7, transition: SPRING.juicy },
 };
 
 export const losersVariants: Variants = {
@@ -456,20 +491,25 @@ export const shockwaveVariants: Variants = {
 // ============================================================
 // 14 — Sabor ativado
 // ============================================================
+// Glow movido pra um <GlowLayer> dedicado — ver saborGlowVariants.
 export const saborBannerVariants: Variants = {
   hidden: {
     opacity: 0,
     y: 14,
     scale: 0.9,
-    boxShadow: '0 0 0 0 oklch(78% 0.18 80 / 0)',
   },
   active: {
     opacity: 1,
     y: 0,
     scale: 1,
-    boxShadow: '0 0 26px 3px oklch(78% 0.18 80 / 0.45)',
     transition: { ...SPRING.juicy, delay: d(0.15) },
   },
+};
+
+// Glow do banner de sabor — animado num <GlowLayer> (scale + opacity).
+export const saborGlowVariants: Variants = {
+  hidden: { scale: 0.75, opacity: 0 },
+  active: { scale: 1.1, opacity: 0.55, transition: { ...SPRING.juicy, delay: d(0.15) } },
 };
 
 export const saborTideVariants: Variants = {
@@ -937,12 +977,14 @@ export const dragDirectVariants: Variants = {
 // arco no ar, squash no impacto, micro-bounce no repouso.
 // Exagero (Balatro): squash mais fundo, bounce no fim.
 export const drawForceVariants: Variants = {
-  inDeck: { x: 220, y: -60, scale: 0.85, rotate: -4 },
+  inDeck: { transform: tfAt(220, -60, -4, 0.85) },
   inHand: {
-    x: [220, 226, 108, 0, 0, 0],
-    y: [-60, -58, -34, -12, 8, 0],
-    scale: [0.85, 0.8, 1.06, 1.1, 0.92, 1],
-    rotate: [-4, -7, 9, 2, -1, 0],
+    transform: tf(
+      [220, 226, 108, 0, 0, 0],
+      [-60, -58, -34, -12, 8, 0],
+      [-4, -7, 9, 2, -1, 0],
+      [0.85, 0.8, 1.06, 1.1, 0.92, 1],
+    ),
     transition: {
       duration: d(0.56),
       times: [0, 0.12, 0.44, 0.7, 0.86, 1],
@@ -958,12 +1000,14 @@ export const drawForceVariants: Variants = {
 // LIFT alto com rotação → hang no pico → SLAM com stretch→squash →
 // micro-wobble de repouso.
 export const playForceVariants: Variants = {
-  inHand: { y: 0, x: 0, rotate: 0, scale: 1 },
+  inHand: { transform: tfAt(0, 0, 0, 1) },
   played: {
-    y: [0, 10, -74, -78, -78, 12, -2, 4, 0],
-    x: [0, 0, -5, -2, 0, 0, 0, 0, 0],
-    rotate: [0, -3, -9, -5, -5, 3, -1, 1, 0],
-    scale: [1, 0.93, 1.14, 1.13, 1.13, 1.24, 0.9, 1.04, 1],
+    transform: tf(
+      [0, 0, -5, -2, 0, 0, 0, 0, 0],
+      [0, 10, -74, -78, -78, 12, -2, 4, 0],
+      [0, -3, -9, -5, -5, 3, -1, 1, 0],
+      [1, 0.93, 1.14, 1.13, 1.13, 1.24, 0.9, 1.04, 1],
+    ),
     transition: {
       duration: d(0.85),
       times: [0, 0.1, 0.32, 0.44, 0.6, 0.78, 0.86, 0.93, 1],
@@ -980,10 +1024,7 @@ export const playForceVariants: Variants = {
 // custom = { xOffset, rotIn, delay }.
 export const beatPairForceVariants: Variants = {
   inHand: ({ xOffset }: { xOffset: number; rotIn: number }) => ({
-    x: xOffset,
-    y: 220,
-    rotate: 0,
-    scale: 1,
+    transform: tfAt(xOffset, 220, 0, 1),
   }),
   slammed: ({
     xOffset,
@@ -994,19 +1035,21 @@ export const beatPairForceVariants: Variants = {
     rotIn: number;
     delay: number;
   }) => ({
-    x: [
-      xOffset,
-      xOffset,
-      xOffset,
-      xOffset,
-      xOffset + Math.sign(xOffset) * 4,
-      xOffset,
-      xOffset,
-      xOffset,
-    ],
-    y: [220, 226, -78, -82, -8, 6, -14, -16],
-    rotate: [0, rotIn * 0.5, rotIn, rotIn * 0.85, rotIn * 0.3, -rotIn * 0.15, 0, 0],
-    scale: [1, 0.95, 1.16, 1.16, 1.26, 0.9, 1.06, 1],
+    transform: tf(
+      [
+        xOffset,
+        xOffset,
+        xOffset,
+        xOffset,
+        xOffset + Math.sign(xOffset) * 4,
+        xOffset,
+        xOffset,
+        xOffset,
+      ],
+      [220, 226, -78, -82, -8, 6, -14, -16],
+      [0, rotIn * 0.5, rotIn, rotIn * 0.85, rotIn * 0.3, -rotIn * 0.15, 0, 0],
+      [1, 0.95, 1.16, 1.16, 1.26, 0.9, 1.06, 1],
+    ),
     transition: {
       duration: d(0.95),
       delay: d(delay),
@@ -1018,11 +1061,14 @@ export const beatPairForceVariants: Variants = {
 
 // F04 — carta perdedora empurrada pra baixo
 export const beatLoserPushVariants: Variants = {
-  rest: { y: 0, scale: 1, opacity: 1, rotate: 0, filter: 'saturate(1)' },
+  rest: { transform: tfAt(0, 0, 0, 1), opacity: 1, filter: 'saturate(1)' },
   pushed: {
-    y: [0, 0, 16, 20],
-    rotate: [0, 0, -5, -6],
-    scale: [1, 1, 0.92, 0.9],
+    transform: tf(
+      [0, 0, 0, 0],
+      [0, 0, 16, 20],
+      [0, 0, -5, -6],
+      [1, 1, 0.92, 0.9],
+    ),
     opacity: [1, 1, 0.3, 0.2],
     filter: ['saturate(1)', 'saturate(1)', 'saturate(0.5)', 'saturate(0.4)'],
     transition: {

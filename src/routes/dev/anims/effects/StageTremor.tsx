@@ -41,10 +41,14 @@ export function StageTremor({
     const i = intensity;
     const duration = 250 / slowMo / 1000; // seconds
 
+    // transform consolidado num só keyframe-array (GPU).
+    const rot = [0, -i, i * 0.6, -i * 0.3, 0];
+    const xs = [0, i, -i, 0.5 * i, 0];
+    const ys = [0, -i, 0.5 * i, 0.5 * i, 0];
     controls.start({
-      rotate: [0, -i, i * 0.6, -i * 0.3, 0],
-      x: [0, 1 * i, -1 * i, 0.5 * i, 0],
-      y: [0, -1 * i, 0.5 * i, 0.5 * i, 0],
+      transform: rot.map(
+        (_, k) => `translate(${xs[k]}px, ${ys[k]}px) rotate(${rot[k]}deg)`,
+      ),
       transition: {
         duration,
         ease: 'easeOut',
@@ -54,7 +58,10 @@ export function StageTremor({
   }, [trigger]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <motion.div animate={controls} style={{ transformOrigin: '50% 80%' }}>
+    <motion.div
+      animate={controls}
+      style={{ transformOrigin: '50% 80%', willChange: 'transform' }}
+    >
       {children}
     </motion.div>
   );

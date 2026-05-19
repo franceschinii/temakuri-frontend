@@ -16,7 +16,7 @@ import { MockCard } from './MockCard';
 import { PokemonHoldFlip } from './PokemonHoldFlip';
 import { MatchScorePopup } from './MatchScorePopup';
 import { MonteRevealOverlay } from './MonteRevealOverlay';
-import { CardSlamEffect, CardImpactEffect, StageTremor } from './effects';
+import { CardSlamEffect, CardImpactEffect, StageTremor, GlowLayer, ShockwaveRing } from './effects';
 import * as A from './animations';
 
 // ---------------------------------------------------------------------------
@@ -210,7 +210,8 @@ const STATE_CARDS: { tag?: string; title: string; v: Variants; from: string; to:
   { tag: '12', title: 'Última carta (loop)', v: A.lastCardVariants, from: 'rest', to: 'breathing', note: 'Tensão infinita: respiração scale + glow, loop mirror 1.3s.' },
   { tag: '13', title: 'Carta batida', v: A.beatenCardVariants, from: 'rest', to: 'beaten', note: 'Recua, desbota e dessatura ao ser batida. Spring soft.' },
   { tag: '16', title: 'Jogada inválida', v: A.invalidCardVariants, from: 'rest', to: 'rejected', note: 'Shake horizontal + borda âmbar pulsante. ~400ms.' },
-  { title: 'Vencedora', v: A.winnerVariants, from: 'rest', to: 'victory', note: 'Carta vencedora: pop com glow verde. Spring juicy (Balatro).' },
+  // 'Vencedora' saiu da lista — agora tem demo dedicado abaixo, com
+  // <GlowLayer> separando o glow (composited) do transform da carta.
   { title: 'Perdedoras', v: A.losersVariants, from: 'rest', to: 'victory', note: 'Demais cartas desbotam (opacity 0.2 + dessatura).' },
   { title: 'Derrota', v: A.defeatVariants, from: 'rest', to: 'defeat', note: 'Tomba, vira grayscale e cai. ~950ms.' },
 ];
@@ -363,24 +364,6 @@ function FlipCardFace({ pkey, custom }: { pkey: number; custom?: number }) {
   );
 }
 
-function ShockwaveRing({ pkey, v, color }: { pkey: number; v: Variants; color: string }) {
-  return (
-    <motion.div
-      key={pkey}
-      variants={v}
-      initial="hidden"
-      animate="pulse"
-      style={{
-        position: 'absolute',
-        width: 70,
-        height: 70,
-        borderRadius: '50%',
-        border: `2px solid ${color}`,
-      }}
-    />
-  );
-}
-
 // ---------------------------------------------------------------------------
 // Página
 // ---------------------------------------------------------------------------
@@ -513,6 +496,31 @@ export default function AnimsDevPage() {
           {STATE_CARDS.map((c) => (
             <CardSlot key={c.title} {...c} />
           ))}
+          {/* Vencedora — glow movido para <GlowLayer> (transform+opacity
+              composited) em vez de boxShadow animado. */}
+          <Slot title="Vencedora" note="Pop com glow verde via GlowLayer (transform/opacity, composited). Spring juicy.">
+            {(k) => (
+              <div key={k} style={{ position: 'relative' }}>
+                <GlowLayer
+                  color="oklch(88% 0.12 140 / 0.7)"
+                  size={130}
+                  blur={20}
+                  variants={A.winnerGlowVariants}
+                  initial="rest"
+                  animate="victory"
+                />
+                <motion.div
+                  variants={A.winnerVariants}
+                  initial="rest"
+                  animate="victory"
+                  className="rounded-lg"
+                  style={{ position: 'relative' }}
+                >
+                  <MockCard />
+                </motion.div>
+              </div>
+            )}
+          </Slot>
           {/* Drag real — gesto drag + whileDrag */}
           <Slot title="Drag direto" note="Gesto real: arraste a carta. drag + whileDrag + dragSnapToOrigin (volta sozinha ao soltar).">
             {() => (
@@ -623,13 +631,13 @@ export default function AnimsDevPage() {
           </Slot>
 
           <Slot tag="13" title="Shockwave" note="Anel único: scale 0.4 → 2, opacity 0 → 0.9 → 0.">
-            {(k) => <ShockwaveRing pkey={k} v={A.shockwaveVariants} color="oklch(88% 0.12 140 / 0.8)" />}
+            {(k) => <ShockwaveRing key={k} variants={A.shockwaveVariants} initial="hidden" animate="pulse" color="oklch(88% 0.12 140 / 0.8)" />}
           </Slot>
           <Slot tag="F04" title="Onda dupla — inner" note="Anel interno: scale 0.4 → 2.2.">
-            {(k) => <ShockwaveRing pkey={k} v={A.doubleShockwaveInnerVariants} color="oklch(88% 0.12 140 / 0.8)" />}
+            {(k) => <ShockwaveRing key={k} variants={A.doubleShockwaveInnerVariants} initial="hidden" animate="pulse" color="oklch(88% 0.12 140 / 0.8)" />}
           </Slot>
           <Slot tag="F04" title="Onda dupla — outer" note="Anel externo: scale 0.4 → 3.2, delay 60ms.">
-            {(k) => <ShockwaveRing pkey={k} v={A.doubleShockwaveOuterVariants} color="oklch(88% 0.12 140 / 0.55)" />}
+            {(k) => <ShockwaveRing key={k} variants={A.doubleShockwaveOuterVariants} initial="hidden" animate="pulse" color="oklch(88% 0.12 140 / 0.55)" />}
           </Slot>
           <Slot title="Balatro impact pulse" note="Sombra/pulso no chão quando a carta bate na mesa.">
             {(k) => (
@@ -838,22 +846,32 @@ export default function AnimsDevPage() {
               </motion.div>
             )}
           </Slot>
-          <Slot tag="14" title="Sabor banner" note="Banner do Sabor: pop com glow âmbar. ~900ms.">
+          <Slot tag="14" title="Sabor banner" note="Banner do Sabor: pop com glow âmbar via GlowLayer (composited). ~900ms.">
             {(k) => (
-              <motion.div
-                key={k}
-                variants={A.saborBannerVariants}
-                initial="hidden"
-                animate="active"
-                className="px-5 py-2 rounded-lg text-sm font-bold"
-                style={{
-                  background: 'var(--color-panel)',
-                  color: 'var(--color-warning)',
-                  border: '1px solid var(--color-warning)',
-                }}
-              >
-                SABOR ATIVADO
-              </motion.div>
+              <div key={k} style={{ position: 'relative' }}>
+                <GlowLayer
+                  color="oklch(78% 0.18 80 / 0.55)"
+                  size={150}
+                  blur={18}
+                  variants={A.saborGlowVariants}
+                  initial="hidden"
+                  animate="active"
+                />
+                <motion.div
+                  variants={A.saborBannerVariants}
+                  initial="hidden"
+                  animate="active"
+                  className="px-5 py-2 rounded-lg text-sm font-bold"
+                  style={{
+                    position: 'relative',
+                    background: 'var(--color-panel)',
+                    color: 'var(--color-warning)',
+                    border: '1px solid var(--color-warning)',
+                  }}
+                >
+                  SABOR ATIVADO
+                </motion.div>
+              </div>
             )}
           </Slot>
           <Slot tag="14" title="Sabor tide" note="Overlay tipo maré sobe e desce ao ativar o Sabor.">

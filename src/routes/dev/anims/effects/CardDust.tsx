@@ -35,16 +35,19 @@ export function CardDust({
   const scaledDuration = duration / slowMo / 1000; // framer uses seconds
   const scaledDelay = delay / slowMo / 1000;
 
+  // transform consolidado num só keyframe-array (GPU). times [0,0.25,1]
+  // — o keyframe do meio amostra a translação linear em t=0.25.
+  const transform = [
+    'translate(0px, 0px) scale(0.6)',
+    `translate(${dx * 0.25}px, ${dy * 0.25}px) scale(1)`,
+    `translate(${dx}px, ${dy}px) scale(0.5)`,
+  ];
+
   return (
     <motion.div
       className="dust"
-      initial={{ opacity: 0, x: 0, y: 0, scale: 0.6 }}
-      animate={{
-        opacity: [0, 0.9, 0],
-        x: [0, dx],
-        y: [0, dy],
-        scale: [0.6, 1, 0.5],
-      }}
+      initial={{ opacity: 0, transform: transform[0] }}
+      animate={{ opacity: [0, 0.9, 0], transform }}
       transition={{
         duration: scaledDuration,
         delay: scaledDelay,
