@@ -1,8 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { AnimatePresence, useReducedMotion } from 'framer-motion';
-import { shockwaveVariants, IMPACT_TIMING } from '../animations';
-import { CardDust } from './CardDust';
-import { CardSpark } from './CardSpark';
+import { shockwaveVariants } from '../animations';
 import { ShockwaveRing } from './ShockwaveRing';
 
 export interface SlamEffectProps {
@@ -21,24 +19,15 @@ export interface SlamEffectProps {
 }
 
 // ----------------------------------------------------------------
-// F02 — "Jogar" slam: 1 shockwave + 7 dust + 4 sparks.
+// F02 — "Jogar" slam: 1 shockwave.
 // ----------------------------------------------------------------
-const DUST_ANGLES = [200, 230, 255, 270, 285, 310, 340] as const;
-const DUST_DISTANCES = [38, 45, 42, 48, 40, 44, 36] as const;
-const SPARK_ANGLES = [215, 245, 295, 325] as const;
-const SPARK_DISTANCES = [26, 22, 24, 20] as const;
-
-// Momento do impacto: a carta bate quando o slam do playForceVariants
-// chega ao pico. Derivado de animations.ts (IMPACT_TIMING) — antes era
-// um número mágico (680) solto aqui, sem vínculo com o variant.
-const IMPACT_DELAY_MS = IMPACT_TIMING.slam;
 
 function SlamEffectInner({
   origin = { x: 0, y: 0 },
   onComplete,
   slowMo = 1,
 }: Omit<SlamEffectProps, 'trigger'>) {
-  const longestDuration = IMPACT_DELAY_MS + 700; // dust finishes last
+  const longestDuration = 800; // shockwave (700) + delay (50) + margin
   const onCompleteRef = useRef(onComplete);
   onCompleteRef.current = onComplete;
 
@@ -75,27 +64,6 @@ function SlamEffectInner({
         }}
       />
 
-      {DUST_ANGLES.map((angle, i) => (
-        <CardDust
-          key={i}
-          angle={angle}
-          distance={DUST_DISTANCES[i]}
-          delay={IMPACT_DELAY_MS + i * 30}
-          duration={700}
-          slowMo={slowMo}
-        />
-      ))}
-
-      {SPARK_ANGLES.map((angle, i) => (
-        <CardSpark
-          key={i}
-          angle={angle}
-          distance={SPARK_DISTANCES[i]}
-          delay={IMPACT_DELAY_MS + i * 15}
-          duration={500}
-          slowMo={slowMo}
-        />
-      ))}
     </div>
   );
 }

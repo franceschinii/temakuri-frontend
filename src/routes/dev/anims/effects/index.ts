@@ -1,9 +1,3 @@
-export { CardDust } from './CardDust';
-export type { CardDustProps } from './CardDust';
-
-export { CardSpark } from './CardSpark';
-export type { CardSparkProps } from './CardSpark';
-
 export { StageTremor } from './StageTremor';
 export type { StageTremorProps } from './StageTremor';
 

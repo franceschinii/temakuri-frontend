@@ -304,7 +304,7 @@ export const chapterTitleVariants: Variants = {
 // ============================================================
 // random determinístico por índice — antes usava Math.random() no
 // corpo do variant, o que reanima/salta a cada re-render. Agora é
-// estável (hash do índice). Ver effects/CardDust para o mesmo padrão.
+// estável (hash do índice).
 const hashed = (i: number) => {
   const x = Math.sin(i * 127.1) * 43758.5453;
   return x - Math.floor(x); // 0..1 estável
@@ -746,58 +746,168 @@ export { TIER_COLOR_FOR_RANKUP };
 // ============================================================
 // Shuffle — Riffle split
 // ============================================================
-export const riffleLeftHalfVariants: Variants = {
-  rest: { x: 0, y: 0, rotate: 0 },
-  riffle: {
-    x: [0, -24, -16, 0, 0],
-    y: [0, -4, 0, 0, 0],
-    rotate: [0, -3, 0, 0, 0],
-    transition: {
-      duration: d(1.4),
-      times: [0, 0.2, 0.5, 0.8, 1],
-      ease: EASE_CONTEMPLATIVE,
-    },
-  },
-};
-
-export const riffleRightHalfVariants: Variants = {
-  rest: { x: 0, y: 0, rotate: 0 },
-  riffle: {
-    x: [0, 24, 16, 0, 0],
-    y: [0, 4, 0, 0, 0],
-    rotate: [0, 3, 0, 0, 0],
-    transition: {
-      duration: d(1.4),
-      times: [0, 0.2, 0.5, 0.8, 1],
-      ease: EASE_CONTEMPLATIVE,
-    },
-  },
-};
-
+// Riffle realista (técnica do deck-of-cards lib): cada carta é animada
+// individualmente, não duas pilhas inteiras. O stagger por índice dá o
+// efeito cascata. Cada carta peela do baralho pra um dos lados,
+// segura em pilha, volta pro centro interleaved.
+//
+// Fases (por carta, dentro da sua própria timeline):
+//   0    → 0.15: split — carta peela do baralho pro lado dela
+//   0.15 → 0.5 : hold  — fica na pilha
+//   0.5  → 0.7 : merge — volta pro centro
+//   0.7  → 1   : sentada no centro (espera as outras terminarem)
+//
+// custom = { i, total }: o lado vem da paridade (alterna L/R/L/R),
+// o stagger global vem do delay = i * 0.055.
 export const riffleCardVariants: Variants = {
-  rest: { opacity: 0, x: 0, y: 0 },
-  fly: (i: number) => ({
-    opacity: [0, 1, 1, 0],
-    y: [0, -8 - (i % 2) * 4, -2, 0],
-    x: i % 2 === 0 ? [-12, -4, 0, 0] : [12, 4, 0, 0],
-    transition: {
-      duration: d(0.5),
-      delay: d(0.3 + i * 0.08),
-      ease: EASE_CONTEMPLATIVE,
-    },
+  rest: ({ i }: { i: number; total: number }) => ({
+    x: 0,
+    y: -i * 0.5, // pequena profundidade de pilha visível em rest
+    rotate: 0,
   }),
+  fly: ({ i }: { i: number; total: number }) => {
+    const side = i % 2 === 0 ? -1 : 1;
+    return {
+      x: [0, side * 62, side * 62, 0, 0],
+      y: [-i * 0.5, -i * 0.5 - 2, -i * 0.5 - 2, -i * 0.5, 0],
+      rotate: [0, side * 4, side * 4, 0, 0],
+      transition: {
+        duration: d(1.1),
+        delay: d(i * 0.055),
+        times: [0, 0.15, 0.5, 0.7, 1],
+        ease: EASE_CONTEMPLATIVE,
+      },
+    };
+  },
 };
 
-export const riffleGlowVariants: Variants = {
-  rest: { opacity: 0, scale: 0.8 },
-  riffle: {
-    opacity: [0, 0.45, 0.25, 0],
-    scale: [0.8, 1.1, 1, 0.9],
+// ============================================================
+// Cut — corte simples (~600ms)
+// ============================================================
+// Metade de cima arqueia pra direita e desce no lugar da metade de
+// baixo; metade de baixo desliza pra cima. Movimento clássico de cut.
+export const cutTopHalfVariants: Variants = {
+  rest: { y: -8, x: 0, rotate: 0 },
+  cut: {
+    y: [-8, -32, -32, 0, 0],
+    x: [0, 38, 38, 0, 0],
+    rotate: [0, -5, -5, 0, 0],
     transition: {
-      duration: d(1.4),
-      times: [0, 0.4, 0.7, 1],
+      duration: d(0.65),
+      times: [0, 0.22, 0.5, 0.88, 1],
       ease: EASE_CONTEMPLATIVE,
     },
+  },
+};
+
+export const cutBottomHalfVariants: Variants = {
+  rest: { y: 0 },
+  cut: {
+    y: [0, 0, -8, -8, -8],
+    transition: {
+      duration: d(0.65),
+      times: [0, 0.42, 0.65, 0.88, 1],
+      ease: EASE_CONTEMPLATIVE,
+    },
+  },
+};
+
+// ============================================================
+// Pile shuffle — distribui em pilhas, recolhe (~2.0s)
+// ============================================================
+// Cada carta vai pra sua pilha (i % piles), todas em paralelo com
+// pequeno stagger. Aí volta pro centro na ordem pilha-por-pilha
+// (pile*cardsPerPile + posInPile) — o "shuffle" emerge da reordenação.
+// custom = { i, total, piles }.
+export const pileCardVariants: Variants = {
+  rest: ({ i }: { i: number; total: number; piles: number }) => ({
+    x: 0,
+    y: -i * 0.5,
+    rotate: 0,
+  }),
+  shuffle: ({
+    i,
+    total,
+    piles,
+  }: {
+    i: number;
+    total: number;
+    piles: number;
+  }) => {
+    const cardsPerPile = total / piles;
+    const pile = i % piles;
+    const posInPile = Math.floor(i / piles);
+    const collectOrder = pile * cardsPerPile + posInPile;
+
+    const pileX = (pile - (piles - 1) / 2) * 52;
+    const pileY = 38;
+
+    const dealStartT = (i / total) * 0.35;
+    const dealEndT = dealStartT + 0.12;
+    const collectStartT = 0.55 + (collectOrder / total) * 0.32;
+    const collectEndT = collectStartT + 0.12;
+
+    return {
+      x: [0, 0, pileX, pileX, 0, 0],
+      y: [
+        -i * 0.5,
+        -i * 0.5,
+        pileY + posInPile * 0.5,
+        pileY + posInPile * 0.5,
+        0,
+        0,
+      ],
+      transition: {
+        duration: d(2.0),
+        times: [0, dealStartT, dealEndT, collectStartT, collectEndT, 1],
+        ease: EASE_CONTEMPLATIVE,
+      },
+    };
+  },
+};
+
+// ============================================================
+// Wash / smoosh — espalha caótico, gira, recolhe (~1.8s)
+// ============================================================
+// Casino wash: cartas explodem em posições pseudo-aleatórias (hash
+// estável do índice — sem Math.random no render), giram chaoticamente
+// no lugar, depois recolhem pro centro. custom = { i, total }.
+const washHash = (i: number, salt: number) => {
+  const x = Math.sin(i * 127.1 + salt * 311.7) * 43758.5453;
+  return x - Math.floor(x); // 0..1 estável
+};
+
+export const washCardVariants: Variants = {
+  rest: ({ i }: { i: number; total: number }) => ({
+    x: 0,
+    y: -i * 0.4,
+    rotate: 0,
+  }),
+  shuffle: ({ i }: { i: number; total: number }) => {
+    const r1 = washHash(i, 1);
+    const r2 = washHash(i, 2);
+    const r3 = washHash(i, 3);
+    const r4 = washHash(i, 4);
+    const r5 = washHash(i, 5);
+
+    const scatterX = (r1 - 0.5) * 140;
+    const scatterY = (r2 - 0.5) * 90;
+    const scatterRot = (r3 - 0.5) * 70;
+
+    const washX = scatterX + (r4 - 0.5) * 28;
+    const washY = scatterY + (r5 - 0.5) * 20;
+    const washRot = scatterRot + (r4 - 0.5) * 35;
+
+    return {
+      x: [0, scatterX, washX, 0, 0],
+      y: [-i * 0.4, scatterY, washY, 0, 0],
+      rotate: [0, scatterRot, washRot, 0, 0],
+      transition: {
+        duration: d(1.8),
+        times: [0, 0.25, 0.62, 0.88, 1],
+        ease: EASE_CONTEMPLATIVE,
+      },
+    };
   },
 };
 
@@ -1082,14 +1192,18 @@ export const beatLoserPushVariants: Variants = {
 // ============================================================
 // F04 — Onda dupla (double shockwave)
 // ============================================================
+// Pop imediato + expansão. Antes os times eram [0, 0.78, ...] —
+// 78% da duração esperando invisível pra estourar no fim. Esse gap
+// era preenchido pelo dust/spark; sem partículas o anel só aparece
+// depois de meio segundo de tela morta. Agora aparece já em ~10%.
 export const doubleShockwaveInnerVariants: Variants = {
   hidden: { scale: 0.4, opacity: 0 },
   pulse: {
-    scale: [0.4, 0.5, 0.6, 2.2],
-    opacity: [0, 0, 1, 0],
+    scale: [0.4, 0.6, 2.2],
+    opacity: [0, 1, 0],
     transition: {
-      duration: d(0.7),
-      times: [0, 0.78, 0.82, 1],
+      duration: d(0.6),
+      times: [0, 0.1, 1],
       ease: EASE_CONTEMPLATIVE,
     },
   },
@@ -1098,12 +1212,12 @@ export const doubleShockwaveInnerVariants: Variants = {
 export const doubleShockwaveOuterVariants: Variants = {
   hidden: { scale: 0.5, opacity: 0 },
   pulse: {
-    scale: [0.5, 0.6, 0.7, 3.2],
-    opacity: [0, 0, 0.8, 0],
+    scale: [0.5, 0.7, 3.2],
+    opacity: [0, 0.8, 0],
     transition: {
-      duration: d(0.9),
-      delay: d(0.06),
-      times: [0, 0.83, 0.87, 1],
+      duration: d(0.75),
+      delay: d(0.08),
+      times: [0, 0.1, 1],
       ease: EASE_CONTEMPLATIVE,
     },
   },

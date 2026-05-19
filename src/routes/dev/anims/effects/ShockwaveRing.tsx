@@ -27,7 +27,7 @@ export interface ShockwaveRingProps {
  */
 export function ShockwaveRing({
   color,
-  strokeWidth = 2,
+  strokeWidth = 3,
   size = 80,
   variants,
   initial,

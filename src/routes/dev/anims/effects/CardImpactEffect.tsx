@@ -1,37 +1,26 @@
 import { useEffect, useRef } from 'react';
 import { AnimatePresence, useReducedMotion } from 'framer-motion';
-import { IMPACT_TIMING } from '../animations';
 import type { SlamEffectProps } from './CardSlamEffect';
-import { CardDust } from './CardDust';
-import { CardSpark } from './CardSpark';
 import { ShockwaveRing } from './ShockwaveRing';
 
 // ----------------------------------------------------------------
-// F04 — "Bater combo" impact++: onda dupla + 10 dust + 6 sparks.
+// F04 — "Bater combo" impact++: onda dupla.
 // Mais pesado e celebratório que o CardSlamEffect (F02).
 // ----------------------------------------------------------------
-const DUST_ANGLES = [170, 195, 215, 235, 255, 275, 295, 315, 335, 355] as const;
-const DUST_DISTANCES = [50, 56, 52, 58, 54, 56, 52, 58, 50, 54] as const;
-const SPARK_ANGLES = [200, 230, 255, 285, 310, 335] as const;
-const SPARK_DISTANCES = [38, 42, 44, 44, 40, 36] as const;
-
-// Momento do impacto — derivado de animations.ts (IMPACT_TIMING.beat),
-// alinhado ao slam de beatPairForceVariants. Antes: 740 mágico.
-const IMPACT_DELAY_MS = IMPACT_TIMING.beat;
 
 // Keyframes das ondas. Espelham doubleShockwave{Inner,Outer}Variants de
 // animations.ts — mantidos inline aqui porque o componente precisa
 // escalar a `duration` pelo slowMo em runtime (o playground usa isso).
 // As duas fontes devem mudar juntas.
 const INNER_SHOCK = {
-  scale: [0.4, 0.5, 0.6, 2.2],
-  opacity: [0, 0, 1, 0],
-  times: [0, 0.78, 0.82, 1],
+  scale: [0.4, 0.6, 2.2],
+  opacity: [0, 1, 0],
+  times: [0, 0.1, 1],
 };
 const OUTER_SHOCK = {
-  scale: [0.5, 0.6, 0.7, 3.2],
-  opacity: [0, 0, 0.8, 0],
-  times: [0, 0.83, 0.87, 1],
+  scale: [0.5, 0.7, 3.2],
+  opacity: [0, 0.8, 0],
+  times: [0, 0.1, 1],
 };
 
 function ImpactEffectInner({
@@ -39,7 +28,7 @@ function ImpactEffectInner({
   onComplete,
   slowMo = 1,
 }: Omit<SlamEffectProps, 'trigger'>) {
-  const longestDuration = IMPACT_DELAY_MS + 800; // dust finishes last
+  const longestDuration = 80 + 750 + 50; // outerDelay + outerDuration + margin
   const onCompleteRef = useRef(onComplete);
   onCompleteRef.current = onComplete;
 
@@ -60,9 +49,9 @@ function ImpactEffectInner({
     pointerEvents: 'none',
   };
 
-  const innerDuration = 700 / slowMo / 1000;
-  const outerDuration = 900 / slowMo / 1000;
-  const outerDelay = 60 / slowMo / 1000;
+  const innerDuration = 600 / slowMo / 1000;
+  const outerDuration = 750 / slowMo / 1000;
+  const outerDelay = 80 / slowMo / 1000;
 
   return (
     <div style={containerStyle}>
@@ -92,27 +81,6 @@ function ImpactEffectInner({
         }}
       />
 
-      {DUST_ANGLES.map((angle, i) => (
-        <CardDust
-          key={i}
-          angle={angle}
-          distance={DUST_DISTANCES[i]}
-          delay={IMPACT_DELAY_MS + i * 25}
-          duration={800}
-          slowMo={slowMo}
-        />
-      ))}
-
-      {SPARK_ANGLES.map((angle, i) => (
-        <CardSpark
-          key={i}
-          angle={angle}
-          distance={SPARK_DISTANCES[i]}
-          delay={IMPACT_DELAY_MS + i * 20}
-          duration={600}
-          slowMo={slowMo}
-        />
-      ))}
     </div>
   );
 }

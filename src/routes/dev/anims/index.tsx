@@ -557,7 +557,7 @@ export default function AnimsDevPage() {
           <Slot
             tag="F02"
             title="CardSlamEffect"
-            note="Shockwave + 7 dust + 4 sparks. Composite do slam."
+            note="Shockwave. Composite do slam."
           >
             {() => (
               <>
@@ -584,7 +584,7 @@ export default function AnimsDevPage() {
           <Slot
             tag="F04"
             title="CardImpactEffect"
-            note="Onda dupla + 10 dust + 6 sparks. Mais pesado e celebratório que o slam."
+            note="Onda dupla. Mais pesado e celebratório que o slam."
           >
             {() => (
               <>
@@ -980,54 +980,139 @@ export default function AnimsDevPage() {
         </Section>
 
         {/* ---- Shuffle ---- */}
-        <Section title="Shuffle — riffle">
-          <Slot title="Riffle split" note="Baralho parte em duas metades, cartas voam alternadas pro centro. 1.4s." h={190}>
+        <Section title="Shuffles">
+          <Slot title="Riffle shuffle" note="Cada carta peela do baralho pra um dos lados, segura em pilha, volta pro centro interleaved (técnica deck-of-cards). ~1.7s." h={200}>
+            {(k) => {
+              const N = 12;
+              return (
+                <div className="relative" style={{ width: 200, height: 150 }}>
+                  {Array.from({ length: N }, (_, i) => (
+                    <motion.div
+                      key={`${k}-${i}`}
+                      custom={{ i, total: N }}
+                      variants={A.riffleCardVariants}
+                      initial="rest"
+                      animate="fly"
+                      style={{
+                        position: 'absolute',
+                        left: (200 - 44) / 2,
+                        top: (150 - 62) / 2,
+                        width: 44,
+                        height: 62,
+                        borderRadius: 4,
+                        background: 'linear-gradient(155deg, #fef9ee, #e9d6a3)',
+                        border: '2px solid #c8980e',
+                        boxShadow: '0 1px 3px oklch(0% 0 0 / 0.4)',
+                      }}
+                    />
+                  ))}
+                </div>
+              );
+            }}
+          </Slot>
+
+          <Slot title="Cut" note="Metade de cima arqueia, metade de baixo desliza pra cima. Corte simples, ~650ms." h={200}>
             {(k) => (
-              <div className="relative" style={{ width: 80, height: 100 }}>
+              <div className="relative" style={{ width: 130, height: 130 }}>
+                {/* Bottom half */}
                 <motion.div
-                  key={`${k}-glow`}
-                  variants={A.riffleGlowVariants}
+                  key={`${k}-cut-B`}
+                  variants={A.cutBottomHalfVariants}
                   initial="rest"
-                  animate="riffle"
-                  className="absolute inset-0 rounded-full"
+                  animate="cut"
                   style={{
-                    background: 'radial-gradient(circle, oklch(88% 0.12 140 / 0.5), transparent 70%)',
-                    filter: 'blur(12px)',
+                    position: 'absolute',
+                    left: (130 - 56) / 2,
+                    top: (130 - 80) / 2 + 4,
+                    width: 56,
+                    height: 80,
+                    borderRadius: 5,
+                    background: 'linear-gradient(155deg, #fef9ee, #e9d6a3)',
+                    border: '2px solid #c8980e',
+                    boxShadow: '0 2px 4px oklch(0% 0 0 / 0.4)',
                   }}
                 />
+                {/* Top half */}
                 <motion.div
-                  key={`${k}-L`}
-                  variants={A.riffleLeftHalfVariants}
+                  key={`${k}-cut-T`}
+                  variants={A.cutTopHalfVariants}
                   initial="rest"
-                  animate="riffle"
-                  className="absolute"
-                  style={{ left: 8, top: 4 }}
-                >
-                  <MockCard faceDown />
-                </motion.div>
-                <motion.div
-                  key={`${k}-R`}
-                  variants={A.riffleRightHalfVariants}
-                  initial="rest"
-                  animate="riffle"
-                  className="absolute"
-                  style={{ left: 16, top: 4 }}
-                >
-                  <MockCard faceDown />
-                </motion.div>
-                {[0, 1, 2, 3, 4, 5].map((i) => (
-                  <motion.div
-                    key={`${k}-c-${i}`}
-                    custom={i}
-                    variants={A.riffleCardVariants}
-                    initial="rest"
-                    animate="fly"
-                    className="absolute"
-                    style={{ left: 30, top: 36, width: 14, height: 20, borderRadius: 3, background: 'var(--color-panel)', border: '1px solid var(--color-border)' }}
-                  />
-                ))}
+                  animate="cut"
+                  style={{
+                    position: 'absolute',
+                    left: (130 - 56) / 2,
+                    top: (130 - 80) / 2 + 4,
+                    width: 56,
+                    height: 80,
+                    borderRadius: 5,
+                    background: 'linear-gradient(155deg, #fef9ee, #e9d6a3)',
+                    border: '2px solid #c8980e',
+                    boxShadow: '0 2px 4px oklch(0% 0 0 / 0.4)',
+                  }}
+                />
               </div>
             )}
+          </Slot>
+
+          <Slot title="Pile shuffle" note="Cartas distribuídas em 4 pilhas, recolhidas pilha-por-pilha (a reordenação É o shuffle). ~2.0s." h={220}>
+            {(k) => {
+              const N = 12;
+              const PILES = 4;
+              return (
+                <div className="relative" style={{ width: 240, height: 170 }}>
+                  {Array.from({ length: N }, (_, i) => (
+                    <motion.div
+                      key={`${k}-${i}`}
+                      custom={{ i, total: N, piles: PILES }}
+                      variants={A.pileCardVariants}
+                      initial="rest"
+                      animate="shuffle"
+                      style={{
+                        position: 'absolute',
+                        left: (240 - 44) / 2,
+                        top: (170 - 62) / 2 - 18,
+                        width: 44,
+                        height: 62,
+                        borderRadius: 4,
+                        background: 'linear-gradient(155deg, #fef9ee, #e9d6a3)',
+                        border: '2px solid #c8980e',
+                        boxShadow: '0 1px 3px oklch(0% 0 0 / 0.4)',
+                      }}
+                    />
+                  ))}
+                </div>
+              );
+            }}
+          </Slot>
+
+          <Slot title="Wash / smoosh" note="Cartas espalham caóticas face-down, mexem no lugar, recolhem (casino wash). ~1.8s." h={220}>
+            {(k) => {
+              const N = 18;
+              return (
+                <div className="relative" style={{ width: 220, height: 170 }}>
+                  {Array.from({ length: N }, (_, i) => (
+                    <motion.div
+                      key={`${k}-${i}`}
+                      custom={{ i, total: N }}
+                      variants={A.washCardVariants}
+                      initial="rest"
+                      animate="shuffle"
+                      style={{
+                        position: 'absolute',
+                        left: (220 - 40) / 2,
+                        top: (170 - 56) / 2,
+                        width: 40,
+                        height: 56,
+                        borderRadius: 4,
+                        background: 'linear-gradient(155deg, #fef9ee, #e9d6a3)',
+                        border: '2px solid #c8980e',
+                        boxShadow: '0 1px 3px oklch(0% 0 0 / 0.4)',
+                      }}
+                    />
+                  ))}
+                </div>
+              );
+            }}
           </Slot>
         </Section>
 
