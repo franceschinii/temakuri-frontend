@@ -1,0 +1,22 @@
+/* Dust burst particle — tonal, not bright */
+.dust {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, oklch(68% 0.04 145 / 0.9), oklch(48% 0.04 145 / 0));
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+/* Spark — small bright pop on heavy impact, accent-glow */
+.spark {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--color-accent-glow);
+  box-shadow: 0 0 8px var(--color-accent-glow);
+  pointer-events: none;
+  will-change: transform, opacity;
+}
