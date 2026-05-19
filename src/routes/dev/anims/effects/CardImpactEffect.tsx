@@ -23,14 +23,14 @@ const IMPACT_DELAY_MS = IMPACT_TIMING.beat;
 // escalar a `duration` pelo slowMo em runtime (o playground usa isso).
 // As duas fontes devem mudar juntas.
 const INNER_SHOCK = {
-  scale: [0.4, 0.5, 0.6, 2.2] as const,
-  opacity: [0, 0, 1, 0] as const,
-  times: [0, 0.78, 0.82, 1] as const,
+  scale: [0.4, 0.5, 0.6, 2.2],
+  opacity: [0, 0, 1, 0],
+  times: [0, 0.78, 0.82, 1],
 };
 const OUTER_SHOCK = {
-  scale: [0.5, 0.6, 0.7, 3.2] as const,
-  opacity: [0, 0, 0.8, 0] as const,
-  times: [0, 0.83, 0.87, 1] as const,
+  scale: [0.5, 0.6, 0.7, 3.2],
+  opacity: [0, 0, 0.8, 0],
+  times: [0, 0.83, 0.87, 1],
 };
 
 function ImpactEffectInner({
@@ -63,7 +63,7 @@ function ImpactEffectInner({
   const outerDuration = 900 / slowMo / 1000;
   const outerDelay = 60 / slowMo / 1000;
 
-  const shockwaveBase: React.CSSProperties = {
+  const shockwaveBase = {
     position: 'absolute',
     width: 80,
     height: 80,
@@ -72,7 +72,7 @@ function ImpactEffectInner({
     pointerEvents: 'none',
     translateX: '-50%',
     translateY: '-50%',
-  };
+  } as const;
 
   return (
     <div style={containerStyle}>
