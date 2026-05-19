@@ -801,6 +801,27 @@ export const dealBurstPopVariants: Variants = {
 };
 
 // ============================================================
+// Deal — Cascade drop (gravidade, squash & stretch)
+// ============================================================
+// Cartas caem de cima, escalonadas pelo stagger do pai. Stretch no ar
+// (queda), squash no impacto, micro-bounce de repouso. Keyframes — a
+// coreografia queda → pouso É o ponto. Variant-objeto: ignora custom.
+export const dealCascadeDropVariants: Variants = {
+  inDeck: { y: -120, scale: 0.85, opacity: 0, rotate: 0 },
+  inHand: {
+    y: [-120, 0, 6, 0],
+    scale: [0.85, 1.04, 0.88, 1],
+    opacity: [0, 1, 1, 1],
+    rotate: 0,
+    transition: {
+      duration: d(0.5),
+      times: [0, 0.55, 0.72, 1],
+      ease: EASE_CONTEMPLATIVE,
+    },
+  },
+};
+
+// ============================================================
 // Flip — Pokémon hold (revelação cinematográfica)
 // ============================================================
 export const flipPokemonHoldVariants: Variants = {

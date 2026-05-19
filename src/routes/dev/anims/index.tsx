@@ -487,6 +487,11 @@ export default function AnimsDevPage() {
             title="Deal burst pop"
             note="Cartas estouram do centro; spring juicy, bounce 0.55, stagger 90ms."
           />
+          <DealRow
+            child={A.dealCascadeDropVariants}
+            title="Deal cascade drop"
+            note="Cartas caem de cima; stretch na queda, squash no pouso, micro-bounce."
+          />
           <BeatPairDemo />
         </Section>
 
