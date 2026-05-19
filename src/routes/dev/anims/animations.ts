@@ -770,6 +770,37 @@ export const dealCalmSweepVariants: Variants = {
 };
 
 // ============================================================
+// Deal — Burst pop (variante Balatro juicy, radial)
+// ============================================================
+// Cartas partem empilhadas no centro da linha e estouram pra fora até
+// a posição final do flex. Overshoot do SPRING.juicy = o pop. custom =
+// { i, count } — o variant calcula o offset radial; o stagger do pai
+// (dealParentVariants) dá a cascata. Geometria: CARD_SPAN = MockCard
+// w-16 (64px) + gap-1 (4px).
+const DEAL_CARD_SPAN = 68;
+
+export const dealBurstPopVariants: Variants = {
+  inDeck: ({ i, count }: { i: number; count: number }) => {
+    const center = (count - 1) / 2;
+    return {
+      x: (center - i) * DEAL_CARD_SPAN,
+      y: 8,
+      scale: 0.3,
+      opacity: 0,
+      rotate: (center - i) * 4,
+    };
+  },
+  inHand: {
+    x: 0,
+    y: 0,
+    scale: 1,
+    opacity: 1,
+    rotate: 0,
+    transition: SPRING.juicy,
+  },
+};
+
+// ============================================================
 // Flip — Pokémon hold (revelação cinematográfica)
 // ============================================================
 export const flipPokemonHoldVariants: Variants = {

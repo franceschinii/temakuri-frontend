@@ -233,7 +233,7 @@ function DealRow({ child, title, note }: { child: Variants; title: string; note:
           animate="inHand"
         >
           {[0, 1, 2, 3, 4].map((i) => (
-            <motion.div key={i} variants={child}>
+            <motion.div key={i} variants={child} custom={{ i, count: 5 }}>
               <MockCard value={i + 2} label="SUSHI" />
             </motion.div>
           ))}
@@ -481,6 +481,11 @@ export default function AnimsDevPage() {
             child={A.dealCalmSweepVariants}
             title="Deal calm sweep"
             note="Variante contida: chegam do canto sup-esquerdo, spring soft sem bounce."
+          />
+          <DealRow
+            child={A.dealBurstPopVariants}
+            title="Deal burst pop"
+            note="Cartas estouram do centro; spring juicy, bounce 0.55, stagger 90ms."
           />
           <BeatPairDemo />
         </Section>
