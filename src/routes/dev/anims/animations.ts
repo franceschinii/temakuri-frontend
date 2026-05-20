@@ -912,6 +912,264 @@ export const washCardVariants: Variants = {
 };
 
 // ============================================================
+// Spring — arco rainbow (~1.4s)
+// ============================================================
+// Stack → expande em arco horizontal (rainbow) → segura → colapsa de
+// volta. Cada carta calcula sua posição no arco baseado no índice.
+// custom = { i, total }.
+export const springCardVariants: Variants = {
+  rest: ({ i }: { i: number; total: number }) => ({
+    x: 0,
+    y: -i * 0.4,
+    rotate: 0,
+  }),
+  shuffle: ({ i, total }: { i: number; total: number }) => {
+    const SPREAD = 16;       // distância x entre cartas no arco
+    const ARC_HEIGHT = 32;   // altura do pico do arco
+    const ROT_STEP = 5;      // ângulo entre cartas
+
+    const center = (total - 1) / 2;
+    const offset = i - center;             // -center..+center
+    const norm = offset / center;          // -1..+1
+
+    const arcX = offset * SPREAD;
+    const arcY = -ARC_HEIGHT * (1 - norm * norm) - 4; // parábola
+    const arcRot = offset * ROT_STEP;
+
+    return {
+      x: [0, arcX, arcX, 0, 0],
+      y: [-i * 0.4, arcY, arcY, -i * 0.4, 0],
+      rotate: [0, arcRot, arcRot, 0, 0],
+      transition: {
+        duration: d(1.4),
+        delay: d(Math.abs(offset) * 0.012), // pequena onda do centro pras pontas
+        times: [0, 0.3, 0.6, 0.9, 1],
+        ease: EASE_CONTEMPLATIVE,
+      },
+    };
+  },
+};
+
+// ============================================================
+// Cascade fan — leque radial 180° (~1.5s)
+// ============================================================
+// Stack pivota e abre num leque radial (mágico abrindo cartas), segura,
+// fecha de volta. transformOrigin no centro-base aplicado pelo demo.
+// custom = { i, total }.
+export const cascadeFanCardVariants: Variants = {
+  rest: ({ i }: { i: number; total: number }) => ({
+    x: 0,
+    y: -i * 0.4,
+    rotate: 0,
+  }),
+  shuffle: ({ i, total }: { i: number; total: number }) => {
+    const FAN_DEG = 180;     // ângulo total do leque
+    const RADIUS = 8;        // pequeno empurrão radial pra separar cartas
+
+    const center = (total - 1) / 2;
+    const angle = (i / (total - 1)) * FAN_DEG - FAN_DEG / 2; // -90..+90
+    const rad = (angle * Math.PI) / 180;
+
+    const fanX = Math.sin(rad) * RADIUS;
+    const fanY = -Math.cos(rad) * RADIUS;
+
+    return {
+      x: [0, fanX, fanX, 0, 0],
+      y: [-i * 0.4, fanY, fanY, -i * 0.4, 0],
+      rotate: [0, angle, angle, 0, 0],
+      transition: {
+        duration: d(1.5),
+        delay: d(Math.abs(i - center) * 0.018),
+        times: [0, 0.32, 0.65, 0.92, 1],
+        ease: EASE_CONTEMPLATIVE,
+      },
+    };
+  },
+};
+
+// ============================================================
+// Overhand — chunks da base sobem pro topo (~1.6s, 4 chunks de 3)
+// ============================================================
+// Visual clássico: pega chunk de 3 cartas da base, leva por cima e
+// solta no topo. Loop com 4 chunks (12 cartas / 3). custom = {i, total,
+// chunkSize}. Cartas mais "abaixo" (i maior) movem primeiro.
+export const overhandCardVariants: Variants = {
+  rest: ({ i }: { i: number; total: number; chunkSize: number }) => ({
+    x: 0,
+    y: -i * 0.5,
+    rotate: 0,
+  }),
+  shuffle: ({
+    i,
+    total,
+    chunkSize,
+  }: {
+    i: number;
+    total: number;
+    chunkSize: number;
+  }) => {
+    const numChunks = Math.ceil(total / chunkSize);
+    const chunkIdx = Math.floor(i / chunkSize);
+    const chunkOrder = numChunks - 1 - chunkIdx; // base move primeiro
+
+    const STAGGER = 0.22;
+    const MOVE_DUR = 0.4;
+    const TOTAL = STAGGER * numChunks + MOVE_DUR;
+
+    const moveStart = (chunkOrder * STAGGER) / TOTAL;
+    const arcPeak = moveStart + (MOVE_DUR * 0.4) / TOTAL;
+    const landing = moveStart + (MOVE_DUR * 0.8) / TOTAL;
+    const moveEnd = moveStart + MOVE_DUR / TOTAL;
+
+    return {
+      x: [0, 0, 8, 14, 0, 0],
+      y: [-i * 0.5, -i * 0.5, -52, -32, 0, 0],
+      rotate: [0, 0, -4, 3, 0, 0],
+      transition: {
+        duration: d(TOTAL),
+        times: [0, moveStart, arcPeak, landing, moveEnd, 1],
+        ease: EASE_CONTEMPLATIVE,
+      },
+    };
+  },
+};
+
+// ============================================================
+// Tornado — vórtice com spin (~1.7s)
+// ============================================================
+// Cartas orbitam o centro 1.5 voltas com raio variável (sobe e desce
+// num seno), spin parcial próprio. Cada carta começa em ângulo
+// diferente baseado no índice — vértice visual distribuído.
+// custom = { i, total }.
+export const tornadoCardVariants: Variants = {
+  rest: ({ i }: { i: number; total: number }) => ({
+    x: 0,
+    y: -i * 0.4,
+    rotate: 0,
+  }),
+  shuffle: ({ i, total }: { i: number; total: number }) => {
+    const KFS = 9;
+    const TURNS = 1.5;
+    const MAX_R = 56;
+    const baseAngle = (i / total) * 360;
+
+    const xs: number[] = [];
+    const ys: number[] = [];
+    const rots: number[] = [];
+    const times: number[] = [];
+
+    for (let k = 0; k < KFS; k++) {
+      const t = k / (KFS - 1);
+      const angle = baseAngle + TURNS * 360 * t;
+      const r = MAX_R * Math.sin(t * Math.PI); // 0 → max → 0
+      const rad = (angle * Math.PI) / 180;
+      xs.push(r * Math.cos(rad));
+      ys.push(r * Math.sin(rad) - (1 - t) * i * 0.4); // converge do stack
+      rots.push(angle * 0.3);
+      times.push(t);
+    }
+
+    return {
+      x: xs,
+      y: ys,
+      rotate: rots,
+      transition: {
+        duration: d(1.7),
+        times,
+        ease: 'linear', // ease aplicado por trecho causaria stutter na órbita
+      },
+    };
+  },
+};
+
+// ============================================================
+// Domino fall — tombamento em cascata (~1.4s)
+// ============================================================
+// Cada carta inclina ~80° pra frente (transformOrigin '50% 100%' no
+// demo), espera todas tombarem, e voltam pra vertical em onda. Stagger
+// por índice cria o domino. custom = { i, total }.
+export const dominoFallVariants: Variants = {
+  rest: ({ i }: { i: number; total: number }) => ({
+    x: 0,
+    y: -i * 0.5,
+    rotate: 0,
+  }),
+  shuffle: ({ i, total }: { i: number; total: number }) => {
+    const STAGGER = 0.05;
+    const TIP_DUR = 0.25;
+    const HOLD = 0.4;
+    const STAND_DUR = 0.25;
+    const TOTAL = STAGGER * total + TIP_DUR + HOLD + STAND_DUR;
+
+    const tipStart = (i * STAGGER) / TOTAL;
+    const tipEnd = tipStart + TIP_DUR / TOTAL;
+    // Levantam de volta na ordem inversa (último que caiu, primeiro a
+    // levantar) — onda reversa.
+    const standStart = (STAGGER * total + TIP_DUR + HOLD) / TOTAL
+      + ((total - 1 - i) * STAGGER * 0.4) / TOTAL;
+    const standEnd = standStart + STAND_DUR / TOTAL;
+
+    return {
+      x: [0, 0, 0, 0, 0, 0],
+      y: [-i * 0.5, -i * 0.5, -i * 0.5 + 3, -i * 0.5 + 3, -i * 0.5, 0],
+      rotate: [0, 0, 78, 78, 0, 0],
+      transition: {
+        duration: d(TOTAL),
+        times: [0, tipStart, tipEnd, standStart, standEnd, 1],
+        ease: EASE_CONTEMPLATIVE,
+      },
+    };
+  },
+};
+
+// ============================================================
+// Hindu — chunks horizontais (~1.6s)
+// ============================================================
+// Variante lateral do overhand: chunks deslizam pro lado em vez de
+// subirem por cima. Mesma estrutura, eixo trocado. Chunks da base
+// movem primeiro (overhand convention). custom = { i, total, chunkSize }.
+export const hinduCardVariants: Variants = {
+  rest: ({ i }: { i: number; total: number; chunkSize: number }) => ({
+    x: 0,
+    y: -i * 0.5,
+    rotate: 0,
+  }),
+  shuffle: ({
+    i,
+    total,
+    chunkSize,
+  }: {
+    i: number;
+    total: number;
+    chunkSize: number;
+  }) => {
+    const numChunks = Math.ceil(total / chunkSize);
+    const chunkIdx = Math.floor(i / chunkSize);
+    const chunkOrder = numChunks - 1 - chunkIdx;
+
+    const STAGGER = 0.22;
+    const MOVE_DUR = 0.4;
+    const TOTAL = STAGGER * numChunks + MOVE_DUR;
+
+    const moveStart = (chunkOrder * STAGGER) / TOTAL;
+    const arcPeak = moveStart + (MOVE_DUR * 0.4) / TOTAL;
+    const landing = moveStart + (MOVE_DUR * 0.8) / TOTAL;
+    const moveEnd = moveStart + MOVE_DUR / TOTAL;
+
+    return {
+      x: [0, 0, 70, 40, 0, 0],
+      y: [-i * 0.5, -i * 0.5, -i * 0.5 - 6, -i * 0.5 - 3, 0, 0],
+      rotate: [0, 0, 6, 4, 0, 0],
+      transition: {
+        duration: d(TOTAL),
+        times: [0, moveStart, arcPeak, landing, moveEnd, 1],
+        ease: EASE_CONTEMPLATIVE,
+      },
+    };
+  },
+};
+
+// ============================================================
 // Deal — Calm sweep (variante contida, estilo Inscryption)
 // ============================================================
 export const dealCalmSweepVariants: Variants = {

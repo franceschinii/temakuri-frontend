@@ -10,13 +10,14 @@
  */
 
 import { useState } from 'react';
-import { motion, useAnimationControls, MotionConfig } from 'framer-motion';
+import { motion, MotionConfig } from 'framer-motion';
 import type { Variants } from 'framer-motion';
 import { MockCard } from './MockCard';
 import { PokemonHoldFlip } from './PokemonHoldFlip';
 import { MatchScorePopup } from './MatchScorePopup';
 import { MonteRevealOverlay } from './MonteRevealOverlay';
 import { CardSlamEffect, CardImpactEffect, StageTremor, GlowLayer, ShockwaveRing } from './effects';
+import { SaborPopup } from './SaborPopup';
 import { DevNav } from '../_DevNav';
 import * as A from './animations';
 
@@ -378,12 +379,10 @@ export default function AnimsDevPage() {
   const [slamTick, setSlamTick] = useState(0);
   const [impactTick, setImpactTick] = useState(0);
   const [tremorTick, setTremorTick] = useState(0);
+  const [saborPopupTick, setSaborPopupTick] = useState(0);
   const [monteKey, setMonteKey] = useState(0);
   const [scoreKey, setScoreKey] = useState(0);
   const [holdRevealed, setHoldRevealed] = useState(false);
-
-  // 16 — shake via animation controls.
-  const shake = useAnimationControls();
 
   // seatAvatar — ciclo de estados.
   const SEAT_STATES = ['arriving', 'seated', 'leaving'] as const;
@@ -892,6 +891,23 @@ export default function AnimsDevPage() {
               />
             )}
           </Slot>
+
+          <Slot tag="14" title="Sabor popup (fullscreen)" note="Anúncio em tela cheia, fonte display italic, kanji 味 atrás, glow âmbar. Auto-dismiss ~1.7s.">
+            {() => (
+              <button
+                onClick={() => setSaborPopupTick((t) => t + 1)}
+                className="text-[11px] font-mono px-2 py-0.5 rounded"
+                style={{
+                  background: 'var(--color-accent-strong)',
+                  color: 'var(--color-accent-glow)',
+                  border: '1px solid var(--color-accent-mid)',
+                  cursor: 'pointer',
+                }}
+              >
+                ▸ disparar Sabor
+              </button>
+            )}
+          </Slot>
         </Section>
 
         {/* ---- Recompensa / rank ---- */}
@@ -1116,35 +1132,196 @@ export default function AnimsDevPage() {
               );
             }}
           </Slot>
-        </Section>
 
-        {/* ---- 16 invalid shake (animation controls) ---- */}
-        <Section title="Shake imperativo (animation controls)">
-          <Slot tag="16" title="Invalid shake (controls)" note="Mesma anim de jogada inválida, disparada via useAnimationControls.">
-            {() => (
-              <>
-                <motion.div variants={A.invalidCardVariants} animate={shake} initial="rest" className="rounded-lg">
-                  <MockCard />
-                </motion.div>
-                <button
-                  onClick={() => shake.start('rejected').then(() => shake.set('rest'))}
-                  className="absolute bottom-2 text-[11px] font-mono px-2 py-0.5 rounded"
-                  style={{
-                    background: 'var(--color-accent-strong)',
-                    color: 'var(--color-accent-glow)',
-                    border: '1px solid var(--color-accent-mid)',
-                    cursor: 'pointer',
-                  }}
-                >
-                  ▸ disparar
-                </button>
-              </>
-            )}
+          <Slot title="Spring (arco rainbow)" note="Cartas explodem do stack num arco horizontal, seguram, colapsam. Pequena onda do centro. ~1.4s." h={200}>
+            {(k) => {
+              const N = 14;
+              return (
+                <div className="relative" style={{ width: 280, height: 160 }}>
+                  {Array.from({ length: N }, (_, i) => (
+                    <motion.div
+                      key={`${k}-${i}`}
+                      custom={{ i, total: N }}
+                      variants={A.springCardVariants}
+                      initial="rest"
+                      animate="shuffle"
+                      style={{
+                        position: 'absolute',
+                        left: (280 - 40) / 2,
+                        top: (160 - 56) / 2 + 12,
+                        width: 40,
+                        height: 56,
+                        borderRadius: 4,
+                        background: 'linear-gradient(155deg, #fef9ee, #e9d6a3)',
+                        border: '2px solid #c8980e',
+                        boxShadow: '0 1px 3px oklch(0% 0 0 / 0.4)',
+                      }}
+                    />
+                  ))}
+                </div>
+              );
+            }}
+          </Slot>
+
+          <Slot title="Cascade fan (leque 180°)" note="Stack pivota e abre num leque radial, segura, fecha. Tipo mágico abrindo cartas. ~1.5s." h={220}>
+            {(k) => {
+              const N = 12;
+              return (
+                <div className="relative" style={{ width: 220, height: 180 }}>
+                  {Array.from({ length: N }, (_, i) => (
+                    <motion.div
+                      key={`${k}-${i}`}
+                      custom={{ i, total: N }}
+                      variants={A.cascadeFanCardVariants}
+                      initial="rest"
+                      animate="shuffle"
+                      style={{
+                        position: 'absolute',
+                        left: (220 - 36) / 2,
+                        top: (180 - 52) / 2 + 18,
+                        width: 36,
+                        height: 52,
+                        borderRadius: 4,
+                        background: 'linear-gradient(155deg, #fef9ee, #e9d6a3)',
+                        border: '2px solid #c8980e',
+                        boxShadow: '0 1px 3px oklch(0% 0 0 / 0.4)',
+                        transformOrigin: '50% 100%',
+                      }}
+                    />
+                  ))}
+                </div>
+              );
+            }}
+          </Slot>
+
+          <Slot title="Overhand (chunks da base → topo)" note="Pega chunks de 3 cartas da base, leva por cima, deposita no topo. 4 chunks. ~1.6s." h={220}>
+            {(k) => {
+              const N = 12;
+              const CHUNK = 3;
+              return (
+                <div className="relative" style={{ width: 140, height: 170 }}>
+                  {Array.from({ length: N }, (_, i) => (
+                    <motion.div
+                      key={`${k}-${i}`}
+                      custom={{ i, total: N, chunkSize: CHUNK }}
+                      variants={A.overhandCardVariants}
+                      initial="rest"
+                      animate="shuffle"
+                      style={{
+                        position: 'absolute',
+                        left: (140 - 44) / 2,
+                        top: (170 - 62) / 2 + 18,
+                        width: 44,
+                        height: 62,
+                        borderRadius: 4,
+                        background: 'linear-gradient(155deg, #fef9ee, #e9d6a3)',
+                        border: '2px solid #c8980e',
+                        boxShadow: '0 1px 3px oklch(0% 0 0 / 0.4)',
+                      }}
+                    />
+                  ))}
+                </div>
+              );
+            }}
+          </Slot>
+
+          <Slot title="Tornado / vortex" note="Cartas orbitam o centro 1.5 voltas com spin parcial, raio sobe e desce em seno. ~1.7s." h={240}>
+            {(k) => {
+              const N = 16;
+              return (
+                <div className="relative" style={{ width: 260, height: 200 }}>
+                  {Array.from({ length: N }, (_, i) => (
+                    <motion.div
+                      key={`${k}-${i}`}
+                      custom={{ i, total: N }}
+                      variants={A.tornadoCardVariants}
+                      initial="rest"
+                      animate="shuffle"
+                      style={{
+                        position: 'absolute',
+                        left: (260 - 36) / 2,
+                        top: (200 - 52) / 2,
+                        width: 36,
+                        height: 52,
+                        borderRadius: 4,
+                        background: 'linear-gradient(155deg, #fef9ee, #e9d6a3)',
+                        border: '2px solid #c8980e',
+                        boxShadow: '0 1px 3px oklch(0% 0 0 / 0.4)',
+                      }}
+                    />
+                  ))}
+                </div>
+              );
+            }}
+          </Slot>
+
+          <Slot title="Domino fall" note="Cartas tombam pra frente em cascata (transformOrigin no rodapé), seguram, levantam na onda reversa. ~1.4s." h={220}>
+            {(k) => {
+              const N = 10;
+              return (
+                <div className="relative" style={{ width: 200, height: 170 }}>
+                  {Array.from({ length: N }, (_, i) => (
+                    <motion.div
+                      key={`${k}-${i}`}
+                      custom={{ i, total: N }}
+                      variants={A.dominoFallVariants}
+                      initial="rest"
+                      animate="shuffle"
+                      style={{
+                        position: 'absolute',
+                        left: (200 - 44) / 2,
+                        top: (170 - 62) / 2 + 16,
+                        width: 44,
+                        height: 62,
+                        borderRadius: 4,
+                        background: 'linear-gradient(155deg, #fef9ee, #e9d6a3)',
+                        border: '2px solid #c8980e',
+                        boxShadow: '0 1px 3px oklch(0% 0 0 / 0.4)',
+                        transformOrigin: '50% 100%',
+                      }}
+                    />
+                  ))}
+                </div>
+              );
+            }}
+          </Slot>
+
+          <Slot title="Hindu (chunks horizontais)" note="Variante lateral do overhand — chunks deslizam pro lado em vez de subir. 4 chunks. ~1.6s." h={220}>
+            {(k) => {
+              const N = 12;
+              const CHUNK = 3;
+              return (
+                <div className="relative" style={{ width: 220, height: 170 }}>
+                  {Array.from({ length: N }, (_, i) => (
+                    <motion.div
+                      key={`${k}-${i}`}
+                      custom={{ i, total: N, chunkSize: CHUNK }}
+                      variants={A.hinduCardVariants}
+                      initial="rest"
+                      animate="shuffle"
+                      style={{
+                        position: 'absolute',
+                        left: (220 - 44) / 2 - 30,
+                        top: (170 - 62) / 2 + 18,
+                        width: 44,
+                        height: 62,
+                        borderRadius: 4,
+                        background: 'linear-gradient(155deg, #fef9ee, #e9d6a3)',
+                        border: '2px solid #c8980e',
+                        boxShadow: '0 1px 3px oklch(0% 0 0 / 0.4)',
+                      }}
+                    />
+                  ))}
+                </div>
+              );
+            }}
           </Slot>
         </Section>
+
       </main>
 
       <MonteRevealOverlay playKey={monteKey} />
+      <SaborPopup trigger={saborPopupTick} triggeredBy="Yuki" />
     </div>
     </MotionConfig>
   );
