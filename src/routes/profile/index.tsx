@@ -5,7 +5,14 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Modal } from '@/components/ui/modal';
-import { AvatarWithBorder, AvatarImage, AVATAR_NAMES, avatarCount } from '@/components/ui/Avatar';
+import {
+  AvatarWithBorder,
+  AvatarImage,
+  AVATAR_VISIBLE_INDICES,
+  getAvatarName,
+  normalizeAvatarIndex,
+  normalizeUnlockedAvatarIndices,
+} from '@/components/ui/Avatar';
 import { LevelBadge } from '@/components/ui/LevelBadge';
 import { RankBadge } from '@/components/ui/RankBadge';
 import { XpBar } from '@/components/ui/XpBar';
@@ -29,7 +36,7 @@ export default function ProfilePage() {
   const setUser = useAuthStore(s => s.setUser);
   const qc = useQueryClient();
 
-  const [selectedAvatar, setSelectedAvatar] = useState(user?.avatarIndex ?? 0);
+  const [selectedAvatar, setSelectedAvatar] = useState(normalizeAvatarIndex(user?.avatarIndex ?? 0));
   const [editingAvatar, setEditingAvatar] = useState(false);
   const [usernameInput, setUsernameInput] = useState(user?.username ?? '');
   const [usernameStatus, setUsernameStatus] = useState<UsernameStatus>('same');
@@ -54,11 +61,11 @@ export default function ProfilePage() {
     enabled: !user?.isGuest,
   });
 
-  const unlockedAvatars = inventory?.unlockedAvatars ?? [0, 1, 2, 3];
+  const unlockedAvatars = normalizeUnlockedAvatarIndices(inventory?.unlockedAvatars ?? [0, 1, 2, 3]);
 
   useEffect(() => {
     if (user) {
-      setSelectedAvatar(user.avatarIndex ?? 0);
+      setSelectedAvatar(normalizeAvatarIndex(user.avatarIndex ?? 0));
       setUsernameInput(user.username ?? '');
     }
   }, [user]);
@@ -89,7 +96,7 @@ export default function ProfilePage() {
     }, 500);
   }, [usernameInput, user?.username, user?.isGuest]);
 
-  const avatarChanged = selectedAvatar !== (user?.avatarIndex ?? 0);
+  const avatarChanged = selectedAvatar !== normalizeAvatarIndex(user?.avatarIndex ?? 0);
   const usernameChanged = usernameStatus !== 'same' && usernameInput.trim() !== user?.username;
   const canSaveAvatar = avatarChanged;
   const canSaveUsername = usernameStatus === 'available';
@@ -169,7 +176,7 @@ export default function ProfilePage() {
                   <RankBadge pds={user?.pds ?? 0} size="sm" />
                 )}
               </div>
-              <p className="text-xs text-[var(--color-text-muted)]">{AVATAR_NAMES[selectedAvatar % avatarCount()]}</p>
+              <p className="text-xs text-[var(--color-text-muted)]">{getAvatarName(selectedAvatar)}</p>
             </div>
             {user?.isGuest && (
               <span className="text-xs px-2.5 py-0.5 rounded-full bg-[var(--color-panel)] border border-[var(--color-border)] text-[var(--color-text-muted)]">
@@ -224,7 +231,7 @@ export default function ProfilePage() {
           {editingAvatar && <section className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 flex flex-col gap-4">
             <p className="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">Avatar</p>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              {Array.from({ length: avatarCount() }).map((_, i) => {
+              {AVATAR_VISIBLE_INDICES.map(i => {
                 const locked = !unlockedAvatars.includes(i);
                 return (
                   <button
@@ -240,7 +247,7 @@ export default function ProfilePage() {
                     )}
                   >
                     <AvatarImage index={i} size={52} />
-                    <span className="text-[10px] text-[var(--color-text-muted)] font-medium">{AVATAR_NAMES[i]}</span>
+                    <span className="text-[10px] text-[var(--color-text-muted)] font-medium">{getAvatarName(i)}</span>
                     {locked && <Lock size={10} className="text-[var(--color-text-muted)]" />}
                   </button>
                 );
