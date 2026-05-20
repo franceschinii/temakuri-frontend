@@ -9,10 +9,19 @@ export function formatTimestamp(ts: number): string {
 }
 
 /**
- * Formata uma data ISO (YYYY-MM-DD) ou Date para "DD/MM" pt-BR.
+ * Formata data para "DD/MM" pt-BR. Aceita Date, ISO curto (YYYY-MM-DD) ou
+ * ISO completo com tempo (YYYY-MM-DDTHH:mm:ss.sssZ).
  */
 export function formatDate(input: string | Date): string {
-  const d = typeof input === 'string' ? new Date(input + 'T00:00:00') : input;
+  let d: Date;
+  if (input instanceof Date) {
+    d = input;
+  } else if (typeof input === 'string' && input.length === 10) {
+    d = new Date(input + 'T00:00:00');
+  } else {
+    d = new Date(input);
+  }
+  if (isNaN(d.getTime())) return '--/--';
   const day = String(d.getDate()).padStart(2, '0');
   const month = String(d.getMonth() + 1).padStart(2, '0');
   return `${day}/${month}`;
