@@ -17,6 +17,7 @@ import { PokemonHoldFlip } from './PokemonHoldFlip';
 import { MatchScorePopup } from './MatchScorePopup';
 import { MonteRevealOverlay } from './MonteRevealOverlay';
 import { CardSlamEffect, CardImpactEffect, StageTremor, GlowLayer, ShockwaveRing } from './effects';
+import { DevNav } from '../_DevNav';
 import * as A from './animations';
 
 // ---------------------------------------------------------------------------
@@ -405,7 +406,7 @@ export default function AnimsDevPage() {
           borderBottom: '1px solid var(--color-border)',
         }}
       >
-        <div className="flex items-baseline gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           <span
             style={{
               fontFamily: 'var(--font-display)',
@@ -417,6 +418,7 @@ export default function AnimsDevPage() {
           >
             テマクリ · Anims
           </span>
+          <DevNav />
           <span className="text-[12px]" style={{ color: 'var(--color-text-muted)' }}>
             playground autocontido — sem auth, sem lógica de jogo
           </span>

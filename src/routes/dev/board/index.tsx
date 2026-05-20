@@ -15,6 +15,7 @@ import { MotionConfig } from 'framer-motion';
 import { useAuthStore } from '@/stores/authStore';
 import { useGameStore } from '@/stores/gameStore';
 import { GameBoard } from '@/components/game/GameBoard';
+import { DevNav } from '../_DevNav';
 import { SCENARIOS, findScenario, FORCE_MOBILE_IDS, FORCE_TALL_IDS } from './scenarios';
 
 export default function BoardDevPage() {
@@ -100,6 +101,7 @@ function DevPickerBar({ scenarioId, onChange, hint }: DevPickerBarProps) {
       <span className="font-mono uppercase tracking-widest text-[var(--color-text-muted)]">
         /dev/board
       </span>
+      <DevNav />
       <select
         value={scenarioId}
         onChange={(e) => onChange(e.target.value)}
