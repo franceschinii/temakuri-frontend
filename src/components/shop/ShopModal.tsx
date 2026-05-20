@@ -3,7 +3,7 @@ import { Check, HandHeart, Ticket, X } from 'lucide-react';
 import { Modal } from '@/components/ui/modal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { AvatarImage } from '@/components/ui/Avatar';
+import { AvatarImage, LEGACY_UDON_AVATAR_INDEX, UDON_GOLD_AVATAR_INDEX } from '@/components/ui/Avatar';
 import { CoinDisplay } from '@/components/ui/CoinDisplay';
 import { DiamondDisplay } from '@/components/ui/DiamondDisplay';
 import { DiamondIcon } from '@/components/ui/DiamondIcon';
@@ -49,6 +49,12 @@ export function ShopModal({ open, onClose }: ShopModalProps) {
   } = useShopStore();
   const user = useAuthStore(s => s.user);
   const userBalance = confirmItem?.currency === 'diamonds' ? (user?.diamonds ?? 0) : (user?.coins ?? 0);
+  const legacyUdonItem = catalog?.avatars.find(item => item.index === LEGACY_UDON_AVATAR_INDEX);
+  const avatarItems = (catalog?.avatars ?? [])
+    .filter(item => item.index !== LEGACY_UDON_AVATAR_INDEX)
+    .map(item => item.index === UDON_GOLD_AVATAR_INDEX
+      ? { ...item, owned: item.owned || Boolean(legacyUdonItem?.owned) }
+      : item);
 
   useEffect(() => {
     if (open) fetchCatalog();
@@ -213,7 +219,7 @@ export function ShopModal({ open, onClose }: ShopModalProps) {
             {/* AVATARES */}
             {tab === 'avatars' && (
               <div className="grid grid-cols-4 gap-3">
-                {catalog?.avatars.map(item => (
+                {avatarItems.map(item => (
                   <div
                     key={item.index}
                     data-testid={`shop-avatar-${item.index}`}
