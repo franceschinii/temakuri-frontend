@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.9.0-beta] — 2026-05-20
+
+### Novidades
+- **Avatares novos e muito mais bonitos!** Trocamos toda a galeria por personagens repaginados em alta resolução. Escolha entre quem combina mais com você: Temaki, Ramen, Onigiri, Gyoza, Sashimi, Takoyaki, Miso, Udon Gold, Yokai, Kitsune, Tanuki, Geisha, Samurai, Dragão Dourado ou Ninja.
+- **Seu Udon ficou ainda mais especial:** se você já jogava com o Udon, agora ele virou **Udon Gold** automaticamente. Nada para fazer, só curtir o novo visual.
+
+### Melhorias
+- Loja e perfil atualizados com a nova galeria — vale a pena dar uma passada lá pra ver todos.
+
+---
+
 ## [0.8.0-beta] — 2026-05-18
 
 ### Novidades
