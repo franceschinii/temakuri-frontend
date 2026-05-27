@@ -4,12 +4,13 @@ import { useTutorialFlow } from '@/hooks/useTutorialFlow';
 import { useTutorialStore } from '@/stores/tutorialStore';
 
 export function TutorialOverlay() {
-  const { currentStep, allowedAction } = useTutorialFlow();
+  const { currentStep, allowedAction, stepIndex, totalSteps } = useTutorialFlow();
   const advance = useTutorialStore(s => s.advanceFromOverlay);
 
   if (!currentStep) return null;
 
-  const showCta = allowedAction.type === 'overlay-click';
+  const showCta     = allowedAction.type === 'overlay-click';
+  const showProgress = stepIndex >= 0; // so exibe para steps da ordem principal
 
   return (
     <AnimatePresence>
@@ -47,7 +48,30 @@ export function TutorialOverlay() {
           <div style={{ color: 'var(--color-accent-mid)', flexShrink: 0, paddingTop: 2 }}>
             <GraduationCap size={20} />
           </div>
+
           <div style={{ flex: 1 }}>
+            {/* Barra de progresso */}
+            {showProgress && (
+              <div style={{ marginBottom: 8 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                  <span style={{ fontSize: 10, color: 'var(--color-text-muted)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+                    Passo {stepIndex + 1} de {totalSteps}
+                  </span>
+                </div>
+                <div style={{ height: 3, background: 'var(--color-border)', borderRadius: 99 }}>
+                  <div
+                    style={{
+                      height: '100%',
+                      width: `${((stepIndex + 1) / totalSteps) * 100}%`,
+                      background: 'var(--color-accent-mid)',
+                      borderRadius: 99,
+                      transition: 'width 0.3s ease',
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+
             <div
               style={{
                 color: 'var(--color-text-primary)',
@@ -58,6 +82,7 @@ export function TutorialOverlay() {
             >
               {currentStep.title}
             </div>
+
             <div
               style={{
                 color: 'var(--color-text-muted)',
@@ -67,6 +92,7 @@ export function TutorialOverlay() {
             >
               {currentStep.text}
             </div>
+
             {showCta && allowedAction.type === 'overlay-click' && (
               <button
                 onClick={advance}

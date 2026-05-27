@@ -8,7 +8,11 @@ export type TutorialStep =
   | 'BEAT_BACK'
   | 'BOT_PASSES'
   | 'YOU_PASS'
+  | 'PICK_POSITION'
   | 'WIPE'
+  | 'SABOR_EXPLAIN'
+  | 'MARKET_EXPLAIN'
+  | 'ROUND_EXPLAIN'
   | 'FINISH'
   | 'DONE';
 
@@ -56,12 +60,15 @@ interface TutorialState {
   me: PublicPlayerState;
   bot: PublicPlayerState;
   currentTurnUserId: 'me' | 'bot';
+  pickMode: boolean;
+  drawnCard: Card | null;
   _timeoutId: ReturnType<typeof setTimeout> | null;
 
   start(meUsername: string, meAvatarIndex: number, meLevel: number): void;
   toggleCard(index: number, allowedCardIds: string[] | null): void;
   play(allowedCardIds: string[]): void;
   pass(): void;
+  insertDrawnCard(index: number): void;
   advanceFromOverlay(): void;
   reset(): void;
 }
@@ -77,6 +84,8 @@ export const useTutorialStore = create<TutorialState>((set, get) => ({
   me: makePlayer({ userId: 'me', username: 'Você' }),
   bot: makePlayer({ userId: 'bot', username: 'Sushi-Bot', avatarIndex: 1, isBot: true, cardCount: 4 }),
   currentTurnUserId: 'me',
+  pickMode: false,
+  drawnCard: null,
   _timeoutId: null,
 
   start: (meUsername, meAvatarIndex, meLevel) => {
@@ -90,6 +99,8 @@ export const useTutorialStore = create<TutorialState>((set, get) => ({
       discardPile: [],
       consecutivePasses: 0,
       selectedIndices: [],
+      pickMode: false,
+      drawnCard: null,
       me: makePlayer({
         userId: 'me',
         username: meUsername,
@@ -145,11 +156,9 @@ export const useTutorialStore = create<TutorialState>((set, get) => ({
     if (state._timeoutId !== null) clearTimeout(state._timeoutId);
 
     if (state.step === 'OPEN') {
-      // STEP_1 -> player joga par de Sushi, mesa zera, vira do bot
       const timeoutId = setTimeout(() => {
         const s = get();
         if (s.step !== 'BOT_BEATS') return;
-        // Bot joga BOT_BEAT_CARDS por cima
         set({
           step: 'BEAT_BACK',
           pile: [...BOT_BEAT_CARDS],
@@ -175,15 +184,11 @@ export const useTutorialStore = create<TutorialState>((set, get) => ({
     }
 
     if (state.step === 'BEAT_BACK') {
-      // Player supera com par de Ramen
       const newPile = [...playedCards];
-      // Pilha anterior (bot) vai pro descarte (regra: ao superar, pilha anterior fica na mesa
-      // como nova pilha. Mas para visualizar mais claramente, vamos manter so a nova jogada na pilha)
       const discardedPrev = [...state.pile];
       const timeoutId = setTimeout(() => {
         const s = get();
         if (s.step !== 'BOT_PASSES') return;
-        // Bot passa, compra 1 do monte (visivel apenas como cardCount + drawPile - 1)
         set({
           step: 'YOU_PASS',
           consecutivePasses: 1,
@@ -209,7 +214,6 @@ export const useTutorialStore = create<TutorialState>((set, get) => ({
     }
 
     if (state.step === 'FINISH') {
-      // Player joga trio de Taco -> mao zera -> DONE
       set({
         step: 'DONE',
         myHand: remaining,
@@ -226,18 +230,32 @@ export const useTutorialStore = create<TutorialState>((set, get) => ({
     const state = get();
     if (state.step !== 'YOU_PASS') return;
     if (state._timeoutId !== null) clearTimeout(state._timeoutId);
+    set({
+      step: 'PICK_POSITION',
+      drawPileCount: state.drawPileCount - 1,
+      consecutivePasses: 2,
+      currentTurnUserId: 'me',
+      pickMode: true,
+      drawnCard: DRAWN_CARD_AFTER_PASS,
+      _timeoutId: null,
+    });
+  },
 
-    // Player passa, compra carta do monte (DRAWN_CARD_AFTER_PASS), consecutivePasses=2 -> wipe
-    const newHand = [...state.myHand, DRAWN_CARD_AFTER_PASS];
+  insertDrawnCard: (index: number) => {
+    const state = get();
+    if (state.step !== 'PICK_POSITION') return;
+    if (!state.drawnCard) return;
+    const newHand = [...state.myHand];
+    newHand.splice(index, 0, state.drawnCard);
     const wipedPile = [...state.pile];
-
     set({
       step: 'WIPE',
       myHand: newHand,
       me: { ...state.me, cardCount: newHand.length },
       pile: [],
-      drawPileCount: state.drawPileCount - 1,
       discardPile: [...state.discardPile, ...wipedPile],
+      pickMode: false,
+      drawnCard: null,
       consecutivePasses: 0,
       currentTurnUserId: 'me',
       _timeoutId: null,
@@ -246,14 +264,11 @@ export const useTutorialStore = create<TutorialState>((set, get) => ({
 
   advanceFromOverlay: () => {
     const state = get();
-    if (state.step === 'INTRO') {
-      set({ step: 'OPEN' });
-      return;
-    }
-    if (state.step === 'WIPE') {
-      set({ step: 'FINISH' });
-      return;
-    }
+    if (state.step === 'INTRO') { set({ step: 'OPEN' }); return; }
+    if (state.step === 'WIPE')  { set({ step: 'SABOR_EXPLAIN' }); return; }
+    if (state.step === 'SABOR_EXPLAIN')  { set({ step: 'MARKET_EXPLAIN' }); return; }
+    if (state.step === 'MARKET_EXPLAIN') { set({ step: 'ROUND_EXPLAIN' }); return; }
+    if (state.step === 'ROUND_EXPLAIN')  { set({ step: 'FINISH' }); return; }
   },
 
   reset: () => {
@@ -267,6 +282,8 @@ export const useTutorialStore = create<TutorialState>((set, get) => ({
       discardPile: [],
       consecutivePasses: 0,
       selectedIndices: [],
+      pickMode: false,
+      drawnCard: null,
       me: makePlayer({ userId: 'me', username: 'Você' }),
       bot: makePlayer({ userId: 'bot', username: 'Sushi-Bot', avatarIndex: 1, isBot: true, cardCount: 4 }),
       currentTurnUserId: 'me',
