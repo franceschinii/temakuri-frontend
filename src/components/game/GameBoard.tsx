@@ -39,7 +39,27 @@ import { playSound } from '@/lib/sounds';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
-export function GameBoard() {
+/**
+ * Apenas para /dev/board: força estados locais (modais, drawers, pick mode)
+ * que normalmente são acionados por eventos de socket. Não tem efeito em
+ * produção — a rota de jogo nunca passa esta prop.
+ */
+export interface GameBoardDevForceState {
+  rulesOpen?: boolean;
+  pickMode?: boolean;
+  drawnCard?: Card | null;
+  marketSwapMode?: boolean;
+  selectedHandIndexForSwap?: number | null;
+  trickPickOpen?: boolean;
+  trickPile?: Card[];
+  duelPickOpen?: boolean;
+  leaveConfirmOpen?: boolean;
+  playerDialogUserId?: string | null;
+  historyOpen?: boolean;
+  chatOpen?: boolean;
+}
+
+export function GameBoard({ devForceState }: { devForceState?: GameBoardDevForceState } = {}) {
   const { roomCode } = useParams<{ roomCode: string }>();
   const navigate = useNavigate();
   const user = useAuthStore(s => s.user);
@@ -98,6 +118,24 @@ export function GameBoard() {
   const [duelPickOpen, setDuelPickOpen] = useState(false);
   const prevTurnRef = useRef<string>('');
   const [roomHostId, setRoomHostId] = useState<string | null>(null);
+
+  // Dev-only: força estados locais a partir da rota /dev/board. Não roda
+  // em produção porque devForceState é undefined no fluxo normal.
+  useEffect(() => {
+    if (!devForceState) return;
+    if (devForceState.rulesOpen !== undefined) setRulesOpen(devForceState.rulesOpen);
+    if (devForceState.pickMode !== undefined) setPickMode(devForceState.pickMode);
+    if (devForceState.drawnCard !== undefined) setDrawnCard(devForceState.drawnCard);
+    if (devForceState.marketSwapMode !== undefined) setMarketSwapMode(devForceState.marketSwapMode);
+    if (devForceState.selectedHandIndexForSwap !== undefined) setSelectedHandIndexForSwap(devForceState.selectedHandIndexForSwap);
+    if (devForceState.trickPickOpen !== undefined) setTrickPickOpen(devForceState.trickPickOpen);
+    if (devForceState.trickPile !== undefined) setTrickPile(devForceState.trickPile);
+    if (devForceState.duelPickOpen !== undefined) setDuelPickOpen(devForceState.duelPickOpen);
+    if (devForceState.leaveConfirmOpen !== undefined) setLeaveConfirmOpen(devForceState.leaveConfirmOpen);
+    if (devForceState.playerDialogUserId !== undefined) setPlayerDialogUserId(devForceState.playerDialogUserId);
+    if (devForceState.historyOpen) historyRef.current?.open();
+    if (devForceState.chatOpen) chatRef.current?.open();
+  }, [devForceState]);
 
   const me = players.find(p => p.userId === user?.id);
   // Quem ja zerou a mao nesta rodada (isOutOfRound) NAO pode ter botoes
