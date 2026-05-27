@@ -129,6 +129,7 @@ export function GameBoard({ devForceState }: { devForceState?: GameBoardDevForce
   // (stagger de até 9 cartas * 90ms + spring.drop ~300ms = ~1.1s).
   const [isDealAnimating, setIsDealAnimating] = useState(false);
   const prevRoundRef = useRef(0);
+  const [roundWaiting, setRoundWaiting] = useState<{ readyCount: number; humanCount: number } | null>(null);
 
   // Dev-only: força estados locais a partir da rota /dev/board. Não roda
   // em produção porque devForceState é undefined no fluxo normal.
@@ -387,9 +388,16 @@ export function GameBoard({ devForceState }: { devForceState?: GameBoardDevForce
     setTimeout(() => setTurnBanner(null), 2600);
     setTimeout(() => {
       const state = useGameStore.getState();
-      if (state.roundSummaryData) state.clearRoundSummary();
+      if (state.roundSummaryData) {
+        state.clearRoundSummary();
+        emitSocketEvent('game:continue_round', { roomCode });
+      }
     }, 6000);
-  }, [applyRoundEnd, addLog, user?.id]));
+  }, [applyRoundEnd, addLog, user?.id, roomCode]));
+
+  useSocketEvent<{ readyCount: number; humanCount: number }>('game:waiting_for_continue', useCallback(({ readyCount, humanCount }) => {
+    setRoundWaiting({ readyCount, humanCount });
+  }, []));
 
   // Jogador zerou a mao e SAIU da rodada (escapou — nao perde prato).
   // Marca o jogador no store pra UI mudar (opacity reduzida, badge "fora").
@@ -637,6 +645,12 @@ export function GameBoard({ devForceState }: { devForceState?: GameBoardDevForce
     isDuel,
     myDuelPlatesCount: myDuelPlates?.length ?? 0,
   });
+
+  const handleContinueRound = useCallback(() => {
+    clearRoundSummary();
+    setRoundWaiting(null);
+    emitSocketEvent('game:continue_round', { roomCode });
+  }, [clearRoundSummary, roomCode]);
 
   const handleTrickTake = (insertAtIndex: number) => {
     setTrickPickOpen(false);
@@ -1176,7 +1190,9 @@ export function GameBoard({ devForceState }: { devForceState?: GameBoardDevForce
           loserIds={roundSummaryData.loserIds}
           playerTokens={roundSummaryData.playerTokens}
           players={players}
-          onClose={clearRoundSummary}
+          onClose={handleContinueRound}
+          waitingCount={roundWaiting?.readyCount}
+          waitingTotal={roundWaiting?.humanCount}
         />
       )}
 

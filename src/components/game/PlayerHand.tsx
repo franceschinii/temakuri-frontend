@@ -62,7 +62,7 @@ export function PlayerHand({
   // que cortava as pontas e travava o scroll. Desktop: centralizado.
   if (pickMode) {
     return (
-      <div className="flex gap-1 items-center py-2 px-2 overflow-x-auto sm:justify-center sm:overflow-visible [scrollbar-width:none] [&::-webkit-scrollbar]:hidden [touch-action:pan-x]">
+      <div className="flex items-center py-2 px-2 overflow-x-auto sm:justify-center sm:overflow-visible [scrollbar-width:none] [&::-webkit-scrollbar]:hidden [touch-action:pan-x]">
         {[...Array(hand.length + 1)].map((_, insertIdx) => (
           <div key={insertIdx} className="flex items-center shrink-0">
             <button

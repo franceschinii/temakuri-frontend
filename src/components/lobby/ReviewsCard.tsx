@@ -67,30 +67,31 @@ export function ReviewsCard() {
         </div>
 
         <div className="px-4 py-3">
-          <div className="flex items-center gap-3 flex-wrap">
-            {total > 0 ? (
-              <>
-                <span className="text-2xl font-bold text-text-primary tabular-nums">{avg.toFixed(1)}</span>
-                <div className="flex flex-col gap-0.5">
-                  <StarRating value={Math.round(avg)} size={14} />
-                  <span className="text-[10px] text-text-muted">{total} avaliaç{total > 1 ? 'ões' : 'ão'}</span>
-                </div>
-              </>
-            ) : (
-              <p className="text-xs text-text-muted">Ainda não há avaliações. Seja o primeiro.</p>
-            )}
-
-            {!loggedIn ? (
-              <p className="text-[11px] text-text-muted">Entre com uma conta para avaliar.</p>
-            ) : myState && !myState.canReview && !myState.mine ? (
-              <p className="text-[11px] text-text-muted">
-                {myState.gamesPlayed}/{myState.minGames} partidas para avaliar
-              </p>
-            ) : (
-              <Button size="sm" variant="secondary" onClick={() => setFormOpen(true)}>
-                {myState?.mine ? <><Pencil size={13} /> Editar</> : <><Star size={13} /> Avaliar</>}
-              </Button>
-            )}
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              {total > 0 ? (
+                <>
+                  <span className="text-2xl font-bold text-text-primary tabular-nums">{avg.toFixed(1)}</span>
+                  <div className="flex flex-col gap-0.5">
+                    <StarRating value={Math.round(avg)} size={14} />
+                    <span className="text-[10px] text-text-muted">{total} avaliaç{total > 1 ? 'ões' : 'ão'}</span>
+                  </div>
+                </>
+              ) : (
+                <p className="text-xs text-text-muted">Ainda não há avaliações. Seja o primeiro.</p>
+              )}
+            </div>
+            <div className="shrink-0">
+              {!loggedIn ? (
+                <p className="text-[11px] text-text-muted">Entre para avaliar.</p>
+              ) : myState && !myState.canReview && !myState.mine ? (
+                <p className="text-[11px] text-text-muted">{myState.gamesPlayed}/{myState.minGames} partidas</p>
+              ) : (
+                <Button size="sm" variant="secondary" onClick={() => setFormOpen(true)}>
+                  {myState?.mine ? <><Pencil size={13} /> Editar</> : <><Star size={13} /> Avaliar</>}
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </div>
