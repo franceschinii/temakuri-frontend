@@ -157,7 +157,7 @@ export default function LobbyPage() {
                 {playMenuOpen && (
                   <>
                     <div className="fixed inset-0 z-40" onClick={() => setPlayMenuOpen(false)} />
-                    <div className="absolute top-full left-0 right-0 mt-1 rounded-lg border border-border bg-surface shadow-lg z-50 flex flex-col overflow-hidden">
+                    <div className="absolute top-full left-0 mt-1 min-w-[160px] rounded-lg border border-border bg-surface shadow-lg z-50 flex flex-col overflow-hidden">
                       <button
                         onClick={() => { setPlayMenuOpen(false); setCreateOpen(true); }}
                         className="flex items-center gap-2 px-4 py-3 text-sm text-text-primary hover:bg-panel text-left w-full"
