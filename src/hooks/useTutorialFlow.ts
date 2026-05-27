@@ -21,8 +21,8 @@ export type AllowedAction =
 // Ordem dos passos visíveis no overlay (exclui DONE que tem tela própria)
 export const TUTORIAL_STEP_ORDER: TutorialStep[] = [
   'INTRO', 'OPEN', 'BOT_BEATS', 'BEAT_BACK', 'BOT_PASSES',
-  'YOU_PASS', 'PICK_POSITION', 'WIPE', 'TRICK_PICK', 'SABOR_EXPLAIN',
-  'MARKET_EXPLAIN', 'ROUND_EXPLAIN', 'FINISH',
+  'WIPE', 'TRICK_PICK', 'SABOR_EXPLAIN', 'MARKET_EXPLAIN',
+  'ROUND_EXPLAIN', 'BOT_OPENS', 'YOU_PASS', 'PICK_POSITION', 'FINISH',
 ];
 
 const STEPS: Record<TutorialStep, TutorialStepInfo> = {
@@ -54,32 +54,20 @@ const STEPS: Record<TutorialStep, TutorialStepInfo> = {
   BOT_PASSES: {
     id: 'bot-passes',
     title: 'O bot não conseguiu superar',
-    text: 'Você jogou Ramens de valor 5. O bot só tem cartas com valor menor — ele não pode superar! Quando não dá para superar, o jogador PASSA a vez e compra 1 carta nova do monte (a pilha no centro). Agora é a sua vez.',
-  },
-
-  YOU_PASS: {
-    id: 'you-pass',
-    title: 'Passe a vez',
-    text: 'A pilha tem cartas de valor 5. Suas cartas restantes valem 2. Como 2 é menor que 5, você TAMBÉM não consegue superar. Quando isso acontece, você passa e compra 1 carta nova do monte. Clique em PASSAR.',
-  },
-
-  PICK_POSITION: {
-    id: 'pick-position',
-    title: 'Escolha a posição',
-    text: 'Você comprou essa carta nova! Agora você decide ONDE ela entra na sua mão. As barrinhas verticais mostram os espaços entre as cartas. Clique em qualquer barrinha para inserir a carta naquele lugar.',
+    text: 'Você jogou Ramens de valor 5. O bot não tem nenhuma carta capaz de superar! Quando um jogador não consegue superar, ele PASSA e compra 1 carta nova do monte. O bot passou — e como você foi o único a jogar nesta rodada, a mesa vai limpar! Aguarde...',
   },
 
   WIPE: {
     id: 'wipe',
     title: 'Mesa limpa — você ganhou a vaza!',
-    text: 'Os dois passaram! Quando todos passam, a mesa é LIMPA. Quem jogou por ÚLTIMO ganha a "vaza" — neste caso, você! Ao ganhar uma vaza, você decide o que fazer com as cartas que estavam na mesa: PEGAR todas para a sua mão ou DESCARTAR tudo. É uma decisão estratégica importante!',
+    text: 'O bot passou sem conseguir superar! A mesa é LIMPA e você ganhou a vaza — você foi o último a jogar. Agora vem a decisão: você pode PEGAR as cartas que estavam na mesa para a sua mão, ou DESCARTAR tudo. Veja as cartas da vaza e escolha!',
     ctaLabel: 'Ver a vaza',
   },
 
   TRICK_PICK: {
     id: 'trick-pick',
     title: 'Pegue ou descarte a vaza',
-    text: 'Essas são as cartas que estavam na mesa — os Ramens de valor 5. Você pode PEGAR todas para a sua mão (mais opções de jogo) ou DESCARTAR (mão menor, mais fácil de esvaziar). Qual é a sua estratégia?',
+    text: 'Essas são as cartas que estavam na mesa — seus Ramens de valor 5. Você pode PEGAR todas para a sua mão (mais opções de jogo) ou DESCARTAR (mão menor, mais fácil de esvaziar). Qual é a sua estratégia?',
   },
 
   SABOR_EXPLAIN: {
@@ -103,16 +91,34 @@ const STEPS: Record<TutorialStep, TutorialStepInfo> = {
     ctaLabel: 'Praticar!',
   },
 
+  BOT_OPENS: {
+    id: 'bot-opens',
+    title: 'O bot abre a nova rodada',
+    text: 'Nova rodada! O bot abriu com 2 cartas de valor 6. Suas cartas têm valor 2 — você não consegue superar valor 6. Lembra o que fazer quando não dá para superar? PASSAR e comprar 1 carta nova do monte!',
+  },
+
+  YOU_PASS: {
+    id: 'you-pass',
+    title: 'Passe a vez',
+    text: 'O bot abriu com cartas de valor 6. Suas cartas de valor 2 não conseguem superar. Não tem problema! Passe a vez e compre 1 carta nova do monte. Clique em PASSAR.',
+  },
+
+  PICK_POSITION: {
+    id: 'pick-position',
+    title: 'Escolha a posição',
+    text: 'Você comprou essa carta nova! Agora você decide ONDE ela entra na sua mão. As barrinhas verticais mostram os espaços entre as cartas. Clique em qualquer barrinha para inserir a carta naquele lugar.',
+  },
+
   FINISH: {
     id: 'finish',
     title: 'Esvazie a mão!',
-    text: 'A mesa está vazia de novo — é sua vez! Você tem Tacos de valor 2 na mão. Como todos são do mesmo valor, você pode jogar os 3 de uma vez! Selecione os 3 Tacos e clique em JOGAR.',
+    text: 'Você inseriu a carta nova e a mesa limpou! Agora a mesa está vazia — é sua vez de abrir. Você tem Tacos de valor 2 na mão. Todos do mesmo valor: jogue os 3 de uma vez! Selecione os 3 Tacos e clique em JOGAR.',
   },
 
   DONE: {
     id: 'done',
     title: 'Você aprendeu!',
-    text: 'Mão zerada — você venceria essa rodada sem perder prato! Os outros que ainda têm cartas perdem 1 prato. Quando os 2 pratos acabam, o jogador é eliminado. O último que sobrar com pratos vence o jogo. Boa sorte!',
+    text: 'Tutorial completo! Em uma partida real, quem esvazia a mão primeiro vence a rodada sem perder prato. Quem sobrar com cartas perde 1 prato. Quando os 2 pratos acabam, o jogador é eliminado. Boa sorte!',
   },
 };
 
@@ -122,13 +128,14 @@ const ALLOWED: Record<TutorialStep, AllowedAction> = {
   BOT_BEATS:      { type: 'wait' },
   BEAT_BACK:      { type: 'play', requiredCardIds: ['r1', 'r2'] },
   BOT_PASSES:     { type: 'wait' },
-  YOU_PASS:       { type: 'pass' },
-  PICK_POSITION:  { type: 'pick' },
   WIPE:           { type: 'overlay-click', ctaLabel: 'Ver a vaza' },
   TRICK_PICK:     { type: 'trick-pick' },
   SABOR_EXPLAIN:  { type: 'overlay-click', ctaLabel: 'Entendi' },
   MARKET_EXPLAIN: { type: 'overlay-click', ctaLabel: 'Entendi' },
   ROUND_EXPLAIN:  { type: 'overlay-click', ctaLabel: 'Praticar!' },
+  BOT_OPENS:      { type: 'wait' },
+  YOU_PASS:       { type: 'pass' },
+  PICK_POSITION:  { type: 'pick' },
   FINISH:         { type: 'play', requiredCardIds: ['t1', 't2', 't3'] },
   DONE:           { type: 'done' },
 };

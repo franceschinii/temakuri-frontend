@@ -14,6 +14,7 @@ export type TutorialStep =
   | 'SABOR_EXPLAIN'
   | 'MARKET_EXPLAIN'
   | 'ROUND_EXPLAIN'
+  | 'BOT_OPENS'
   | 'FINISH'
   | 'DONE';
 
@@ -29,6 +30,11 @@ const INITIAL_HAND: Card[] = [
 const BOT_BEAT_CARDS: Card[] = [
   { id: 'bot_r4a', value: 4, category: 'RAMEN', variantIndex: 0 },
   { id: 'bot_r4b', value: 4, category: 'RAMEN', variantIndex: 1 },
+];
+
+const BOT_OPEN_CARDS: Card[] = [
+  { id: 'bot_s6a', value: 6, category: 'SUSHI', variantIndex: 0 },
+  { id: 'bot_s6b', value: 6, category: 'SUSHI', variantIndex: 1 },
 ];
 
 const DRAWN_CARD_AFTER_PASS: Card = { id: 't3', value: 2, category: 'TACO', variantIndex: 0 };
@@ -191,14 +197,17 @@ export const useTutorialStore = create<TutorialState>((set, get) => ({
     if (state.step === 'BEAT_BACK') {
       const newPile = [...playedCards];
       const discardedPrev = [...state.pile];
+      // Bot passes — só o bot passou, então mesa limpa e player ganha a vaza
       const timeoutId = setTimeout(() => {
         const s = get();
         if (s.step !== 'BOT_PASSES') return;
         set({
-          step: 'YOU_PASS',
-          consecutivePasses: 1,
+          step: 'WIPE',
+          vazaCards: newPile,
+          pile: [],
           bot: { ...s.bot, cardCount: s.bot.cardCount + 1 },
           drawPileCount: s.drawPileCount - 1,
+          consecutivePasses: 0,
           currentTurnUserId: 'me',
           _timeoutId: null,
         });
@@ -238,7 +247,7 @@ export const useTutorialStore = create<TutorialState>((set, get) => ({
     set({
       step: 'PICK_POSITION',
       drawPileCount: state.drawPileCount - 1,
-      consecutivePasses: 2,
+      consecutivePasses: 1,
       currentTurnUserId: 'me',
       pickMode: true,
       drawnCard: DRAWN_CARD_AFTER_PASS,
@@ -252,13 +261,12 @@ export const useTutorialStore = create<TutorialState>((set, get) => ({
     if (!state.drawnCard) return;
     const newHand = [...state.myHand];
     newHand.splice(index, 0, state.drawnCard);
-    const wipedPile = [...state.pile];
     set({
-      step: 'WIPE',
+      step: 'FINISH',
       myHand: newHand,
       me: { ...state.me, cardCount: newHand.length },
       pile: [],
-      vazaCards: wipedPile,
+      discardPile: [...state.discardPile, ...state.pile],
       pickMode: false,
       drawnCard: null,
       consecutivePasses: 0,
@@ -288,7 +296,22 @@ export const useTutorialStore = create<TutorialState>((set, get) => ({
     if (state.step === 'WIPE') { set({ step: 'TRICK_PICK', pile: [...state.vazaCards] }); return; }
     if (state.step === 'SABOR_EXPLAIN')  { set({ step: 'MARKET_EXPLAIN' }); return; }
     if (state.step === 'MARKET_EXPLAIN') { set({ step: 'ROUND_EXPLAIN' }); return; }
-    if (state.step === 'ROUND_EXPLAIN')  { set({ step: 'FINISH' }); return; }
+    if (state.step === 'ROUND_EXPLAIN') {
+      const timeoutId = setTimeout(() => {
+        const s = get();
+        if (s.step !== 'BOT_OPENS') return;
+        set({
+          step: 'YOU_PASS',
+          pile: [...BOT_OPEN_CARDS],
+          bot: { ...s.bot, cardCount: s.bot.cardCount - BOT_OPEN_CARDS.length },
+          currentTurnUserId: 'me',
+          consecutivePasses: 0,
+          _timeoutId: null,
+        });
+      }, 1400);
+      set({ step: 'BOT_OPENS', _timeoutId: timeoutId });
+      return;
+    }
   },
 
   reset: () => {
