@@ -42,7 +42,7 @@ export function GameOverModal({ rankings, myUserId, isHost, onPlayAgain }: GameO
       >
         <div className="flex flex-col gap-3 p-2">
           <h2 className="text-xl font-bold text-[var(--color-text-primary)] text-center" style={{ fontFamily: 'var(--font-display)' }}>
-            Fim de Jogo!
+            Fim de partida!
           </h2>
           <div className="flex flex-col gap-2">
             {rankings.map((r, i) => {
@@ -121,17 +121,17 @@ export function GameOverModal({ rankings, myUserId, isHost, onPlayAgain }: GameO
             pra ele nao achar que so resta sair. */}
         {!isHost && (
           <p className="text-xs text-center text-[var(--color-text-muted)]">
-            O host pode reiniciar a partida. Se reiniciar, você volta junto automaticamente.
+            O anfitrião pode rolar de novo. Se reiniciar, você entra junto automaticamente.
           </p>
         )}
 
         <div className="flex gap-2 flex-wrap">
           <Button variant="secondary" className="flex-1" onClick={() => navigate('/lobby')} data-testid="game-over-leave-btn">
-            Sair
+            Voltar ao lobby
           </Button>
           {onPlayAgain && (
             <Button className="flex-1" onClick={onPlayAgain} data-testid="game-over-restart-btn">
-              Jogar Novamente
+              Jogar de novo!
             </Button>
           )}
         </div>

@@ -111,7 +111,7 @@ export function RoomCard({ room }: RoomCardProps) {
             onClick={handleEnter}
             data-testid={`lobby-room-join-btn-${room.code}`}
           >
-            Entrar
+            Entrar na mesa
           </Button>
         )}
       </div>

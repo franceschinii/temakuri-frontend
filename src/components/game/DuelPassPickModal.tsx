@@ -60,10 +60,10 @@ export function DuelPassPickModal({ open, plates, myHand, onPick }: DuelPassPick
               <>
                 <div>
                   <h2 className="text-lg font-semibold text-[var(--color-text-primary)] mb-1" style={{ fontFamily: 'var(--font-display)' }}>
-                    Passar — Prato do Dia
+                    Use um Prato do Dia
                   </h2>
                   <p className="text-sm text-[var(--color-text-muted)]">
-                    Escolha um Prato do Dia para inserir na mão ou descartar.
+                    Escolha um prato para adicionar à mão ou descartar.
                   </p>
                 </div>
 

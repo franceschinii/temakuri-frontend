@@ -15,8 +15,10 @@ export interface LogEntry {
 interface GameStoreState {
   soundEnabled: boolean;
   musicEnabled: boolean;
+  hintsEnabled: boolean;
   toggleSound: () => void;
   toggleMusic: () => void;
+  toggleHints: () => void;
   phase: GamePhase | null;
   mode: import('../types/game').GameMode | null;
   round: number;
@@ -64,6 +66,7 @@ interface GameStoreState {
 export const useGameStore = create<GameStoreState>((set, get) => ({
   soundEnabled: localStorage.getItem('soundEnabled') !== 'false',
   musicEnabled: localStorage.getItem('musicEnabled') !== 'false',
+  hintsEnabled: localStorage.getItem('hintsEnabled') !== 'false',
   toggleSound: () => set(s => {
     const next = !s.soundEnabled;
     localStorage.setItem('soundEnabled', String(next));
@@ -75,6 +78,11 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     localStorage.setItem('musicEnabled', String(next));
     setMusicMuted(!next);
     return { musicEnabled: next };
+  }),
+  toggleHints: () => set(s => {
+    const next = !s.hintsEnabled;
+    localStorage.setItem('hintsEnabled', String(next));
+    return { hintsEnabled: next };
   }),
   phase: null,
   mode: null,

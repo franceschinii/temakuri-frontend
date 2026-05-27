@@ -19,7 +19,7 @@ export function ActionBar({ isMyTurn, pile, drawPileCount, onPlay, onPass, canPl
   if (!isMyTurn) {
     return (
       <div className="flex items-center justify-center h-12">
-        <span className="text-[var(--color-text-muted)] text-sm animate-pulse">Aguardando outros jogadores...</span>
+        <span className="text-[var(--color-text-muted)] text-sm animate-pulse">Vez do adversário...</span>
       </div>
     );
   }

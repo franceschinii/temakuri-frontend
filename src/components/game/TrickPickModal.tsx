@@ -44,10 +44,10 @@ export function TrickPickModal({ open, pile, myHand, onTake, onDiscard }: TrickP
               <>
                 <div>
                   <h2 className="text-lg font-semibold text-[var(--color-text-primary)] mb-1" style={{ fontFamily: 'var(--font-display)' }}>
-                    Pegar ou descartar?
+                    Você ganhou a vaza!
                   </h2>
                   <p className="text-sm text-[var(--color-text-muted)]">
-                    O que fazer com {pile.length === 1 ? 'a carta anterior' : `as ${pile.length} cartas anteriores`} da pilha?
+                    O que fazer com {pile.length === 1 ? 'a carta anterior' : `as ${pile.length} cartas anteriores`} da mesa?
                   </p>
                 </div>
 
@@ -71,10 +71,10 @@ export function TrickPickModal({ open, pile, myHand, onTake, onDiscard }: TrickP
               <>
                 <div>
                   <h2 className="text-lg font-semibold text-[var(--color-text-primary)] mb-1" style={{ fontFamily: 'var(--font-display)' }}>
-                    Onde inserir as cartas?
+                    Onde encaixar na mão?
                   </h2>
                   <p className="text-sm text-[var(--color-text-muted)]">
-                    Clique numa barra para inserir o bloco nessa posição.
+                    Toque numa barra para inserir as cartas nessa posição.
                   </p>
                 </div>
 

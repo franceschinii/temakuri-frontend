@@ -90,7 +90,7 @@ export default function LobbyPage() {
       }
       navigate(`/lobby/${code}`, { state: { isMatchmaking: false, password: joinPassword.trim() || undefined } });
     } catch {
-      toast.error(joinNeedsPassword ? 'Senha incorreta' : 'Sala não encontrada');
+      toast.error(joinNeedsPassword ? 'Senha incorreta' : 'Mesa não encontrada');
       setJoining(false);
     }
   };
@@ -136,16 +136,16 @@ export default function LobbyPage() {
                 onKeyDown={e => e.key === 'Enter' && handleJoin()}
                 maxLength={6}
                 className="font-mono tracking-widest flex-1 sm:flex-none"
-                aria-label="Código da sala"
+                aria-label="Código da mesa"
               />
-              <Button variant="outline" onClick={handleJoin} disabled={joining} className="shrink-0" aria-label="Entrar">
+              <Button variant="outline" onClick={handleJoin} disabled={joining} className="shrink-0" aria-label="Entrar na mesa">
                 {joining ? '...' : (<><Search size={15} /> Entrar</>)}
               </Button>
             </div>
-            {/* Linha 2: criar / buscar / ranking / tutorial */}
+            {/* Linha 2: nova partida / matchmaking / ranking / tutorial */}
             <div className="grid grid-cols-4 gap-2 sm:contents">
               <Button onClick={() => setCreateOpen(true)} className="shrink-0 w-full sm:w-auto" data-testid="lobby-create-room-btn" data-tour="tour-create-room">
-                <Plus size={15} /> Criar
+                <Plus size={15} /> Nova partida
               </Button>
               {!user?.isGuest && (
                 <Button variant="secondary" onClick={() => setMatchOpen(true)} className="shrink-0 w-full sm:w-auto" data-testid="lobby-matchmaking-btn" data-tour="tour-matchmaking">
@@ -182,7 +182,7 @@ export default function LobbyPage() {
         <div data-tour="tour-rooms-list">
           <div className="flex items-center gap-2 sm:gap-3 mb-4 flex-wrap">
             <span className="text-xs uppercase tracking-[0.15em] font-medium text-[var(--color-text-muted)]">
-              Salas abertas
+              Mesas abertas
             </span>
             {rooms.length > 0 && (
               <span className="text-xs bg-[var(--color-panel)] border border-[var(--color-border)] text-[var(--color-accent-mid)] rounded-full px-2 py-0.5 font-mono">
@@ -214,9 +214,9 @@ export default function LobbyPage() {
               className="flex flex-col items-center justify-center py-16 border border-dashed border-[var(--color-border)] rounded-2xl text-center gap-3"
             >
               <div className="text-3xl opacity-20">🀄</div>
-              <p className="text-sm text-[var(--color-text-muted)]">Nenhuma sala aberta</p>
+              <p className="text-sm text-[var(--color-text-muted)]">Nenhuma mesa aberta ainda — seja o primeiro</p>
               <Button size="sm" onClick={() => setCreateOpen(true)}>
-                <Plus size={14} /> Criar sala
+                <Plus size={14} /> Nova partida
               </Button>
             </motion.div>
           ) : (

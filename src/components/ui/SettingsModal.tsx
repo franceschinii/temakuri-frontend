@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { Volume2, VolumeX, Music, Music2, LifeBuoy } from 'lucide-react';
+import { Volume2, VolumeX, Music, Music2, LifeBuoy, Lightbulb } from 'lucide-react';
 import { Modal } from '@/components/ui/modal';
 import { useGameStore } from '@/stores/gameStore';
 
@@ -14,6 +14,8 @@ export function SettingsModal({ open, onClose }: SettingsModalProps) {
   const toggleSound = useGameStore(s => s.toggleSound);
   const musicEnabled = useGameStore(s => s.musicEnabled);
   const toggleMusic = useGameStore(s => s.toggleMusic);
+  const hintsEnabled = useGameStore(s => s.hintsEnabled);
+  const toggleHints = useGameStore(s => s.toggleHints);
 
   const handleSupport = () => {
     onClose();
@@ -77,6 +79,33 @@ export function SettingsModal({ open, onClose }: SettingsModalProps) {
             <div
               className="w-4 h-4 rounded-full bg-white transition-transform"
               style={{ transform: musicEnabled ? 'translateX(16px)' : 'translateX(0)' }}
+            />
+          </div>
+        </button>
+
+        <button
+          onClick={toggleHints}
+          className="flex items-center justify-between w-full px-4 py-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]/50 hover:bg-[var(--color-panel)] transition-colors"
+        >
+          <div className="flex items-center gap-3">
+            <Lightbulb size={18} style={{ color: hintsEnabled ? 'var(--color-accent-mid)' : 'var(--color-text-muted)' }} />
+            <div className="text-left">
+              <p className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>Dicas in-game</p>
+              <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
+                {hintsEnabled ? 'Ativadas' : 'Desativadas'}
+              </p>
+            </div>
+          </div>
+          <div
+            className="w-9 h-5 rounded-full flex items-center transition-colors shrink-0"
+            style={{
+              background: hintsEnabled ? 'var(--color-accent-mid)' : 'var(--color-border)',
+              padding: '2px',
+            }}
+          >
+            <div
+              className="w-4 h-4 rounded-full bg-white transition-transform"
+              style={{ transform: hintsEnabled ? 'translateX(16px)' : 'translateX(0)' }}
             />
           </div>
         </button>

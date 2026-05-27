@@ -115,10 +115,10 @@ export function CreateRoomModal({ open, onClose }: CreateRoomModalProps) {
   const biasStep = BIAS_STEPS.find(s => Math.abs(s.value - handBias) < 0.01) ?? BIAS_STEPS[0];
 
   return (
-    <Modal open={open} onClose={onClose} title="Criar Sala" testId="create-room-modal">
+    <Modal open={open} onClose={onClose} title="Nova partida" testId="create-room-modal">
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
         <div>
-          <p className="text-sm text-[var(--color-text-muted)] mb-2">Modo de jogo</p>
+          <p className="text-sm text-[var(--color-text-muted)] mb-2">Como vai ser a mesa</p>
           <div className="grid grid-cols-2 gap-2">
             {GAME_MODES.map(m => {
               const locked = !unlockedModes.includes(m.value);
@@ -233,7 +233,7 @@ export function CreateRoomModal({ open, onClose }: CreateRoomModalProps) {
         {/* Hand bias */}
         <div className="flex flex-col gap-2">
           <div className="flex items-center justify-between">
-            <p className="text-sm text-[var(--color-text-muted)]">Qualidade da mão inicial</p>
+            <p className="text-sm text-[var(--color-text-muted)]">Qualidade da mão inicial dos jogadores</p>
             <span className="text-xs font-medium text-[var(--color-accent-mid)]">{biasStep.label}</span>
           </div>
           <div className="flex gap-1">
@@ -255,17 +255,17 @@ export function CreateRoomModal({ open, onClose }: CreateRoomModalProps) {
             ))}
           </div>
           <p className="text-[10px] text-[var(--color-text-muted)]">
-            Controla a chance de duplas e trincas adjacentes na mão inicial.
+            Quanto maior, mais duplas e trincas prontas na mão inicial.
           </p>
         </div>
 
         {/* Senha opcional */}
         <div className="flex flex-col gap-1.5">
-          <p className="text-sm text-[var(--color-text-muted)]">Senha da sala <span className="text-[10px] opacity-60">(opcional)</span></p>
+          <p className="text-sm text-[var(--color-text-muted)]">Senha da mesa <span className="text-[10px] opacity-60">(opcional)</span></p>
           <div className="relative">
             <Input
               type={showPassword ? 'text' : 'password'}
-              placeholder="Deixe vazio para sala sem senha"
+              placeholder="Deixe em branco para mesa aberta"
               value={password}
               onChange={e => setPassword(e.target.value)}
               maxLength={32}
@@ -282,7 +282,7 @@ export function CreateRoomModal({ open, onClose }: CreateRoomModalProps) {
         </div>
 
         <Button type="submit" disabled={loading} data-testid="create-room-submit">
-          {loading ? 'Criando...' : 'Criar Sala'}
+          {loading ? 'Criando mesa...' : 'Abrir mesa'}
         </Button>
       </form>
     </Modal>

@@ -30,6 +30,8 @@ import { ChatPanel, type PanelHandle } from './ChatPanel';
 import { CardComponent } from './CardComponent';
 import { TrickPickModal } from './TrickPickModal';
 import { DuelPassPickModal } from './DuelPassPickModal';
+import { InGameHint } from './InGameHint';
+import { useInGameHint } from '@/hooks/useInGameHint';
 import { MedalBadge } from '@/components/ui/MedalBadge';
 import { AvatarWithBorder } from '@/components/ui/Avatar';
 import { LevelBadge } from '@/components/ui/LevelBadge';
@@ -69,7 +71,7 @@ export function GameBoard({ devForceState }: { devForceState?: GameBoardDevForce
     syncState, setMyHand, applyCardsPlayed, applyTurnPassed, applyWipe, drawPileCount,
     setSaborActive, applyRoundEnd, applyGameOver, clearRoundSummary, addToDiscardPile, reset,
     roundSummaryData, gameOverData, addReaction, reactions, updateMarket, addLog,
-    musicEnabled, togglePlateSelection,
+    musicEnabled, hintsEnabled, togglePlateSelection,
   } = useGameStore();
 
   const { playSelectedCards, drawCard, insertDrawnCard, swapWithMarket, sendReaction, sendMessage, requestState } = useGame(roomCode!);
@@ -595,6 +597,18 @@ export function GameBoard({ devForceState }: { devForceState?: GameBoardDevForce
     selectedPlateCards.length > 0 ? selectedPlateCards : undefined,
   );
 
+  const inGameHint = useInGameHint({
+    phase,
+    isMyTurn,
+    pile,
+    drawPileCount,
+    saborActive,
+    saborMinRequired,
+    canPass: isMyTurn && phase === 'PLAYER_TURN' && !canPlay,
+    isDuel,
+    myDuelPlatesCount: myDuelPlates?.length ?? 0,
+  });
+
   const handleTrickTake = (insertAtIndex: number) => {
     setTrickPickOpen(false);
     emitSocketEvent('game:trick_pick', { roomCode, action: 'take', insertAtIndex });
@@ -743,7 +757,7 @@ export function GameBoard({ devForceState }: { devForceState?: GameBoardDevForce
           );
         })}
         {opponents.length === 0 && (
-          <span className="text-xs text-[var(--color-text-muted)] py-2 shrink-0">Aguardando oponentes...</span>
+          <span className="text-xs text-[var(--color-text-muted)] py-2 shrink-0">Aguardando adversários...</span>
         )}
       </div>
 
@@ -807,10 +821,17 @@ export function GameBoard({ devForceState }: { devForceState?: GameBoardDevForce
         <div className="h-5 flex items-center justify-center w-full">
           {phase === 'TRICK_PICK' && currentTurnUserId !== user?.id && (
             <div className="text-xs text-center text-[var(--color-text-muted)] animate-pulse">
-              {players.find(p => p.userId === currentTurnUserId)?.username ?? '...'} está escolhendo...
+              {players.find(p => p.userId === currentTurnUserId)?.username ?? '...'} está decidindo a vaza...
             </div>
           )}
         </div>
+
+        {/* Dica contextual in-game */}
+        {hintsEnabled && (
+          <div className="flex justify-center w-full">
+            <InGameHint hint={inGameHint} />
+          </div>
+        )}
 
         {/* Duelo: Pratos do Dia */}
         {duelPlates && (
@@ -818,7 +839,7 @@ export function GameBoard({ devForceState }: { devForceState?: GameBoardDevForce
             <span className="text-[10px] uppercase tracking-widest text-[var(--color-text-muted)] text-center font-medium">Pratos do Dia</span>
             {isMyTurn && phase === 'PLAYER_TURN' && myDuelPlates && myDuelPlates.length > 0 && (
               <span className="text-[10px] text-[var(--color-warning)] text-center">
-                Selecione pratos para combinar com cartas da mão
+                Toque nos pratos para combiná-los com cartas da mão
               </span>
             )}
             <div className="flex gap-3 justify-center flex-wrap">
@@ -956,8 +977,8 @@ export function GameBoard({ devForceState }: { devForceState?: GameBoardDevForce
                 <>
                   <CardComponent card={drawnCard} small />
                   <div className="flex flex-col gap-0.5 min-w-0">
-                    <span className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wider whitespace-nowrap">Carta do monte</span>
-                    <span className="text-[11px] sm:text-xs text-[var(--color-warning)] font-medium whitespace-nowrap">Clique numa barra ↓</span>
+                    <span className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wider whitespace-nowrap">Carta comprada</span>
+                    <span className="text-[11px] sm:text-xs text-[var(--color-warning)] font-medium whitespace-nowrap">Toque numa barra ↓</span>
                   </div>
                   <button
                     onClick={handleDiscardDrawn}
@@ -967,7 +988,7 @@ export function GameBoard({ devForceState }: { devForceState?: GameBoardDevForce
                   </button>
                 </>
               ) : (
-                <span className="text-xs text-[var(--color-text-muted)]">Monte vazio — passe sem comprar</span>
+                <span className="text-xs text-[var(--color-text-muted)]">Monte vazio — você passa sem comprar</span>
               )}
             </motion.div>
           )}
@@ -982,10 +1003,10 @@ export function GameBoard({ devForceState }: { devForceState?: GameBoardDevForce
             <div className="flex flex-col items-center justify-center gap-2 py-6 px-4 rounded-2xl border-2 border-dashed border-[var(--color-accent-soft)]/40 bg-[var(--color-accent-strong)]/5">
               <span className="text-2xl">🍣</span>
               <span className="text-sm font-semibold text-[var(--color-accent-mid)]">
-                Você zerou a mão — fora da rodada
+                Mão zerada — você escapou!
               </span>
               <span className="text-xs text-[var(--color-text-muted)] text-center max-w-xs leading-relaxed">
-                Você escapou. Aguarde a rodada terminar — quem ficar com cartas vai perder 1 prato.
+                Agora é só torcer. Quem ficar com cartas vai perder 1 prato.
               </span>
             </div>
           ) : (
@@ -999,7 +1020,7 @@ export function GameBoard({ devForceState }: { devForceState?: GameBoardDevForce
               {isMyTurn && selectedIndices.length > 0 && !canPlay && pile.length > 0 && (
                 <div className="pointer-events-none absolute left-1/2 -translate-x-1/2 -top-3 -translate-y-full z-20">
                   <span className="inline-flex items-center text-[11px] font-semibold px-2.5 py-1 rounded-full bg-[var(--color-surface)]/95 backdrop-blur-sm border border-[var(--color-warning)]/50 text-[var(--color-warning)] shadow-lg whitespace-nowrap">
-                    Jogada inválida — precisa de mais cartas ou valor maior
+                    Precisa de mais cartas ou valor maior para superar
                   </span>
                 </div>
               )}
@@ -1056,8 +1077,8 @@ export function GameBoard({ devForceState }: { devForceState?: GameBoardDevForce
           <div className="mt-2 flex flex-col items-center gap-2">
             <p className="text-xs text-[var(--color-token-gold)]">
               {selectedHandIndexForSwap === null
-                ? 'Clique em uma carta da sua mão para selecionar'
-                : 'Agora clique em uma carta do mercado acima'}
+                ? 'Escolha uma carta da sua mão para trocar'
+                : 'Agora escolha uma carta do mercado acima'}
             </p>
             <div className="overflow-x-auto w-full">
               <PlayerHand
@@ -1155,7 +1176,7 @@ export function GameBoard({ devForceState }: { devForceState?: GameBoardDevForce
       <Modal open={leaveConfirmOpen} onClose={() => setLeaveConfirmOpen(false)} title="Sair da partida?">
         <div className="flex flex-col gap-4">
           <p className="text-sm text-[var(--color-text-muted)]">
-            Você abandonará a partida em andamento. Os outros jogadores continuarão sem você.
+            Você vai abandonar a partida. Os outros jogadores continuarão sem você.
           </p>
           <div className="flex gap-2 justify-end">
             <Button variant="ghost" onClick={() => setLeaveConfirmOpen(false)}>Cancelar</Button>

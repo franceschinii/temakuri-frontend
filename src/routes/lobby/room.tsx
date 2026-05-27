@@ -70,7 +70,7 @@ export default function RoomPage() {
 
   useEffect(() => {
     if (isError) {
-      toast.error('Sala não encontrada ou indisponível');
+      toast.error('Mesa não encontrada ou indisponível');
       navigate('/lobby', { replace: true });
     }
   }, [isError, navigate]);
@@ -200,7 +200,7 @@ export default function RoomPage() {
     <div className="h-dvh flex items-center justify-center bg-[var(--color-base)] overflow-hidden">
       <div className="flex flex-col items-center gap-3">
         <div className="w-8 h-8 rounded-full border-2 border-[var(--color-accent-strong)] border-t-transparent animate-spin" />
-        <span className="text-sm text-[var(--color-text-muted)]">Carregando sala...</span>
+        <span className="text-sm text-[var(--color-text-muted)]">Entrando na mesa...</span>
       </div>
     </div>
   );
@@ -268,7 +268,7 @@ export default function RoomPage() {
             className="text-base font-semibold tracking-wide hidden sm:inline"
             style={{ color: 'var(--color-text-muted)' }}
           >
-            Sala {roomCode}
+            Mesa {roomCode}
           </span>
         }
       />
@@ -285,7 +285,7 @@ export default function RoomPage() {
         >
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-[9px] uppercase tracking-[0.2em] text-[var(--color-text-muted)] mb-2">Código da sala</p>
+              <p className="text-[9px] uppercase tracking-[0.2em] text-[var(--color-text-muted)] mb-2">Código da mesa</p>
               <div className="flex items-center gap-3">
                 <span
                   className="font-mono text-2xl sm:text-3xl font-bold text-[var(--color-accent-soft)] tracking-widest"
@@ -469,7 +469,7 @@ export default function RoomPage() {
                 >
                   <div className="flex items-center gap-2">
                     <div className="w-7 h-7 rounded-full bg-[var(--color-panel)]" />
-                    <span className="text-xs text-[var(--color-text-muted)]">Aguardando...</span>
+                    <span className="text-xs text-[var(--color-text-muted)]">Aguardando jogador...</span>
                   </div>
                   <div className="h-4" />
                 </motion.div>
@@ -495,7 +495,7 @@ export default function RoomPage() {
               onClick={handleToggleReady}
               data-testid="room-ready-btn"
             >
-              {readyMap[user?.id ?? ''] ? 'Cancelar' : 'Pronto'}
+              {readyMap[user?.id ?? ''] ? 'Cancelar' : 'Estou pronto!'}
             </Button>
           )}
           {isHost && !isMatchmakingRoom && (
@@ -506,7 +506,7 @@ export default function RoomPage() {
                 className="shrink-0"
                 data-testid="room-ready-btn"
               >
-                {readyMap[user?.id ?? ''] ? 'Cancelar' : 'Pronto'}
+                {readyMap[user?.id ?? ''] ? 'Cancelar' : 'Estou pronto!'}
               </Button>
               <div className="relative shrink-0">
                 <Button
@@ -554,7 +554,7 @@ export default function RoomPage() {
                 data-testid="room-start-btn"
               >
                 {allSlotsReady || humanPlayers.length <= 1
-                  ? 'Iniciar Partida'
+                  ? 'Jogar agora!'
                   : `Aguardando (${humanPlayers.filter(p => readyMap[p.userId]).length}/${humanPlayers.length})`}
               </Button>
             </>
@@ -565,12 +565,12 @@ export default function RoomPage() {
               onClick={handleToggleReady}
               className="shrink-0"
             >
-              {readyMap[user?.id ?? ''] ? 'Cancelar' : 'Pronto'}
+              {readyMap[user?.id ?? ''] ? 'Cancelar' : 'Estou pronto!'}
             </Button>
           )}
           {isMatchmakingRoom && (
             <p className="w-full text-center text-xs text-[var(--color-text-muted)] pt-1">
-              Inicia automaticamente quando todos confirmarem
+              Começa quando todos confirmarem — não demore!
             </p>
           )}
         </motion.div>
@@ -601,9 +601,9 @@ export default function RoomPage() {
             >
               <div className="flex items-center gap-2">
                 <Lock size={14} className="text-[var(--color-accent-mid)]" />
-                <span className="text-sm font-semibold text-[var(--color-text-primary)]">Sala protegida</span>
+                <span className="text-sm font-semibold text-[var(--color-text-primary)]">Mesa protegida</span>
               </div>
-              <p className="text-xs text-[var(--color-text-muted)]">Esta sala requer senha para entrar.</p>
+              <p className="text-xs text-[var(--color-text-muted)]">Esta mesa tem senha. Peça ao anfitrião para entrar.</p>
               <div className="flex flex-col gap-1.5">
                 <Input
                   type="password"
@@ -682,7 +682,7 @@ export default function RoomPage() {
                   </span>
                 )}
                 <span className="text-sm text-[var(--color-text-muted)] tracking-widest uppercase">
-                  Partida iniciando
+                  Preparem-se!
                 </span>
               </motion.div>
             </AnimatePresence>
