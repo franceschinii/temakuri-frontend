@@ -112,10 +112,13 @@ export function OpponentRow({ player, isCurrentTurn, compact, onClick }: Opponen
       )}
       {/* Avatar + name */}
       <div className="flex items-center gap-2">
-        <div className={cn(
-          'shrink-0',
-          isCurrentTurn && 'ring-2 ring-[var(--color-accent-soft)] rounded-full',
-        )}>
+        <div
+          className={cn(
+            'shrink-0',
+            isCurrentTurn && 'ring-2 ring-accent-soft rounded-full',
+          )}
+          style={{ width: 52, height: 52 }}
+        >
           <AvatarWithBorder index={player.avatarIndex ?? 0} level={player.level ?? 1} size={52} />
         </div>
         <div className="flex flex-col items-start min-w-0">

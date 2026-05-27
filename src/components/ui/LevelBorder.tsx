@@ -33,7 +33,6 @@ export function LevelBorder({ level, size, children }: LevelBorderProps) {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        alignSelf: 'flex-start',
         flexShrink: 0,
       }}
     >

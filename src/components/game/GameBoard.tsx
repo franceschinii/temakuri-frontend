@@ -130,6 +130,10 @@ export function GameBoard({ devForceState }: { devForceState?: GameBoardDevForce
   const [isDealAnimating, setIsDealAnimating] = useState(false);
   const prevRoundRef = useRef(0);
   const [roundWaiting, setRoundWaiting] = useState<{ readyCount: number; humanCount: number } | null>(null);
+  // Trava interação imediatamente após emitir qualquer ação de jogo.
+  // Liberada só quando applyTurnChange roda (turn_started após ACTION_VIEW_DELAY).
+  // Impede double-play durante a janela de delay de 1800ms.
+  const [actionPending, setActionPending] = useState(false);
 
   // Dev-only: força estados locais a partir da rota /dev/board. Não roda
   // em produção porque devForceState é undefined no fluxo normal.
@@ -153,7 +157,7 @@ export function GameBoard({ devForceState }: { devForceState?: GameBoardDevForce
   // Quem ja zerou a mao nesta rodada (isOutOfRound) NAO pode ter botoes
   // ativos mesmo que currentTurnUserId momentaneamente aponte pra ele
   // (race entre cards_played e turn_started com ACTION_VIEW_DELAY).
-  const isMyTurn = user?.id === currentTurnUserId && !me?.isOutOfRound;
+  const isMyTurn = user?.id === currentTurnUserId && !me?.isOutOfRound && !actionPending && !isDealAnimating;
   const opponents = players.filter(p => p.userId !== user?.id);
   const isWipeWinner = phase === 'PLAYER_TURN' && market !== null && currentTurnUserId === user?.id && pile.length === 0 && !me?.isOutOfRound;
   const isDuel = players.filter(p => !p.isEliminated).length === 2 || duelPlates !== null;
@@ -274,6 +278,7 @@ export function GameBoard({ devForceState }: { devForceState?: GameBoardDevForce
       setTimerKey(k => k + 1);
       setPickMode(false);
       setDrawnCard(null);
+      setActionPending(false);
       hasSubmittedPickRef.current = false;
       const { myHand, phase, players } = useGameStore.getState();
       // Se eu zerei a mao nesta rodada (isOutOfRound), minha mao DEVE estar
@@ -294,7 +299,7 @@ export function GameBoard({ devForceState }: { devForceState?: GameBoardDevForce
     } else {
       applyTurnChange();
     }
-  }, [roomCode, user?.id]));
+  }, [roomCode, user?.id, setActionPending]));
 
   useSocketEvent<{ userId: string; cards: Card[]; isSabor: boolean; usedPlates?: Card[]; remainingPlates?: Card[]; nextPhase?: 'TRICK_PICK' | 'PLAYER_TURN' }>('game:cards_played', useCallback(({ userId, cards, isSabor, usedPlates, remainingPlates, nextPhase }) => {
     lastActionAtRef.current = Date.now();
@@ -421,14 +426,14 @@ export function GameBoard({ devForceState }: { devForceState?: GameBoardDevForce
     });
   }, [addLog, user?.id]));
 
-  useSocketEvent<{ round: number; drawPileCount: number; cardCounts: Record<string, number>; market: Card[] | null }>('game:round_started', useCallback(({ round, drawPileCount, cardCounts, market }) => {
+  useSocketEvent<{ round: number; drawPileCount: number; cardCounts: Record<string, number>; market: Card[] | null; duelPlates?: Record<string, Card[]> | null }>('game:round_started', useCallback(({ round, drawPileCount, cardCounts, market, duelPlates }) => {
     useGameStore.setState(s => ({
       round,
       drawPileCount,
       pile: [],
       discardPile: [],
-      duelPlates: null,
-      myDuelPlates: null,
+      duelPlates: duelPlates ?? null,
+      myDuelPlates: (duelPlates && user?.id) ? (duelPlates[user.id] ?? null) : null,
       saborActive: false,
       saborMinRequired: 0,
       saborTriggeredBy: null,
@@ -446,7 +451,7 @@ export function GameBoard({ devForceState }: { devForceState?: GameBoardDevForce
     // Log marcando inicio de rodada — sem isso, quem zerou na rodada anterior
     // ve a mao nova aparecer "do nada" e nao entende a sequencia.
     addLog({ type: 'system', text: `Rodada ${round} iniciada — todos receberam novas cartas` });
-  }, [addLog]));
+  }, [addLog, user?.id]));
 
   useSocketEvent<{ rankings: GameRanking[]; stats: GameStats }>('game:game_over', useCallback(({ rankings, stats }) => {
     applyGameOver(rankings, stats);
@@ -519,11 +524,15 @@ export function GameBoard({ devForceState }: { devForceState?: GameBoardDevForce
 
   useSocketEvent<{ userId: string; plateIndex: number; action: 'insert' | 'discard'; remainingPlates: Card[]; drawnCard: Card | null }>('game:duel_plate_used', useCallback(({ userId, action, remainingPlates }) => {
     useGameStore.setState(s => {
-      const newDuelPlates = s.duelPlates ? { ...s.duelPlates, [userId]: remainingPlates } : null;
+      const newDuelPlates = { ...(s.duelPlates ?? {}), [userId]: remainingPlates };
       const isMe = userId === user?.id;
+      const players = action === 'insert'
+        ? s.players.map(p => p.userId === userId ? { ...p, cardCount: p.cardCount + 1 } : p)
+        : s.players;
       return {
         duelPlates: newDuelPlates,
         myDuelPlates: isMe ? remainingPlates : s.myDuelPlates,
+        players,
       };
     });
     playSound('pass');
@@ -540,6 +549,7 @@ export function GameBoard({ devForceState }: { devForceState?: GameBoardDevForce
 
   useSocketEvent<{ code: string; message: string }>('game:error', useCallback(({ message }) => {
     toast.error(message);
+    setActionPending(false);
     setPickMode(false);
     setDrawnCard(null);
     setMarketSwapMode(false);
@@ -646,6 +656,11 @@ export function GameBoard({ devForceState }: { devForceState?: GameBoardDevForce
     myDuelPlatesCount: myDuelPlates?.length ?? 0,
   });
 
+  const handlePlayCards = useCallback(() => {
+    setActionPending(true);
+    playSelectedCards();
+  }, [playSelectedCards]);
+
   const handleContinueRound = useCallback(() => {
     clearRoundSummary();
     setRoundWaiting(null);
@@ -681,6 +696,7 @@ export function GameBoard({ devForceState }: { devForceState?: GameBoardDevForce
     if (!isDuel && drawPileCount === 0) {
       toast.info('Monte esgotado — passando sem comprar');
     }
+    setActionPending(true);
     drawCard();
   };
 
@@ -876,49 +892,11 @@ export function GameBoard({ devForceState }: { devForceState?: GameBoardDevForce
           </div>
         )}
 
-        {/* Duelo: Pratos do Dia */}
-        {duelPlates && (
-          <div className="flex flex-col gap-1 w-full max-w-md">
-            <span className="text-[10px] uppercase tracking-widest text-[var(--color-text-muted)] text-center font-medium">Pratos do Dia</span>
-            {isMyTurn && phase === 'PLAYER_TURN' && myDuelPlates && myDuelPlates.length > 0 && (
-              <span className="text-[10px] text-[var(--color-warning)] text-center">
-                Toque nos pratos para combiná-los com cartas da mão
-              </span>
-            )}
-            <div className="flex gap-3 justify-center flex-wrap">
-              {Object.entries(duelPlates).map(([playerId, plates]) => {
-                const player = players.find(p => p.userId === playerId);
-                const isMe = playerId === user?.id;
-                return (
-                  <div key={playerId} className="flex flex-col items-center gap-1">
-                    <span className="text-[10px] text-[var(--color-text-muted)]">{player?.username ?? '...'}</span>
-                    <div className="flex gap-1">
-                      {plates.length > 0 ? plates.map((card, i) => {
-                        const isSelected = isMe && selectedPlateIndices.includes(i);
-                        const canSelect = isMe && isMyTurn && phase === 'PLAYER_TURN';
-                        return (
-                          <button
-                            key={card.id ?? i}
-                            onClick={canSelect ? () => togglePlateSelection(i) : undefined}
-                            disabled={!canSelect}
-                            className={`transition-all rounded-lg ${canSelect ? 'cursor-pointer' : 'cursor-default'} ${
-                              isSelected
-                                ? 'ring-2 ring-[var(--color-warning)] ring-offset-1 ring-offset-[var(--color-surface)] scale-105'
-                                : ''
-                            }`}
-                          >
-                            <CardComponent card={card} small disabled={!canSelect} />
-                          </button>
-                        );
-                      }) : (
-                        <span className="text-[10px] text-[var(--color-danger)] italic">sem pratos</span>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
+        {/* Duelo: hint de seleção de prato — só aparece se tiver pratos selecionáveis */}
+        {isMyTurn && phase === 'PLAYER_TURN' && myDuelPlates && myDuelPlates.length > 0 && (
+          <span className="text-[10px] text-[var(--color-warning)] text-center">
+            Toque nos pratos (esq.) para combiná-los
+          </span>
         )}
 
         {/* Mercado */}
@@ -940,8 +918,10 @@ export function GameBoard({ devForceState }: { devForceState?: GameBoardDevForce
       </div>
 
       {/* My area — destaque visual forte quando e meu turno */}
+      {/* isolate: cria stacking context separado para evitar compositing bug do
+          Safari iOS quando SaborPopup usa backdrop-filter (duplica animacoes). */}
       <div
-        className={`relative shrink-0 border-t-2 bg-[var(--color-surface)] px-2 pt-1 pb-1.5 sm:px-4 [@media(min-height:900px)]:sm:pt-2 [@media(min-height:900px)]:sm:pb-3 flex flex-col transition-all ${
+        className={`relative isolate shrink-0 border-t-2 bg-surface px-2 pt-1 pb-1.5 sm:px-4 [@media(min-height:900px)]:sm:pt-2 [@media(min-height:900px)]:sm:pb-3 flex flex-col transition-all ${
           isMyTurn && phase === 'PLAYER_TURN'
             ? 'border-t-[var(--color-accent-strong)] shadow-[0_-8px_24px_-4px_var(--color-accent-strong-translucent)]'
             : 'border-t-[var(--color-border)]'
@@ -976,16 +956,22 @@ export function GameBoard({ devForceState }: { devForceState?: GameBoardDevForce
               title="Ver detalhes"
               aria-label="Ver detalhes do jogador"
             >
-              <div className={cn(
-                '[@media(min-height:900px)]:sm:hidden',
-                isMyTurn && phase === 'PLAYER_TURN' ? 'ring-2 ring-[var(--color-accent-strong)] ring-offset-2 ring-offset-[var(--color-surface)] rounded-full animate-pulse' : '',
-              )}>
+              <div
+                className={cn(
+                  '[@media(min-height:900px)]:sm:hidden',
+                  isMyTurn && phase === 'PLAYER_TURN' ? 'ring-2 ring-accent-strong ring-offset-2 ring-offset-surface rounded-full animate-pulse' : '',
+                )}
+                style={{ width: 36, height: 36, flexShrink: 0 }}
+              >
                 <AvatarWithBorder index={me?.avatarIndex ?? 0} level={me?.level ?? 1} size={36} />
               </div>
-              <div className={cn(
-                'hidden [@media(min-height:900px)]:sm:block',
-                isMyTurn && phase === 'PLAYER_TURN' ? 'ring-2 ring-[var(--color-accent-strong)] ring-offset-2 ring-offset-[var(--color-surface)] rounded-full animate-pulse' : '',
-              )}>
+              <div
+                className={cn(
+                  'hidden [@media(min-height:900px)]:sm:block',
+                  isMyTurn && phase === 'PLAYER_TURN' ? 'ring-2 ring-accent-strong ring-offset-2 ring-offset-surface rounded-full animate-pulse' : '',
+                )}
+                style={{ width: 52, height: 52, flexShrink: 0 }}
+              >
                 <AvatarWithBorder index={me?.avatarIndex ?? 0} level={me?.level ?? 1} size={52} />
               </div>
               <span className="text-base font-semibold" style={{ color: 'var(--color-text-primary)' }}>
@@ -1081,7 +1067,7 @@ export function GameBoard({ devForceState }: { devForceState?: GameBoardDevForce
                 isMyTurn={isMyTurn}
                 pile={pile}
                 drawPileCount={drawPileCount}
-                onPlay={playSelectedCards}
+                onPlay={handlePlayCards}
                 onPass={handlePass}
                 canPlay={canPlay}
                 isDuel={isDuel}
@@ -1151,6 +1137,40 @@ export function GameBoard({ devForceState }: { devForceState?: GameBoardDevForce
         externalToggleRef={chatRef}
         hideTriggers
       />
+
+      {/* Pratos do Dia — painel fixo esquerdo, nao interfere no layout central */}
+      {duelPlates && (
+        <div className="fixed left-2 sm:left-3 top-16 z-30 flex flex-col gap-1.5">
+          <span className="text-[9px] uppercase tracking-widest text-text-muted font-semibold">Pratos do Dia</span>
+          {Object.entries(duelPlates).map(([playerId, plates]) => {
+            const platePlayer = players.find(p => p.userId === playerId);
+            const isMe = playerId === user?.id;
+            return (
+              <div key={playerId} className="flex flex-col gap-0.5">
+                <span className="text-[9px] text-text-muted">{platePlayer?.username ?? '...'}</span>
+                <div className="flex gap-1">
+                  {plates.length > 0 ? plates.map((card, i) => {
+                    const isSelected = isMe && selectedPlateIndices.includes(i);
+                    const canSelect = isMe && isMyTurn && phase === 'PLAYER_TURN';
+                    return (
+                      <button
+                        key={card.id ?? i}
+                        onClick={canSelect ? () => togglePlateSelection(i) : undefined}
+                        disabled={!canSelect}
+                        className={`transition-all rounded-lg ${canSelect ? 'cursor-pointer' : 'cursor-default'} ${isSelected ? 'ring-2 ring-warning ring-offset-1 ring-offset-surface scale-105' : ''}`}
+                      >
+                        <CardComponent card={card} small disabled={!canSelect} />
+                      </button>
+                    );
+                  }) : (
+                    <span className="text-[9px] text-danger italic">sem pratos</span>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       {/* Reactions overlay — dedicated zone above reaction bar */}
       <div className="fixed bottom-24 right-3 sm:right-16 flex flex-col-reverse gap-1.5 z-40 pointer-events-none items-end min-w-[96px]">

@@ -44,6 +44,7 @@ export default function LobbyPage() {
   const [createOpen, setCreateOpen] = useState(false);
   const [rulesOpen, setRulesOpen] = useState(false);
   const [matchOpen, setMatchOpen] = useState(false);
+  const [playMenuOpen, setPlayMenuOpen] = useState(false);
   const [joinCode, setJoinCode] = useState('');
   const [joinPassword, setJoinPassword] = useState('');
   const [joinNeedsPassword, setJoinNeedsPassword] = useState(false);
@@ -143,20 +144,53 @@ export default function LobbyPage() {
               </Button>
             </div>
             {/* Linha 2: nova partida / matchmaking / ranking / tutorial */}
-            <div className="grid grid-cols-4 gap-2 sm:contents">
-              <Button onClick={() => setCreateOpen(true)} className="shrink-0 w-full sm:w-auto" data-testid="lobby-create-room-btn" data-tour="tour-create-room">
+            <div className="grid grid-cols-3 gap-2 sm:contents">
+              {/* Mobile: botão Jogar unificado que abre dropdown */}
+              <div className="relative sm:hidden" data-tour="tour-create-room">
+                <Button
+                  onClick={() => setPlayMenuOpen(v => !v)}
+                  className="w-full"
+                  data-testid="lobby-play-btn"
+                >
+                  <Swords size={15} /> Jogar
+                </Button>
+                {playMenuOpen && (
+                  <>
+                    <div className="fixed inset-0 z-40" onClick={() => setPlayMenuOpen(false)} />
+                    <div className="absolute top-full left-0 right-0 mt-1 rounded-lg border border-border bg-surface shadow-lg z-50 flex flex-col overflow-hidden">
+                      <button
+                        onClick={() => { setPlayMenuOpen(false); setCreateOpen(true); }}
+                        className="flex items-center gap-2 px-4 py-3 text-sm text-text-primary hover:bg-panel text-left w-full"
+                      >
+                        <Plus size={15} /> Nova partida
+                      </button>
+                      {!user?.isGuest && (
+                        <button
+                          onClick={() => { setPlayMenuOpen(false); setMatchOpen(true); }}
+                          className="flex items-center gap-2 px-4 py-3 text-sm text-text-primary hover:bg-panel text-left w-full border-t border-border"
+                        >
+                          <Swords size={15} /> Buscar
+                        </button>
+                      )}
+                    </div>
+                  </>
+                )}
+              </div>
+              {/* Desktop: Nova partida separado */}
+              <Button onClick={() => setCreateOpen(true)} className="hidden sm:inline-flex shrink-0 w-auto" data-testid="lobby-create-room-btn" data-tour="tour-create-room">
                 <Plus size={15} /> Nova partida
               </Button>
+              {/* Desktop: Buscar separado */}
               {!user?.isGuest && (
-                <Button variant="secondary" onClick={() => setMatchOpen(true)} className="shrink-0 w-full sm:w-auto" data-testid="lobby-matchmaking-btn" data-tour="tour-matchmaking">
-                  <Swords size={15} className="hidden sm:inline" /> Buscar
+                <Button variant="secondary" onClick={() => setMatchOpen(true)} className="hidden sm:inline-flex shrink-0 w-auto" data-testid="lobby-matchmaking-btn" data-tour="tour-matchmaking">
+                  <Swords size={15} /> Buscar
                 </Button>
               )}
               <Button variant="outline" onClick={() => navigate('/ranked')} className="shrink-0 w-full sm:w-auto" data-testid="access-bar-leaderboard-link">
-                <Trophy size={15} className="hidden sm:inline" /> Ranking
+                <Trophy size={15} /> Ranking
               </Button>
               <Button variant="secondary" onClick={() => navigate('/tutorial')} className="shrink-0 w-full sm:w-auto">
-                <GraduationCap size={15} className="hidden sm:inline" /> Tutorial
+                <GraduationCap size={15} /> Tutorial
               </Button>
             </div>
           </div>
