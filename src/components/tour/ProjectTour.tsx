@@ -203,6 +203,14 @@ export function ProjectTour({ open, onClose }: ProjectTourProps) {
     <AnimatePresence>
       {open && step && (
         <>
+          {/* Bloqueia cliques em qualquer elemento da página por baixo do tour */}
+          <div
+            style={{
+              position: 'fixed',
+              inset: 0,
+              zIndex: 9997,
+            }}
+          />
           <div
             style={{
               position: 'fixed',
