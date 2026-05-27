@@ -66,30 +66,32 @@ export function ReviewsCard() {
           )}
         </div>
 
-        <div className="px-4 py-3 flex flex-col gap-3">
-          {total > 0 ? (
-            <div className="flex items-center gap-3">
-              <span className="text-2xl font-bold text-[var(--color-text-primary)] tabular-nums">{avg.toFixed(1)}</span>
-              <div className="flex flex-col gap-0.5">
-                <StarRating value={Math.round(avg)} size={14} />
-                <span className="text-[10px] text-[var(--color-text-muted)]">{total} avaliaç{total > 1 ? 'ões' : 'ão'}</span>
-              </div>
-            </div>
-          ) : (
-            <p className="text-xs text-[var(--color-text-muted)]">Ainda não há avaliações. Seja o primeiro.</p>
-          )}
+        <div className="px-4 py-3">
+          <div className="flex items-center gap-3 flex-wrap">
+            {total > 0 ? (
+              <>
+                <span className="text-2xl font-bold text-text-primary tabular-nums">{avg.toFixed(1)}</span>
+                <div className="flex flex-col gap-0.5">
+                  <StarRating value={Math.round(avg)} size={14} />
+                  <span className="text-[10px] text-text-muted">{total} avaliaç{total > 1 ? 'ões' : 'ão'}</span>
+                </div>
+              </>
+            ) : (
+              <p className="text-xs text-text-muted">Ainda não há avaliações. Seja o primeiro.</p>
+            )}
 
-          {!loggedIn ? (
-            <p className="text-[11px] text-[var(--color-text-muted)]">Entre com uma conta para avaliar.</p>
-          ) : myState && !myState.canReview && !myState.mine ? (
-            <p className="text-[11px] text-[var(--color-text-muted)]">
-              Jogue ao menos {myState.minGames} partidas para avaliar ({myState.gamesPlayed}/{myState.minGames}).
-            </p>
-          ) : (
-            <Button size="sm" variant="secondary" onClick={() => setFormOpen(true)} className="self-start">
-              {myState?.mine ? <><Pencil size={13} /> Editar minha avaliação</> : <><Star size={13} /> Avaliar o jogo</>}
-            </Button>
-          )}
+            {!loggedIn ? (
+              <p className="text-[11px] text-text-muted">Entre com uma conta para avaliar.</p>
+            ) : myState && !myState.canReview && !myState.mine ? (
+              <p className="text-[11px] text-text-muted">
+                {myState.gamesPlayed}/{myState.minGames} partidas para avaliar
+              </p>
+            ) : (
+              <Button size="sm" variant="secondary" onClick={() => setFormOpen(true)}>
+                {myState?.mine ? <><Pencil size={13} /> Editar</> : <><Star size={13} /> Avaliar</>}
+              </Button>
+            )}
+          </div>
         </div>
       </div>
 

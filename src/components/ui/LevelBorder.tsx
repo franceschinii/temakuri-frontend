@@ -19,7 +19,7 @@ export function LevelBorder({ level, size, children }: LevelBorderProps) {
 
   return (
     <div
-      className="rounded-full shrink-0"
+      className="rounded-full shrink-0 inline-flex items-center justify-center"
       style={{
         width: size,
         height: size,
@@ -30,8 +30,14 @@ export function LevelBorder({ level, size, children }: LevelBorderProps) {
       }}
     >
       <div
-        className="rounded-full overflow-hidden w-full h-full flex items-center justify-center"
-        style={{ background: 'var(--color-base)' }}
+        style={{
+          width: size - 4,
+          height: size - 4,
+          borderRadius: '50%',
+          overflow: 'hidden',
+          background: 'var(--color-base)',
+          flexShrink: 0,
+        }}
       >
         {children}
       </div>

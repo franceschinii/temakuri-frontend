@@ -38,7 +38,7 @@ export function TrickPickModal({ open, pile, myHand, onTake, onDiscard }: TrickP
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
-            className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-2xl p-6 w-full max-w-md max-h-[90dvh] overflow-y-auto shadow-2xl flex flex-col gap-4"
+            className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-2xl p-6 w-full max-w-lg max-h-[90dvh] overflow-y-auto shadow-2xl flex flex-col gap-4"
           >
             {step === 'choose' ? (
               <>
@@ -80,15 +80,15 @@ export function TrickPickModal({ open, pile, myHand, onTake, onDiscard }: TrickP
 
                 {/* Mão com barras de inserção */}
                 <div className="overflow-x-auto py-2">
-                  <div className="flex gap-1 items-center flex-wrap justify-center">
+                  <div className="flex items-center">
                     {[...Array(myHand.length + 1)].map((_, insertIdx) => (
-                      <div key={insertIdx} className="flex items-center">
+                      <div key={insertIdx} className="flex items-center shrink-0">
                         <button
                           onClick={() => onTake(insertIdx)}
                           onMouseEnter={() => setHoveredInsert(insertIdx)}
                           onMouseLeave={() => setHoveredInsert(null)}
                           className={cn(
-                            'w-1.5 h-16 rounded-full transition-all mx-0.5',
+                            'w-1.5 h-16 rounded-full transition-all mx-2 shrink-0',
                             hoveredInsert === insertIdx
                               ? 'bg-[var(--color-warning)] w-2.5 scale-110'
                               : 'bg-[var(--color-border)]',

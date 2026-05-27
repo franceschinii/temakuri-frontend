@@ -79,6 +79,8 @@ export function GameBoard({ devForceState }: { devForceState?: GameBoardDevForce
 
   const [timerMs, setTimerMs] = useState(30_000);
   const [timerKey, setTimerKey] = useState(0);
+  const [timerDelay, setTimerDelay] = useState(0);
+  const saborPopupStartedAtRef = useRef<number>(0);
   const [reactionCooldown, setReactionCooldown] = useState(false);
   const reactionTimestampsRef = useRef<number[]>([]);
   const [pickMode, setPickMode] = useState(false);
@@ -260,6 +262,13 @@ export function GameBoard({ devForceState }: { devForceState?: GameBoardDevForce
         selectedPlateIndices: [],
         phase: s.phase === 'GAME_OVER' ? s.phase : 'PLAYER_TURN',
       }));
+      const SABOR_POPUP_MS = 1700;
+      const saborElapsed = saborPopupStartedAtRef.current > 0
+        ? Date.now() - saborPopupStartedAtRef.current
+        : SABOR_POPUP_MS;
+      const delay = saborElapsed < SABOR_POPUP_MS ? SABOR_POPUP_MS - saborElapsed : 0;
+      saborPopupStartedAtRef.current = 0;
+      setTimerDelay(delay);
       setTimerMs(timeoutMs);
       setTimerKey(k => k + 1);
       setPickMode(false);
@@ -350,6 +359,7 @@ export function GameBoard({ devForceState }: { devForceState?: GameBoardDevForce
   useSocketEvent<{ triggeredBy: string; minRequired: number }>('game:sabor_active', useCallback(({ triggeredBy, minRequired }) => {
     const name = players.find(p => p.userId === triggeredBy)?.username ?? triggeredBy;
     setSaborActive(true, minRequired, name);
+    saborPopupStartedAtRef.current = Date.now();
     setSaborPopupTrigger(t => t + 1);
     playSound('sabor');
     addLog({ type: 'sabor', userId: triggeredBy, username: name, text: `Sabor ativo! Mínimo de ${minRequired} carta(s) por ${name}` });
@@ -740,7 +750,7 @@ export function GameBoard({ devForceState }: { devForceState?: GameBoardDevForce
               </span>
             )}
             <div className="shrink min-w-0 w-32 sm:w-44">
-              <TurnTimer key={timerKey} timeoutMs={timerMs} isMyTurn={isMyTurn} />
+              <TurnTimer key={timerKey} timeoutMs={timerMs} isMyTurn={isMyTurn} delayMs={timerDelay} />
             </div>
           </div>
         }
