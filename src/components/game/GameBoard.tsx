@@ -32,6 +32,7 @@ import { TrickPickModal } from './TrickPickModal';
 import { DuelPassPickModal } from './DuelPassPickModal';
 import { InGameHint } from './InGameHint';
 import { useInGameHint } from '@/hooks/useInGameHint';
+import { SaborPopup } from '@/routes/dev/anims/SaborPopup';
 import { MedalBadge } from '@/components/ui/MedalBadge';
 import { AvatarWithBorder } from '@/components/ui/Avatar';
 import { LevelBadge } from '@/components/ui/LevelBadge';
@@ -120,6 +121,12 @@ export function GameBoard({ devForceState }: { devForceState?: GameBoardDevForce
   const [duelPickOpen, setDuelPickOpen] = useState(false);
   const prevTurnRef = useRef<string>('');
   const [roomHostId, setRoomHostId] = useState<string | null>(null);
+  const [saborPopupTrigger, setSaborPopupTrigger] = useState(0);
+  // Controla a animação de deal staggered no inicio de cada rodada.
+  // Ativa quando round muda; desativa após o tempo total de animacao
+  // (stagger de até 9 cartas * 90ms + spring.drop ~300ms = ~1.1s).
+  const [isDealAnimating, setIsDealAnimating] = useState(false);
+  const prevRoundRef = useRef(0);
 
   // Dev-only: força estados locais a partir da rota /dev/board. Não roda
   // em produção porque devForceState é undefined no fluxo normal.
@@ -173,6 +180,17 @@ export function GameBoard({ devForceState }: { devForceState?: GameBoardDevForce
       emitSocketEvent('game:request_state', { roomCode });
     });
   }, [roomCode]);
+
+  // Ativa animacao de deal staggered quando a rodada muda.
+  // Ignora o round 0 (estado inicial antes do jogo comecar).
+  useEffect(() => {
+    if (round > 0 && round !== prevRoundRef.current) {
+      prevRoundRef.current = round;
+      setIsDealAnimating(true);
+      const t = setTimeout(() => setIsDealAnimating(false), 1300);
+      return () => clearTimeout(t);
+    }
+  }, [round]);
 
   // Ao voltar de alt+tab/background, verifica se o socket ainda está vivo.
   // Browsers suspendem abas em background e podem silenciosamente matar o WS
@@ -332,6 +350,7 @@ export function GameBoard({ devForceState }: { devForceState?: GameBoardDevForce
   useSocketEvent<{ triggeredBy: string; minRequired: number }>('game:sabor_active', useCallback(({ triggeredBy, minRequired }) => {
     const name = players.find(p => p.userId === triggeredBy)?.username ?? triggeredBy;
     setSaborActive(true, minRequired, name);
+    setSaborPopupTrigger(t => t + 1);
     playSound('sabor');
     addLog({ type: 'sabor', userId: triggeredBy, username: name, text: `Sabor ativo! Mínimo de ${minRequired} carta(s) por ${name}` });
   }, [setSaborActive, players, addLog]));
@@ -1016,6 +1035,7 @@ export function GameBoard({ devForceState }: { devForceState?: GameBoardDevForce
                 isMyTurn={isMyTurn}
                 pickMode={pickMode}
                 onPickInsert={pickMode ? handleInsertAtIndex : undefined}
+                dealMode={isDealAnimating}
               />
               {isMyTurn && selectedIndices.length > 0 && !canPlay && pile.length > 0 && (
                 <div className="pointer-events-none absolute left-1/2 -translate-x-1/2 -top-3 -translate-y-full z-20">
@@ -1133,6 +1153,12 @@ export function GameBoard({ devForceState }: { devForceState?: GameBoardDevForce
           })}
         </AnimatePresence>
       </div>
+
+      {/* Sabor popup — fullscreen, auto-dismiss após 1700ms */}
+      <SaborPopup
+        trigger={saborPopupTrigger}
+        triggeredBy={saborTriggeredBy ?? undefined}
+      />
 
       {/* Modals */}
       {roundSummaryData && (

@@ -4,6 +4,7 @@ import { CardComponent } from './CardComponent';
 import { useGameStore } from '@/stores/gameStore';
 import type { Card } from '@/types/game';
 import { cn } from '@/lib/utils';
+import { dealParentVariants, dealHandVariants } from '@/routes/dev/anims/animations';
 
 interface PlayerHandProps {
   hand: Card[];
@@ -22,6 +23,8 @@ interface PlayerHandProps {
   // Bloqueia clique em cartas que nao estao nesta lista (whitelist por id).
   // Quando nao passado, sem bloqueio adicional. Usado pelo tutorial.
   allowedCardIds?: string[];
+  // Quando true, usa animacao staggered de deal (inicio de rodada).
+  dealMode?: boolean;
 }
 
 export function PlayerHand({
@@ -29,6 +32,7 @@ export function PlayerHand({
   onPickInsert, pickMode, drawnCard,
   swapSelectIndex, onSwapSelect,
   selectedIndicesOverride, onToggleOverride, allowedCardIds,
+  dealMode = false,
 }: PlayerHandProps) {
   const storeSelected = useGameStore(s => s.selectedIndices);
   const storeToggle = useGameStore(s => s.toggleCardSelection);
@@ -69,7 +73,7 @@ export function PlayerHand({
                 'w-4 sm:w-1.5 min-h-[44px] h-16 rounded-full transition-all mx-0.5 shrink-0',
                 hoveredInsert === insertIdx
                   ? 'bg-[var(--color-warning)] sm:w-2.5 scale-110'
-                  : 'bg-[var(--color-border)]',
+                  : 'bg-border',
               )}
             />
             {insertIdx < hand.length && (
@@ -101,6 +105,39 @@ export function PlayerHand({
 
   // Normal mode — no mobile usa scroll horizontal (sem wrap); no sm+ volta
   // ao flex-wrap centralizado original.
+  //
+  // dealMode: usa stagger do pai (dealParentVariants) + variante de filho
+  // (dealHandVariants) para animar as cartas voando do baralho para a mao
+  // no inicio de cada rodada. No modo normal usa a entrada individual simples.
+  if (dealMode) {
+    return (
+      <motion.div
+        variants={dealParentVariants}
+        initial="inDeck"
+        animate="inHand"
+        className="flex items-end gap-1 px-2 pb-2 overflow-x-auto snap-x snap-mandatory sm:overflow-visible sm:flex-wrap sm:gap-1.5 sm:justify-center [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        data-testid="player-hand"
+      >
+        {hand.map((card, i) => (
+          <motion.div
+            key={card.id}
+            variants={dealHandVariants}
+            className="snap-start shrink-0"
+          >
+            <CardComponent
+              card={card}
+              responsiveSmall
+              selected={isSelected(i)}
+              disabled={isCardDisabled(i)}
+              onClick={() => isMyTurn && !pickMode && toggleCardSelection(i)}
+              testId={`player-hand-card-${i}`}
+            />
+          </motion.div>
+        ))}
+      </motion.div>
+    );
+  }
+
   return (
     <div
       className="flex items-end gap-1 px-2 pb-2 overflow-x-auto snap-x snap-mandatory sm:overflow-visible sm:flex-wrap sm:gap-1.5 sm:justify-center [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
