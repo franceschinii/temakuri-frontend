@@ -30,7 +30,7 @@ export function LevelBorder({ level, size, children }: LevelBorderProps) {
       }}
     >
       <div
-        className="rounded-full overflow-hidden w-full h-full"
+        className="rounded-full overflow-hidden w-full h-full flex items-center justify-center"
         style={{ background: 'var(--color-base)' }}
       >
         {children}
