@@ -88,7 +88,7 @@ export function ReviewsCard() {
                 <p className="text-[11px] text-text-muted">{myState.gamesPlayed}/{myState.minGames} partidas</p>
               ) : (
                 <Button size="sm" variant="secondary" onClick={() => setFormOpen(true)}>
-                  {myState?.mine ? <><Pencil size={13} /> Editar</> : <><Star size={13} /> Avaliar</>}
+                  {myState?.mine ? <><Pencil size={13} /> Editar</> : <><Star size={13} /> Avaliar jogo</>}
                 </Button>
               )}
             </div>
