@@ -77,7 +77,7 @@ interface TutorialState {
   play(allowedCardIds: string[]): void;
   pass(): void;
   insertDrawnCard(index: number): void;
-  resolveTrick(action: 'take' | 'discard'): void;
+  resolveTrick(action: 'take' | 'discard', insertAtIndex?: number): void;
   advanceFromOverlay(): void;
   reset(): void;
 }
@@ -275,10 +275,14 @@ export const useTutorialStore = create<TutorialState>((set, get) => ({
     });
   },
 
-  resolveTrick: (action) => {
+  resolveTrick: (action, insertAtIndex) => {
     const state = get();
     if (state.step !== 'TRICK_PICK') return;
-    const newHand = action === 'take' ? [...state.myHand, ...state.vazaCards] : state.myHand;
+    let newHand = state.myHand;
+    if (action === 'take') {
+      newHand = [...state.myHand];
+      newHand.splice(insertAtIndex ?? newHand.length, 0, ...state.vazaCards);
+    }
     const newDiscard = action === 'discard' ? [...state.discardPile, ...state.vazaCards] : state.discardPile;
     set({
       step: 'SABOR_EXPLAIN',

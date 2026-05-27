@@ -11,6 +11,7 @@ import { PlayArea } from '@/components/game/PlayArea';
 import { PlayerHand } from '@/components/game/PlayerHand';
 import { CardComponent } from '@/components/game/CardComponent';
 import { TutorialOverlay } from '@/components/tutorial/TutorialOverlay';
+import { TrickPickModal } from '@/components/game/TrickPickModal';
 import { useTutorialStore } from '@/stores/tutorialStore';
 import { useTutorialFlow } from '@/hooks/useTutorialFlow';
 import { useAuthStore } from '@/stores/authStore';
@@ -39,6 +40,7 @@ export default function TutorialPage() {
   const passTurn        = useTutorialStore(s => s.pass);
   const insertDrawnCard = useTutorialStore(s => s.insertDrawnCard);
   const resolveTrick    = useTutorialStore(s => s.resolveTrick);
+  const vazaCards       = useTutorialStore(s => s.vazaCards);
   const reset           = useTutorialStore(s => s.reset);
 
   const { allowedAction, currentStep } = useTutorialFlow();
@@ -96,7 +98,7 @@ export default function TutorialPage() {
         <div className="flex-1 flex flex-col items-center justify-center gap-6 p-8 text-center">
           <div className="text-5xl">🍣</div>
           <p style={{ color: 'var(--color-text-primary)', fontWeight: 700, fontSize: 22, fontFamily: 'var(--font-display)' }}>
-            Voce aprendeu!
+            Você aprendeu!
           </p>
           <p style={{ color: 'var(--color-text-muted)', fontSize: 14, maxWidth: 420 }}>
             {currentStep.text}
@@ -114,6 +116,13 @@ export default function TutorialPage() {
     <div className="h-dvh flex flex-col overflow-hidden" style={{ background: 'var(--color-base)' }}>
       {navbar}
       <TutorialOverlay />
+      <TrickPickModal
+        open={isTrickPickPhase}
+        pile={vazaCards}
+        myHand={myHand}
+        onTake={(insertIdx) => resolveTrick('take', insertIdx)}
+        onDiscard={() => resolveTrick('discard')}
+      />
 
       <main className="flex-1 flex flex-col overflow-hidden">
         {/* Oponente */}
@@ -221,16 +230,6 @@ export default function TutorialPage() {
               <span className="text-xs text-warning font-medium">
                 Clique em uma barra para posicionar a carta
               </span>
-            )}
-            {isTrickPickPhase && (
-              <>
-                <Button variant="primary" onClick={() => resolveTrick('take')}>
-                  Pegar as cartas
-                </Button>
-                <Button variant="secondary" onClick={() => resolveTrick('discard')}>
-                  Descartar
-                </Button>
-              </>
             )}
             {allowedAction.type === 'wait' && (
               <span className="text-xs text-text-muted py-2">Bot jogando...</span>
