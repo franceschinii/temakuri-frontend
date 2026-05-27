@@ -38,6 +38,7 @@ export default function TutorialPage() {
   const playCards       = useTutorialStore(s => s.play);
   const passTurn        = useTutorialStore(s => s.pass);
   const insertDrawnCard = useTutorialStore(s => s.insertDrawnCard);
+  const resolveTrick    = useTutorialStore(s => s.resolveTrick);
   const reset           = useTutorialStore(s => s.reset);
 
   const { allowedAction, currentStep } = useTutorialFlow();
@@ -48,10 +49,11 @@ export default function TutorialPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const isMyTurn    = currentTurnUserId === 'me';
-  const isPlayPhase = allowedAction.type === 'play';
-  const canPass     = allowedAction.type === 'pass';
-  const isPickPhase = allowedAction.type === 'pick';
+  const isMyTurn         = currentTurnUserId === 'me';
+  const isPlayPhase      = allowedAction.type === 'play';
+  const canPass          = allowedAction.type === 'pass';
+  const isPickPhase      = allowedAction.type === 'pick';
+  const isTrickPickPhase = allowedAction.type === 'trick-pick';
   const requiredCardIds = allowedAction.type === 'play' ? allowedAction.requiredCardIds : null;
 
   const selectedIds   = [...selectedIndices].sort((a, b) => a - b).map(i => myHand[i]?.id).filter(Boolean);
@@ -219,6 +221,16 @@ export default function TutorialPage() {
               <span className="text-xs text-warning font-medium">
                 Clique em uma barra para posicionar a carta
               </span>
+            )}
+            {isTrickPickPhase && (
+              <>
+                <Button variant="primary" onClick={() => resolveTrick('take')}>
+                  Pegar as cartas
+                </Button>
+                <Button variant="secondary" onClick={() => resolveTrick('discard')}>
+                  Descartar
+                </Button>
+              </>
             )}
             {allowedAction.type === 'wait' && (
               <span className="text-xs text-text-muted py-2">Bot jogando...</span>

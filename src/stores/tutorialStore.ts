@@ -10,6 +10,7 @@ export type TutorialStep =
   | 'YOU_PASS'
   | 'PICK_POSITION'
   | 'WIPE'
+  | 'TRICK_PICK'
   | 'SABOR_EXPLAIN'
   | 'MARKET_EXPLAIN'
   | 'ROUND_EXPLAIN'
@@ -62,6 +63,7 @@ interface TutorialState {
   currentTurnUserId: 'me' | 'bot';
   pickMode: boolean;
   drawnCard: Card | null;
+  vazaCards: Card[];
   _timeoutId: ReturnType<typeof setTimeout> | null;
 
   start(meUsername: string, meAvatarIndex: number, meLevel: number): void;
@@ -69,6 +71,7 @@ interface TutorialState {
   play(allowedCardIds: string[]): void;
   pass(): void;
   insertDrawnCard(index: number): void;
+  resolveTrick(action: 'take' | 'discard'): void;
   advanceFromOverlay(): void;
   reset(): void;
 }
@@ -86,6 +89,7 @@ export const useTutorialStore = create<TutorialState>((set, get) => ({
   currentTurnUserId: 'me',
   pickMode: false,
   drawnCard: null,
+  vazaCards: [],
   _timeoutId: null,
 
   start: (meUsername, meAvatarIndex, meLevel) => {
@@ -101,6 +105,7 @@ export const useTutorialStore = create<TutorialState>((set, get) => ({
       selectedIndices: [],
       pickMode: false,
       drawnCard: null,
+      vazaCards: [],
       me: makePlayer({
         userId: 'me',
         username: meUsername,
@@ -217,7 +222,7 @@ export const useTutorialStore = create<TutorialState>((set, get) => ({
       set({
         step: 'DONE',
         myHand: remaining,
-        me: { ...state.me, cardCount: 0, isOutOfRound: true },
+        me: { ...state.me, cardCount: remaining.length, isOutOfRound: true },
         pile: [...playedCards],
         selectedIndices: [],
         _timeoutId: null,
@@ -253,7 +258,7 @@ export const useTutorialStore = create<TutorialState>((set, get) => ({
       myHand: newHand,
       me: { ...state.me, cardCount: newHand.length },
       pile: [],
-      discardPile: [...state.discardPile, ...wipedPile],
+      vazaCards: wipedPile,
       pickMode: false,
       drawnCard: null,
       consecutivePasses: 0,
@@ -262,10 +267,25 @@ export const useTutorialStore = create<TutorialState>((set, get) => ({
     });
   },
 
+  resolveTrick: (action) => {
+    const state = get();
+    if (state.step !== 'TRICK_PICK') return;
+    const newHand = action === 'take' ? [...state.myHand, ...state.vazaCards] : state.myHand;
+    const newDiscard = action === 'discard' ? [...state.discardPile, ...state.vazaCards] : state.discardPile;
+    set({
+      step: 'SABOR_EXPLAIN',
+      myHand: newHand,
+      me: { ...state.me, cardCount: newHand.length },
+      discardPile: newDiscard,
+      vazaCards: [],
+      pile: [],
+    });
+  },
+
   advanceFromOverlay: () => {
     const state = get();
     if (state.step === 'INTRO') { set({ step: 'OPEN' }); return; }
-    if (state.step === 'WIPE')  { set({ step: 'SABOR_EXPLAIN' }); return; }
+    if (state.step === 'WIPE') { set({ step: 'TRICK_PICK', pile: [...state.vazaCards] }); return; }
     if (state.step === 'SABOR_EXPLAIN')  { set({ step: 'MARKET_EXPLAIN' }); return; }
     if (state.step === 'MARKET_EXPLAIN') { set({ step: 'ROUND_EXPLAIN' }); return; }
     if (state.step === 'ROUND_EXPLAIN')  { set({ step: 'FINISH' }); return; }
@@ -284,6 +304,7 @@ export const useTutorialStore = create<TutorialState>((set, get) => ({
       selectedIndices: [],
       pickMode: false,
       drawnCard: null,
+      vazaCards: [],
       me: makePlayer({ userId: 'me', username: 'Você' }),
       bot: makePlayer({ userId: 'bot', username: 'Sushi-Bot', avatarIndex: 1, isBot: true, cardCount: 4 }),
       currentTurnUserId: 'me',
