@@ -813,7 +813,7 @@ export function GameBoard({ devForceState }: { devForceState?: GameBoardDevForce
               'rounded-full shrink-0',
               opp.userId === currentTurnUserId ? 'ring-2 ring-[var(--color-accent-strong)] ring-offset-1 ring-offset-[var(--color-surface)]' : '',
             )}>
-              <AvatarWithBorder index={opp.avatarIndex} level={opp.level} size={32} />
+              <AvatarWithBorder index={opp.avatarIndex ?? 0} level={opp.level ?? 1} size={32} />
             </div>
             <div className="flex flex-col min-w-0 flex-1">
               <span className="text-xs font-semibold truncate" style={{ color: 'var(--color-text-primary)' }}>
