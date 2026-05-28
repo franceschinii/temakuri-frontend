@@ -93,17 +93,17 @@ export function PlayArea({ pile, drawPileCount, discardPile, saborActive, saborM
 
   return (
     <div className="flex items-start justify-center gap-1.5 sm:gap-3 w-full max-w-2xl mx-auto px-2 sm:px-4" data-testid="play-area">
-      {/* Slot esquerdo: Monte (modo normal) ou painel de pratos (duelo) */}
+      {/* Slot esquerdo: Monte (modo normal) ou painel de pratos (duelo — só desktop) */}
       {!isDuel ? (
         <>
           <PileStack count={drawPileCount} label="Monte" countTestId="draw-pile-count" />
           <div className="w-px bg-border self-stretch mt-6" />
         </>
       ) : leftPanel ? (
-        <>
+        <div className="hidden sm:contents">
           {leftPanel}
           <div className="w-px bg-border self-stretch mt-6" />
-        </>
+        </div>
       ) : null}
 
       {/* Active play area (center) */}

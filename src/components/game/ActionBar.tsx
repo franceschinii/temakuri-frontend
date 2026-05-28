@@ -15,11 +15,13 @@ interface ActionBarProps {
 
 export function ActionBar({ isMyTurn, pile, drawPileCount, onPlay, onPass, canPlay, isDuel, myDuelPlatesCount }: ActionBarProps) {
   const selectedIndices = useGameStore(s => s.selectedIndices);
+  const selectedPlateIndices = useGameStore(s => s.selectedPlateIndices);
+  const totalSelected = selectedIndices.length + selectedPlateIndices.length;
 
   if (!isMyTurn) {
     return (
       <div className="flex items-center justify-center h-12">
-        <span className="text-[var(--color-text-muted)] text-sm animate-pulse">Vez do adversário...</span>
+        <span className="text-text-muted text-sm animate-pulse">Vez do adversário...</span>
       </div>
     );
   }
@@ -38,24 +40,23 @@ export function ActionBar({ isMyTurn, pile, drawPileCount, onPlay, onPass, canPl
         variant="primary"
         size="md"
         onClick={onPlay}
-        disabled={!canPlay || selectedIndices.length === 0}
+        disabled={!canPlay}
         className="min-w-[80px] sm:min-w-[120px]"
         data-testid="game-action-play-btn"
       >
-        {selectedIndices.length > 0 ? `Jogar (${selectedIndices.length})` : 'Jogar'}
+        {totalSelected > 0 ? `Jogar (${totalSelected})` : 'Jogar'}
       </Button>
       <Button
         variant="secondary"
         size="md"
         onClick={onPass}
-        disabled={isDuel && myDuelPlatesCount === 0}
         className="min-w-[80px] sm:min-w-[110px]"
         data-testid="game-action-pass-btn"
       >
         {isDuel ? passLabel : (
           <>
             Passar
-            <span className="text-[10px] text-[var(--color-text-muted)] ml-1">{passLabel}</span>
+            <span className="text-[10px] text-text-muted ml-1">{passLabel}</span>
           </>
         )}
       </Button>

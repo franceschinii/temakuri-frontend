@@ -28,10 +28,8 @@ export function validatePlayIndicesClient(
   const hasPlates = plateCards && plateCards.length > 0;
 
   if (indices.length === 0 && !hasPlates) return false;
-  // Pratos não podem ser jogados sem ao menos uma carta da mão
-  if (indices.length === 0 && hasPlates) return false;
   if (indices.some(i => i < 0 || i >= hand.length)) return false;
-  if (!isContiguous(indices)) return false;
+  if (indices.length > 0 && !isContiguous(indices)) return false;
 
   const handCards = [...indices].sort((a, b) => a - b).map(i => hand[i]);
   const allCards = hasPlates ? [...handCards, ...plateCards] : handCards;

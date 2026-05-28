@@ -14,7 +14,7 @@ export function useGame(roomCode: string) {
   const userId = useAuthStore(s => s.user?.id);
 
   const playSelectedCards = useCallback(() => {
-    if (selectedIndices.length === 0) return;
+    if (selectedIndices.length === 0 && selectedPlateIndices.length === 0) return;
     if (phase !== 'PLAYER_TURN') return;
     // Fix #6: guard contra race condition — se entre render e click o turno
     // virou de outro jogador, não enviar (backend rejeitaria com "Not the

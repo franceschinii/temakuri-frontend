@@ -640,10 +640,12 @@ export function GameBoard({ devForceState }: { devForceState?: GameBoardDevForce
   const recentActions = actionLog.slice(-2);
 
   const selectedPlateCards = (myDuelPlates ?? []).filter((_, i) => selectedPlateIndices.includes(i));
-  const canPlay = isMyTurn && phase === 'PLAYER_TURN' && selectedIndices.length > 0 && validatePlayIndicesClient(
-    myHand, selectedIndices, pile, saborActive, saborMinRequired,
-    selectedPlateCards.length > 0 ? selectedPlateCards : undefined,
-  );
+  const canPlay = isMyTurn && phase === 'PLAYER_TURN' &&
+    (selectedIndices.length > 0 || selectedPlateCards.length > 0) &&
+    validatePlayIndicesClient(
+      myHand, selectedIndices, pile, saborActive, saborMinRequired,
+      selectedPlateCards.length > 0 ? selectedPlateCards : undefined,
+    );
 
   const inGameHint = useInGameHint({
     phase,
@@ -803,8 +805,9 @@ export function GameBoard({ devForceState }: { devForceState?: GameBoardDevForce
             isBot: p.isBot,
             sessionWins: p.sessionWins,
           });
+          const theirPlates = duelPlates?.[p.userId];
           return (
-            <div key={p.userId} className="snap-start shrink-0">
+            <div key={p.userId} className="snap-start shrink-0 flex flex-col gap-0.5">
               {/* Compact: mobile e notebooks (qualquer largura mas altura < 900) */}
               <div className="[@media(min-height:900px)]:sm:hidden">
                 <OpponentRow player={p} isCurrentTurn={p.userId === currentTurnUserId} compact onClick={handleClick} />
@@ -813,6 +816,21 @@ export function GameBoard({ devForceState }: { devForceState?: GameBoardDevForce
               <div className="hidden [@media(min-height:900px)]:sm:block">
                 <OpponentRow player={p} isCurrentTurn={p.userId === currentTurnUserId} onClick={handleClick} />
               </div>
+              {/* Mobile: pratos do oponente abaixo da linha dele */}
+              {duelPlates && (
+                <div className="sm:hidden flex items-center gap-1 pl-1">
+                  {theirPlates && theirPlates.length > 0 ? (
+                    <>
+                      <span className="text-[9px] text-text-muted uppercase tracking-widest shrink-0">pratos</span>
+                      {theirPlates.map((card, i) => (
+                        <CardComponent key={card.id ?? i} card={card} small disabled />
+                      ))}
+                    </>
+                  ) : (
+                    <span className="text-[9px] text-danger italic">sem pratos</span>
+                  )}
+                </div>
+              )}
             </div>
           );
         })}
@@ -925,9 +943,9 @@ export function GameBoard({ devForceState }: { devForceState?: GameBoardDevForce
           </div>
         )}
 
-        {/* Duelo: hint de seleção de prato — só aparece se tiver pratos selecionáveis */}
+        {/* Duelo: hint de seleção de prato — desktop only (mobile tem os pratos inline) */}
         {isMyTurn && phase === 'PLAYER_TURN' && myDuelPlates && myDuelPlates.length > 0 && (
-          <span className="text-[10px] text-[var(--color-warning)] text-center">
+          <span className="hidden sm:inline text-[10px] text-warning text-center">
             Toque nos pratos (esq.) para combiná-los
           </span>
         )}
@@ -1073,6 +1091,32 @@ export function GameBoard({ devForceState }: { devForceState?: GameBoardDevForce
             </div>
           ) : (
             <>
+              {/* Mobile: meus pratos acima das cartas */}
+              {duelPlates && (
+                <div className="sm:hidden flex items-center gap-1.5 mb-2 flex-wrap">
+                  <span className="text-[9px] text-text-muted uppercase tracking-widest shrink-0">meus pratos</span>
+                  <div className="flex gap-1 flex-wrap">
+                    {(myDuelPlates ?? []).length > 0 ? (myDuelPlates ?? []).map((card, i) => {
+                      const isSelected = selectedPlateIndices.includes(i);
+                      const canSelect = isMyTurn && phase === 'PLAYER_TURN';
+                      return (
+                        <button
+                          key={card.id ?? i}
+                          onClick={canSelect ? () => togglePlateSelection(i) : undefined}
+                          disabled={!canSelect}
+                          className={cn(
+                            'transition-all rounded-lg',
+                            canSelect ? 'cursor-pointer' : 'cursor-default',
+                            isSelected ? 'ring-2 ring-warning ring-offset-1 ring-offset-surface scale-105' : '',
+                          )}
+                        >
+                          <CardComponent card={card} small disabled={!canSelect} />
+                        </button>
+                      );
+                    }) : <span className="text-[9px] text-danger italic">sem pratos</span>}
+                  </div>
+                </div>
+              )}
               <PlayerHand
                 hand={myHand}
                 isMyTurn={isMyTurn}
