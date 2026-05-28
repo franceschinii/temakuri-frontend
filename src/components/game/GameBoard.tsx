@@ -278,6 +278,7 @@ export function GameBoard({ devForceState }: { devForceState?: GameBoardDevForce
       setTimerKey(k => k + 1);
       setPickMode(false);
       setDrawnCard(null);
+      setDuelPickOpen(false);
       setActionPending(false);
       hasSubmittedPickRef.current = false;
       const { myHand, phase, players } = useGameStore.getState();
@@ -299,7 +300,7 @@ export function GameBoard({ devForceState }: { devForceState?: GameBoardDevForce
     } else {
       applyTurnChange();
     }
-  }, [roomCode, user?.id, setActionPending]));
+  }, [roomCode, user?.id, setActionPending, setDuelPickOpen]));
 
   useSocketEvent<{ userId: string; cards: Card[]; isSabor: boolean; usedPlates?: Card[]; remainingPlates?: Card[]; nextPhase?: 'TRICK_PICK' | 'PLAYER_TURN' }>('game:cards_played', useCallback(({ userId, cards, isSabor, usedPlates, remainingPlates, nextPhase }) => {
     lastActionAtRef.current = Date.now();
@@ -874,6 +875,38 @@ export function GameBoard({ devForceState }: { devForceState?: GameBoardDevForce
           consecutivePasses={consecutivePasses}
           pickMode={pickMode}
           isDuel={isDuel}
+          leftPanel={duelPlates ? (
+            <div className="flex flex-col gap-1.5 self-start pt-1 shrink-0">
+              <span className="text-[9px] uppercase tracking-widest text-text-muted font-semibold">Pratos do Dia</span>
+              {Object.entries(duelPlates).map(([playerId, plates]) => {
+                const platePlayer = players.find(p => p.userId === playerId);
+                const isMe = playerId === user?.id;
+                return (
+                  <div key={playerId} className="flex flex-col gap-0.5">
+                    <span className="text-[9px] text-text-muted truncate max-w-[80px]">{platePlayer?.username ?? '...'}</span>
+                    <div className="flex gap-1">
+                      {plates.length > 0 ? plates.map((card, i) => {
+                        const isSelected = isMe && selectedPlateIndices.includes(i);
+                        const canSelect = isMe && isMyTurn && phase === 'PLAYER_TURN';
+                        return (
+                          <button
+                            key={card.id ?? i}
+                            onClick={canSelect ? () => togglePlateSelection(i) : undefined}
+                            disabled={!canSelect}
+                            className={`transition-all rounded-lg ${canSelect ? 'cursor-pointer' : 'cursor-default'} ${isSelected ? 'ring-2 ring-warning ring-offset-1 ring-offset-surface scale-105' : ''}`}
+                          >
+                            <CardComponent card={card} small disabled={!canSelect} />
+                          </button>
+                        );
+                      }) : (
+                        <span className="text-[9px] text-danger italic">sem pratos</span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : undefined}
         />
 
         {/* Slot reservado para mensagem de pick: 20px mesmo quando vazio */}
@@ -1138,39 +1171,6 @@ export function GameBoard({ devForceState }: { devForceState?: GameBoardDevForce
         hideTriggers
       />
 
-      {/* Pratos do Dia — painel fixo esquerdo, nao interfere no layout central */}
-      {duelPlates && (
-        <div className="fixed left-2 sm:left-3 top-16 z-30 flex flex-col gap-1.5">
-          <span className="text-[9px] uppercase tracking-widest text-text-muted font-semibold">Pratos do Dia</span>
-          {Object.entries(duelPlates).map(([playerId, plates]) => {
-            const platePlayer = players.find(p => p.userId === playerId);
-            const isMe = playerId === user?.id;
-            return (
-              <div key={playerId} className="flex flex-col gap-0.5">
-                <span className="text-[9px] text-text-muted">{platePlayer?.username ?? '...'}</span>
-                <div className="flex gap-1">
-                  {plates.length > 0 ? plates.map((card, i) => {
-                    const isSelected = isMe && selectedPlateIndices.includes(i);
-                    const canSelect = isMe && isMyTurn && phase === 'PLAYER_TURN';
-                    return (
-                      <button
-                        key={card.id ?? i}
-                        onClick={canSelect ? () => togglePlateSelection(i) : undefined}
-                        disabled={!canSelect}
-                        className={`transition-all rounded-lg ${canSelect ? 'cursor-pointer' : 'cursor-default'} ${isSelected ? 'ring-2 ring-warning ring-offset-1 ring-offset-surface scale-105' : ''}`}
-                      >
-                        <CardComponent card={card} small disabled={!canSelect} />
-                      </button>
-                    );
-                  }) : (
-                    <span className="text-[9px] text-danger italic">sem pratos</span>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
 
       {/* Reactions overlay — dedicated zone above reaction bar */}
       <div className="fixed bottom-24 right-3 sm:right-16 flex flex-col-reverse gap-1.5 z-40 pointer-events-none items-end min-w-[96px]">
@@ -1205,7 +1205,7 @@ export function GameBoard({ devForceState }: { devForceState?: GameBoardDevForce
       />
 
       {/* Modals */}
-      {roundSummaryData && (
+      {roundSummaryData && !gameOverData && (
         <RoundSummary
           loserIds={roundSummaryData.loserIds}
           playerTokens={roundSummaryData.playerTokens}

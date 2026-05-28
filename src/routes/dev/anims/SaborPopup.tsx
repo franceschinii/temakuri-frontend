@@ -84,9 +84,7 @@ function PopupInner({
       style={{
         position: 'fixed',
         inset: 0,
-        background: 'oklch(0% 0 0 / 0.55)',
-        backdropFilter: 'blur(6px)',
-        WebkitBackdropFilter: 'blur(6px)',
+        background: 'oklch(6% 0 0 / 0.88)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
