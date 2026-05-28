@@ -789,10 +789,63 @@ export function GameBoard({ devForceState }: { devForceState?: GameBoardDevForce
         }
       />
 
-      {/* Opponents — em mobile e em notebooks (altura < 900px) usa OpponentRow
-          compact, que e horizontal e baixo (~50px de altura). Em monitores
-          desktop com altura suficiente, usa o full vertical com fan de cartas. */}
-      <div className="flex gap-1.5 px-2 py-1 [@media(min-height:900px)]:py-2 border-b border-[var(--color-border)] bg-[var(--color-surface)] overflow-x-auto snap-x snap-mandatory sm:justify-center [@media(min-height:900px)]:sm:flex-wrap [@media(min-height:900px)]:sm:overflow-visible [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      {/* Duelo mobile: barra full-width — sem scroll, oponente + pratos inline */}
+      {isDuel && opponents.length > 0 && (() => {
+        const opp = opponents[0];
+        const theirPlates = duelPlates?.[opp.userId];
+        return (
+          <button
+            type="button"
+            className="sm:hidden w-full flex items-center gap-2.5 px-3 py-2 border-b border-[var(--color-border)] bg-[var(--color-surface)] text-left active:bg-[var(--color-panel)] transition-colors"
+            onClick={() => openPlayerDialog({
+              userId: opp.userId,
+              username: opp.username,
+              avatarIndex: opp.avatarIndex,
+              level: opp.level,
+              pds: opp.pds,
+              isAdmin: opp.isAdmin,
+              isGuest: opp.isGuest,
+              isBot: opp.isBot,
+              sessionWins: opp.sessionWins,
+            })}
+          >
+            <div className={cn(
+              'rounded-full shrink-0',
+              opp.userId === currentTurnUserId ? 'ring-2 ring-[var(--color-accent-strong)] ring-offset-1 ring-offset-[var(--color-surface)]' : '',
+            )}>
+              <AvatarWithBorder index={opp.avatarIndex} level={opp.level} size={32} />
+            </div>
+            <div className="flex flex-col min-w-0 flex-1">
+              <span className="text-xs font-semibold truncate" style={{ color: 'var(--color-text-primary)' }}>
+                {opp.username}
+              </span>
+              <span className="text-[10px]" style={{ color: 'var(--color-text-muted)' }}>{opp.cardCount} cartas</span>
+            </div>
+            {opp.userId === currentTurnUserId && (
+              <span className="text-[10px] px-1.5 py-0.5 rounded-full border border-[var(--color-border)] bg-[var(--color-panel)] shrink-0" style={{ color: 'var(--color-text-muted)' }}>
+                vez dele
+              </span>
+            )}
+            {duelPlates && (
+              <div className="flex items-center gap-1 shrink-0" onClick={e => e.stopPropagation()}>
+                {theirPlates && theirPlates.length > 0 ? (
+                  theirPlates.map((card, i) => (
+                    <CardComponent key={card.id ?? i} card={card} small disabled />
+                  ))
+                ) : (
+                  <span className="text-[10px] italic" style={{ color: 'var(--color-danger)' }}>sem pratos</span>
+                )}
+              </div>
+            )}
+          </button>
+        );
+      })()}
+
+      {/* Faixa de oponentes: desktop sempre; mobile só em partidas não-duelo */}
+      <div className={cn(
+        "gap-1.5 px-2 py-1 [@media(min-height:900px)]:py-2 border-b border-[var(--color-border)] bg-[var(--color-surface)] overflow-x-auto snap-x snap-mandatory sm:justify-center [@media(min-height:900px)]:sm:flex-wrap [@media(min-height:900px)]:sm:overflow-visible [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
+        isDuel ? "hidden sm:flex" : "flex",
+      )}>
         {opponents.map(p => {
           const handleClick = () => openPlayerDialog({
             userId: p.userId,
@@ -805,32 +858,14 @@ export function GameBoard({ devForceState }: { devForceState?: GameBoardDevForce
             isBot: p.isBot,
             sessionWins: p.sessionWins,
           });
-          const theirPlates = duelPlates?.[p.userId];
           return (
-            <div key={p.userId} className="snap-start shrink-0 flex flex-col gap-0.5">
-              {/* Compact: mobile e notebooks (qualquer largura mas altura < 900) */}
+            <div key={p.userId} className="snap-start shrink-0">
               <div className="[@media(min-height:900px)]:sm:hidden">
                 <OpponentRow player={p} isCurrentTurn={p.userId === currentTurnUserId} compact onClick={handleClick} />
               </div>
-              {/* Full: desktop com altura sobrando */}
               <div className="hidden [@media(min-height:900px)]:sm:block">
                 <OpponentRow player={p} isCurrentTurn={p.userId === currentTurnUserId} onClick={handleClick} />
               </div>
-              {/* Mobile: pratos do oponente abaixo da linha dele */}
-              {duelPlates && (
-                <div className="sm:hidden flex items-center gap-1 pl-1">
-                  {theirPlates && theirPlates.length > 0 ? (
-                    <>
-                      <span className="text-[9px] text-text-muted uppercase tracking-widest shrink-0">pratos</span>
-                      {theirPlates.map((card, i) => (
-                        <CardComponent key={card.id ?? i} card={card} small disabled />
-                      ))}
-                    </>
-                  ) : (
-                    <span className="text-[9px] text-danger italic">sem pratos</span>
-                  )}
-                </div>
-              )}
             </div>
           );
         })}
@@ -1093,9 +1128,9 @@ export function GameBoard({ devForceState }: { devForceState?: GameBoardDevForce
             <>
               {/* Mobile: meus pratos acima das cartas */}
               {duelPlates && (
-                <div className="sm:hidden flex items-center gap-1.5 mb-2 flex-wrap">
-                  <span className="text-[9px] text-text-muted uppercase tracking-widest shrink-0">meus pratos</span>
-                  <div className="flex gap-1 flex-wrap">
+                <div className="sm:hidden flex items-center gap-2 px-2 py-1.5 mb-1.5 rounded-xl border border-border/40 bg-panel/50">
+                  <span className="text-[10px] uppercase tracking-widest shrink-0 font-medium" style={{ color: 'var(--color-text-muted)' }}>Meus pratos</span>
+                  <div className="flex gap-1.5 flex-wrap">
                     {(myDuelPlates ?? []).length > 0 ? (myDuelPlates ?? []).map((card, i) => {
                       const isSelected = selectedPlateIndices.includes(i);
                       const canSelect = isMyTurn && phase === 'PLAYER_TURN';
@@ -1105,15 +1140,15 @@ export function GameBoard({ devForceState }: { devForceState?: GameBoardDevForce
                           onClick={canSelect ? () => togglePlateSelection(i) : undefined}
                           disabled={!canSelect}
                           className={cn(
-                            'transition-all rounded-lg',
-                            canSelect ? 'cursor-pointer' : 'cursor-default',
+                            'transition-all rounded-lg p-0.5',
+                            canSelect ? 'cursor-pointer active:scale-95' : 'cursor-default',
                             isSelected ? 'ring-2 ring-warning ring-offset-1 ring-offset-surface scale-105' : '',
                           )}
                         >
                           <CardComponent card={card} small disabled={!canSelect} />
                         </button>
                       );
-                    }) : <span className="text-[9px] text-danger italic">sem pratos</span>}
+                    }) : <span className="text-[10px] italic" style={{ color: 'var(--color-danger)' }}>sem pratos</span>}
                   </div>
                 </div>
               )}
