@@ -18,11 +18,11 @@ export function Modal({ open, onClose, title, description, children, className, 
   return (
     <Dialog.Root open={open} onOpenChange={(o) => !o && onClose?.()}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
+        <Dialog.Overlay className="fixed inset-0 bg-black/60 backdrop-blur-sm z-110 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
         <Dialog.Content
           data-testid={testId}
           className={cn(
-            'fixed left-1/2 top-1/2 z-50 w-[calc(100vw-2rem)] max-w-md max-h-[90dvh] -translate-x-1/2 -translate-y-1/2 rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)] shadow-2xl flex flex-col overflow-hidden',
+            'fixed left-1/2 top-1/2 z-120 w-[calc(100vw-2rem)] max-w-md max-h-[90dvh] -translate-x-1/2 -translate-y-1/2 rounded-xl border border-border bg-panel shadow-2xl flex flex-col overflow-hidden',
             'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95',
             className,
           )}

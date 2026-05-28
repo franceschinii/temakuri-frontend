@@ -877,7 +877,7 @@ export function GameBoard({ devForceState }: { devForceState?: GameBoardDevForce
       {/* Center area — mantem layout flex, mas com altura reservada para overlays
           e sem overflow-y-auto que causava layout shift. Conteudo opcional usa
           min-h reservado em vez de entrar/sair do DOM. */}
-      <div className="flex-1 min-h-0 flex flex-col items-center justify-center gap-1.5 [@media(min-height:900px)]:gap-2 px-2 py-1.5 [@media(min-height:900px)]:py-3 sm:px-4">
+      <div className="relative flex-1 min-h-0 flex flex-col items-center justify-center gap-1.5 [@media(min-height:900px)]:gap-2 px-2 py-1.5 [@media(min-height:900px)]:py-3 sm:px-4">
         {/* Banner de eventos importantes (turno, sabor, etc.) — topo da area de mesa,
             altura reservada para nao empurrar a mesa quando entra/sai. */}
         <div className="h-7 [@media(min-height:900px)]:h-9 flex items-center justify-center w-full pointer-events-none">
@@ -919,6 +919,45 @@ export function GameBoard({ devForceState }: { devForceState?: GameBoardDevForce
           </AnimatePresence>
         </div>
 
+        {/* Pratos do Dia — painel absoluto esquerdo, desktop only.
+            Fora do flex da PlayArea para não descentrar o pile. */}
+        {duelPlates && (
+          <div className="hidden sm:flex absolute left-2 top-0 flex-col gap-1.5 self-start pt-1 z-10">
+            <span className="text-[9px] uppercase tracking-widest text-text-muted font-semibold">Pratos do Dia</span>
+            {Object.entries(duelPlates).map(([playerId, plates]) => {
+              const platePlayer = players.find(p => p.userId === playerId);
+              const isMe = playerId === user?.id;
+              return (
+                <div key={playerId} className="flex flex-col gap-0.5">
+                  <span className="text-[9px] text-text-muted truncate max-w-[80px]">{platePlayer?.username ?? '...'}</span>
+                  <div className="flex gap-1">
+                    {plates.length > 0 ? plates.map((card, i) => {
+                      const isSelected = isMe && selectedPlateIndices.includes(i);
+                      const canSelect = isMe && isMyTurn && phase === 'PLAYER_TURN';
+                      return (
+                        <button
+                          key={card.id ?? i}
+                          onClick={canSelect ? () => togglePlateSelection(i) : undefined}
+                          disabled={!canSelect}
+                          className={cn(
+                            'transition-all rounded-lg',
+                            canSelect ? 'cursor-pointer' : 'cursor-default',
+                            isSelected ? 'ring-2 ring-warning ring-offset-1 ring-offset-surface scale-105' : '',
+                          )}
+                        >
+                          <CardComponent card={card} small disabled={!canSelect} />
+                        </button>
+                      );
+                    }) : (
+                      <span className="text-[9px] text-danger italic">sem pratos</span>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
         <PlayArea
           pile={pile}
           drawPileCount={drawPileCount}
@@ -927,39 +966,6 @@ export function GameBoard({ devForceState }: { devForceState?: GameBoardDevForce
           saborMinRequired={saborMinRequired}
           consecutivePasses={consecutivePasses}
           pickMode={pickMode}
-          isDuel={isDuel}
-          leftPanel={duelPlates ? (
-            <div className="flex flex-col gap-1.5 self-start pt-1 shrink-0">
-              <span className="text-[9px] uppercase tracking-widest text-text-muted font-semibold">Pratos do Dia</span>
-              {Object.entries(duelPlates).map(([playerId, plates]) => {
-                const platePlayer = players.find(p => p.userId === playerId);
-                const isMe = playerId === user?.id;
-                return (
-                  <div key={playerId} className="flex flex-col gap-0.5">
-                    <span className="text-[9px] text-text-muted truncate max-w-[80px]">{platePlayer?.username ?? '...'}</span>
-                    <div className="flex gap-1">
-                      {plates.length > 0 ? plates.map((card, i) => {
-                        const isSelected = isMe && selectedPlateIndices.includes(i);
-                        const canSelect = isMe && isMyTurn && phase === 'PLAYER_TURN';
-                        return (
-                          <button
-                            key={card.id ?? i}
-                            onClick={canSelect ? () => togglePlateSelection(i) : undefined}
-                            disabled={!canSelect}
-                            className={`transition-all rounded-lg ${canSelect ? 'cursor-pointer' : 'cursor-default'} ${isSelected ? 'ring-2 ring-warning ring-offset-1 ring-offset-surface scale-105' : ''}`}
-                          >
-                            <CardComponent card={card} small disabled={!canSelect} />
-                          </button>
-                        );
-                      }) : (
-                        <span className="text-[9px] text-danger italic">sem pratos</span>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          ) : undefined}
         />
 
         {/* Slot reservado para mensagem de pick: 20px mesmo quando vazio */}

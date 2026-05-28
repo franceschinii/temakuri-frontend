@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react';
-import type { ReactNode } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CardComponent } from './CardComponent';
 import { CardSlamEffect, CardImpactEffect, StageTremor } from './effects';
@@ -14,9 +13,6 @@ interface PlayAreaProps {
   saborMinRequired: number;
   consecutivePasses: number;
   pickMode?: boolean;
-  isDuel?: boolean;
-  /** Painel opcional exibido no slot esquerdo (onde ficaria o Monte em modo normal). Usado para Pratos do Dia no duelo. */
-  leftPanel?: ReactNode;
 }
 
 function PileStack({ count, topCard, label, countTestId }: { count: number; topCard?: Card; label: string; countTestId?: string }) {
@@ -58,7 +54,7 @@ function PileStack({ count, topCard, label, countTestId }: { count: number; topC
   );
 }
 
-export function PlayArea({ pile, drawPileCount, discardPile, saborActive, saborMinRequired, consecutivePasses, pickMode, isDuel, leftPanel }: PlayAreaProps) {
+export function PlayArea({ pile, drawPileCount, discardPile, saborActive, saborMinRequired, consecutivePasses, pickMode }: PlayAreaProps) {
   const topDiscard = discardPile[discardPile.length - 1];
 
   const prevPileLenRef = useRef(pile.length);
@@ -93,18 +89,9 @@ export function PlayArea({ pile, drawPileCount, discardPile, saborActive, saborM
 
   return (
     <div className="flex items-start justify-center gap-1.5 sm:gap-3 w-full max-w-2xl mx-auto px-2 sm:px-4" data-testid="play-area">
-      {/* Slot esquerdo: Monte (modo normal) ou painel de pratos (duelo — só desktop) */}
-      {!isDuel ? (
-        <>
-          <PileStack count={drawPileCount} label="Monte" countTestId="draw-pile-count" />
-          <div className="w-px bg-border self-stretch mt-6" />
-        </>
-      ) : leftPanel ? (
-        <div className="hidden sm:contents">
-          {leftPanel}
-          <div className="w-px bg-border self-stretch mt-6" />
-        </div>
-      ) : null}
+      {/* Slot esquerdo: Monte */}
+      <PileStack count={drawPileCount} label="Monte" countTestId="draw-pile-count" />
+      <div className="w-px bg-border self-stretch mt-6" />
 
       {/* Active play area (center) */}
       <div className="relative flex-1">
